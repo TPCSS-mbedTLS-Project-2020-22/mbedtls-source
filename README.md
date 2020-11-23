@@ -1,6 +1,6 @@
 README
 
-[Link](https://github.com/TPCSS-mbedTLS-Project-2020-22/source/wiki) to wiki page : 
+*[Link](https://github.com/TPCSS-mbedTLS-Project-2020-22/source/wiki) to wiki page.
 
 # Contributors
 
