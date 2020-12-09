@@ -63,3 +63,7 @@ fn mbedtls_net_connect(ctx: mbedtls_net_context, host:String, port:String, proto
 fn mbedtls_net_bind(ctx: mbedtls_net_context, host:String, port:String, proto:i32) -> i32 {
     1
 }
+
+pub fn print(){
+    println!("Hey, inside tcp_ip library");
+}
