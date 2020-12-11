@@ -6,4 +6,4 @@
 */
 
 ///This is a bug in the library
-pub const CORRUPTION_DETECTED:i16 = -0x006E;
+pub const ERR_ERROR_CORRUPTION_DETECTED : i32 = -0x006E;

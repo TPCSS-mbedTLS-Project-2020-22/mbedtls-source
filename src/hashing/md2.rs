@@ -43,16 +43,12 @@ const PI_SUBST: [u8; 256] =
  *
  */
 
-struct Context{
-    /// checksum of the data block
-    cksum: [u8; 16],    
-    /// intermediate digest state
-    state: [u8; 48],    
-    /// data block being processed
-    buffer: [u8; 16],   
-    /// amount of data in buffer
-    left: usize         
+fn zeroize(a: &mut Vec<u8>){
+    for i in &mut a.iter_mut(){
+        *i = 0;
+    }
 }
+
 
 /**
  * \brief          Initialize MD2 context
@@ -64,10 +60,10 @@ struct Context{
  *                 stronger message digests instead.
  *
  */
-fn init(ctx: &mut Context){
-    ctx.cksum = [0; 16];
-    ctx.state = [0; 48];
-    ctx.buffer = [0; 16];
+pub(super) fn init(ctx: &mut super::MdContext_MD2){
+    ctx.cksum = vec![0; 16];
+    ctx.state = vec![0; 48];
+    ctx.buffer = vec![0; 16];
     ctx.left = 0;
 }
 
@@ -81,13 +77,15 @@ fn init(ctx: &mut Context){
  *                 stronger message digests instead.
  *
  */
-fn free(ctx: &mut Context){
-    //TODO: check if this is correct. 
+pub(super) fn free(ctx: &mut super::MdContext_MD2){
     // In perticular what is difference
     // between mbedtls_md2_free and mbedtls_md2_init
-    ctx.cksum = [0; 16];
-    ctx.state = [0; 48];
-    ctx.buffer = [0; 16];
+    zeroize(&mut ctx.cksum);
+    ctx.cksum.resize(0, 0);
+    zeroize(&mut ctx.state);
+    ctx.state.resize(0, 0);
+    zeroize(&mut ctx.buffer);
+    ctx.buffer.resize(0, 0);
     ctx.left = 0;
 }
 
@@ -102,7 +100,7 @@ fn free(ctx: &mut Context){
  *                 stronger message digests instead.
  *
  */
-fn clone(dst: &mut Context, src: &Context){
+pub(super) fn clone(dst: &mut super::MdContext_MD2, src: &super::MdContext_MD2){
     dst.buffer[..].clone_from_slice(&src.buffer[..]);
     dst.cksum[..].clone_from_slice(&src.cksum[..]);
     dst.state[..].clone_from_slice(&src.state[..]);
@@ -121,10 +119,10 @@ fn clone(dst: &mut Context, src: &Context){
  *                 stronger message digests instead.
  *
  */
-fn starts_ret(ctx: &mut Context) -> i32{
-    ctx.cksum = [0; 16];
-    ctx.state = [0; 48];
-    ctx.buffer = [0; 16];
+pub(super) fn starts_ret(ctx: &mut super::MdContext_MD2) -> i32{
+    zeroize(&mut ctx.cksum);
+    zeroize(&mut ctx.state);
+    zeroize(&mut ctx.buffer);
     ctx.left = 0;
     return 0;
 }
@@ -143,8 +141,8 @@ fn starts_ret(ctx: &mut Context) -> i32{
  *                 stronger message digests instead.
  *
  */
-fn update_ret(ctx: &mut Context, input: &Vec<u8>, _ilen: usize)->i32{
-    let mut ret:i32 = i32::from(error::CORRUPTION_DETECTED);
+pub(super) fn update_ret(ctx: &mut super::MdContext_MD2, input: &Vec<u8>, _ilen: usize)->i32{
+    let mut ret : i32 = error::ERR_ERROR_CORRUPTION_DETECTED;
     let mut fill: usize;
     let mut iptr: usize=0;
     let mut ilen = _ilen;
@@ -187,10 +185,10 @@ fn update_ret(ctx: &mut Context, input: &Vec<u8>, _ilen: usize)->i32{
  *
  */
 
-fn finish_ret(ctx: &mut Context, output: &mut[u8; 16])->i32{
+pub(super) fn finish_ret(ctx: &mut super::MdContext_MD2, output: &mut Vec<u8>)->i32{
     use std::convert::TryFrom;
 
-    let mut ret:i32 = i32::from(error::CORRUPTION_DETECTED);
+    let mut ret:i32 = error::ERR_ERROR_CORRUPTION_DETECTED;
     let mut x: u8 = u8::try_from(16-ctx.left).unwrap();
 
     for i in ctx.left..16{
@@ -225,7 +223,7 @@ fn finish_ret(ctx: &mut Context, output: &mut[u8; 16])->i32{
  *                 stronger message digests instead.
  *
  */
-fn internal_process(ctx: &mut Context) -> i32{
+pub(super) fn internal_process(ctx: &mut super::MdContext_MD2) -> i32{
     let mut t: u8 = 0;
     
     for i in 0..16{
@@ -263,9 +261,14 @@ fn internal_process(ctx: &mut Context) -> i32{
  *                 stronger message digests instead.
  *
  */
-pub fn ret(input: &Vec<u8>, ilen: usize, output: &mut[u8; 16]) -> i32{
-    let mut ret:i32 = i32::from(error::CORRUPTION_DETECTED);
-    let mut ctx: Context = Context { cksum: [0;16], state:[0;48], buffer: [0;16], left: 0,};
+pub fn ret(input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> i32{
+    let mut ret:i32 = error::ERR_ERROR_CORRUPTION_DETECTED;
+    let mut ctx: super::MdContext_MD2 = super::MdContext_MD2{ 
+            cksum: vec![0;16], 
+            state: vec![0;48], 
+            buffer: vec![0;16], 
+            left: 0,
+        };
     init(&mut ctx);
     
     ret = starts_ret(&mut ctx);
@@ -333,10 +336,10 @@ pub mod test{
     use super::ret;
     #[test]
     pub fn self_test(){
-        let mut md2sum: [u8; 16] = [0; 16];
+        let mut md2sum: Vec<u8> = vec![0; 16];
         for i in 0..7{
             assert_eq!(0, ret(&test_str[i].as_bytes().to_vec(), test_strlen[i], &mut md2sum));
-            assert_eq!(cmp::Ordering::Equal, compare(&md2sum, &test_sum[i]));
+            assert_eq!(cmp::Ordering::Equal, compare(md2sum.as_ref(), &test_sum[i]));
         }
     }
 }
