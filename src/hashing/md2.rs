@@ -34,21 +34,11 @@ const PI_SUBST: [u8; 256] =
     0x8D, 0x33, 0x9F, 0x11, 0x83, 0x14
 ];
 
-/**
- * \brief          MD2 context structure
- *
- * \warning        MD2 is considered a weak message digest and its use
- *                 constitutes a security risk. We recommend considering
- *                 stronger message digests instead.
- *
- */
-
 fn zeroize(a: &mut Vec<u8>){
     for i in &mut a.iter_mut(){
         *i = 0;
     }
 }
-
 
 /**
  * \brief          Initialize MD2 context

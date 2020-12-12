@@ -1,4 +1,6 @@
 pub mod md2;
+pub mod md4;
+
 use super::error;
 
 pub const ERR_MD_FEATURE_UNAVAILABLE : i32 = -0x5080;  /**< The selected feature is not available. */
@@ -32,7 +34,7 @@ pub enum md_type_t{
     RIPEMD160, 
 }
 
-const supported_digests: [md_type_t; 1] = [
+const supported_digests: [md_type_t; 2] = [
         #[cfg(feature = "MD2")]
         md_type_t::MD2,
         
@@ -70,7 +72,7 @@ pub const md2_info: md_info_t = md_info_t{
 };
 
 #[cfg(feature = "MD4")]
-const md4_info: md2_info_t = md_info_t{
+const md4_info: md_info_t = md_info_t{
     name: ("MD4"),
     md_type: md_type_t::MD4,
     size: 16,
@@ -78,7 +80,7 @@ const md4_info: md2_info_t = md_info_t{
 };
 
 #[cfg(feature = "MD5")]
-const md5_info: md2_info_t = md_info_t{
+const md5_info: md_info_t = md_info_t{
     name: ("MD5"),
     md_type: md_type_t::MD5,
     size: 16,
@@ -86,7 +88,7 @@ const md5_info: md2_info_t = md_info_t{
 };
 
 #[cfg(feature = "RIPEMD160")]
-const ripemd160_info: md2_info_t = md_info_t{
+const ripemd160_info: md_info_t = md_info_t{
     name: ("RIPEMD160"),
     md_type: md_type_t::RIPEMD160,
     size: 20,
@@ -94,7 +96,7 @@ const ripemd160_info: md2_info_t = md_info_t{
 };
 
 #[cfg(feature = "SHA1")]
-const sha1_info: md2_info_t = md_info_t{
+const sha1_info: md_info_t = md_info_t{
     name: ("SHA1"),
     md_type: md_type_t::SHA1,
     size: 20,
@@ -102,7 +104,7 @@ const sha1_info: md2_info_t = md_info_t{
 };
 
 #[cfg(all(feature = "SHA256", not(feature = "NO_SHA224")))]
-const sha224_info: md2_info_t = md_info_t{
+const sha224_info: md_info_t = md_info_t{
     name: ("SHA224"),
     md_type: md_type_t::SHA224,
     size: 28,
@@ -110,7 +112,7 @@ const sha224_info: md2_info_t = md_info_t{
 };
 
 #[cfg(feature = "SHA256")]
-const sha256_info: md2_info_t = md_info_t{
+const sha256_info: md_info_t = md_info_t{
     name: ("SHA256"),
     md_type: md_type_t::SHA256,
     size: 32,
@@ -118,7 +120,7 @@ const sha256_info: md2_info_t = md_info_t{
 };
 
 #[cfg(all(feature = "SHA512", not(feature = "NO_SHA384")))]
-const sha384_info: md2_info_t = md_info_t{
+const sha384_info: md_info_t = md_info_t{
     name: ("SHA384"),
     md_type: md_type_t::SHA384,
     size: 48,
@@ -126,7 +128,7 @@ const sha384_info: md2_info_t = md_info_t{
 };
 
 #[cfg(feature = "SHA512")]
-const sha512_info: md2_info_t = md_info_t{
+const sha512_info: md_info_t = md_info_t{
     name: ("SHA512"),
     md_type: md_type_t::SHA512,
     size: 64,
@@ -654,6 +656,35 @@ fn md(md_info: &md_info_t, input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -
     };
 }
 
+// #[cfg(feature = "FS_IO")]
+fn md_file(md_info: &md_info_t, path_str: &String, output: &mut Vec<u8>) -> i32 {
+    use std::fs::File;
+    use std::path::Path;
+    use std::io::{self, prelude::*, BufReader};
+
+    let mut ret: i32 = error::ERR_ERROR_CORRUPTION_DETECTED;
+    let path = Path::new(path_str);
+    let mut file = match File::open(path){
+        Err(why) => panic!("couldn't open {}: {}", path.display(), why),
+        Ok(file) => file,
+    };
+
+    let mut s = String::new();
+    match file.read_to_string(&mut s){
+        Err(why) => panic!("couldn't read {}: {}", path.display(), why),
+        Ok(_) => (),
+    }
+    
+    let s_vec: Vec<u8> = s.as_bytes().to_vec();
+    ret = md(md_info, &s_vec, s_vec.len(), output);
+    if ret!=0{
+        return ret;
+    }
+
+    return 0;
+}
+
+
 /**
  * \brief           This function sets the HMAC key and prepares to
  *                  authenticate a new message.
@@ -675,7 +706,6 @@ fn md(md_info: &md_info_t, input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -
 pub fn hmac_starts(ctx: &mut Context, key: &Vec<u8>, mut keylen: usize) -> i32{
     let mut ret: i32 = error::ERR_ERROR_CORRUPTION_DETECTED;
     let mut final_key: Vec<u8> = key.clone();
-    let mut i: usize = 0;
 
     if ctx.hmac_ctx.len() != usize::from(ctx.md_info.block_size*2){
         return ERR_MD_BAD_INPUT_DATA;
@@ -736,7 +766,7 @@ pub fn hmac_update(ctx: &mut Context, input: &Vec<u8>, ilen: usize) -> i32{
 
 pub fn hmac_finish(ctx: &mut Context, output: &mut Vec<u8>) -> i32{
     let mut ret: i32 = error::ERR_ERROR_CORRUPTION_DETECTED;
-    let mut tmp: Vec<u8> = vec![0; MD_MAX_SIZE];
+    let mut tmp: Vec<u8> = vec![0; output.len()];
     
     if ctx.hmac_ctx.len() != usize::from(ctx.md_info.block_size*2){
         return ERR_MD_BAD_INPUT_DATA;
@@ -783,7 +813,7 @@ pub fn hmac_reset(ctx: &mut Context) -> i32{
     return update(ctx, &ipad, ctx.md_info.block_size as usize);
 }
 
-fn hmac(md_info: &'static md_info_t, key: &Vec<u8>, keylen: usize, input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> i32{
+fn hmac(md_info: &md_info_t, key: &Vec<u8>, keylen: usize, input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> i32{
     let mut ctx = create_context();
     let mut ret = error::ERR_ERROR_CORRUPTION_DETECTED;
     
@@ -799,16 +829,22 @@ fn hmac(md_info: &'static md_info_t, key: &Vec<u8>, keylen: usize, input: &Vec<u
         return ret;
     }
 
+    ret =  hmac_update(ctx.as_mut(), input, ilen);
+    if ret!=0{
+        free(ctx.as_mut());
+        return ret;
+    }
+
     ret = hmac_finish(ctx.as_mut(), output);
     if ret!=0{
-        free(&mut ctx);
+        free(ctx.as_mut());
         return ret;
     }
 
     return ret;
 }
 
-fn process(ctx: &mut Context, data: &Vec<u8>)->i32{
+fn process(ctx: &mut Context, data: &[u8])->i32{
     match ctx.md_info.md_type{
         #[cfg(feature = "MD2")]
         md_type_t::MD2 => return md2::internal_process(&mut ctx.md_ctx_md_2),
@@ -897,11 +933,55 @@ mod test{
     }
 
     #[test]
-    pub fn self_test(){
+    pub fn md_test(){
         let mut md2sum: Vec<u8> = vec![0; 16];
         for i in 0..7{
-            assert_eq!(0, super::md( &super::md2_info, &test_str[i].as_bytes().to_vec(), test_strlen[i], &mut md2sum));
-            assert_eq!(cmp::Ordering::Equal, compare(md2sum.as_ref(), &test_sum[i]));
+            assert_eq!(0, 
+                super::md( &super::md2_info, 
+                &test_str[i].as_bytes().to_vec(), 
+                test_strlen[i], &mut md2sum)
+            );
+
+            assert_eq!(cmp::Ordering::Equal, 
+                compare(md2sum.as_ref(), 
+                &test_sum[i])
+            );
         }
     }
+
+    #[test]
+    pub fn md_file_test(){
+        // TODO: This test uses hardcoded absolute file path. Fix this.
+        let mut md2sum: Vec<u8> = vec![0; 16];
+        let path = String::from(
+            "C:\\Users\\vimal patel\\Desktop\\TPCSS_MBED_TLS\\source\\src\\hashing\\test\\md2_input.txt"
+        );
+        assert_eq!(0, super::md_file( &super::md2_info, &path, &mut md2sum));
+        assert_eq!(cmp::Ordering::Equal, compare(md2sum.as_ref(), &test_sum[6]));
+    }
+
+    #[test]
+    fn hmac_test(){
+        // MD2 based HMAC tests
+        let key = String::from("key");
+        let input = String::from("The quick brown fox jumps over the lazy dog");
+        let actual_output: [u8; 16] = [
+            0x13, 0x75, 0x8b, 0x95, 
+            0x34, 0xbf, 0xb3, 0x8d,
+            0x85, 0x04, 0x57, 0x81,
+            0x46, 0x13, 0xb0, 0xc1
+        ];
+        let mut output: Vec<u8> = vec![0; super::md2_info.size as usize];
+        let key_vec = key.as_bytes().to_vec();
+        let input_vec = input.as_bytes().to_vec();
+        
+        assert_eq!(0, super::hmac(&super::md2_info, 
+                        &key_vec, key_vec.len(), 
+                        &input_vec, input_vec.len(), 
+                        &mut output));
+        assert_eq!(cmp::Ordering::Equal, 
+                    compare(output.as_ref(), 
+                    &actual_output));
+    }
+
 }
