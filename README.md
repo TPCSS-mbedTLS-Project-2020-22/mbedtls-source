@@ -8,7 +8,8 @@ README
    https://github.com/ARMmbed/mbedtls/tree/v2.24.0
    
    zip/tarballs are available here: https://github.com/ARMmbed/mbedtls/releases/tag/v2.24.0
-       [ https://github.com/ARMmbed/mbedtls/archive/v2.24.0.tar.gz ]
+   zip: [v2.24.0.zip](https://github.com/ARMmbed/mbedtls/archive/v2.24.0.zip)
+   tarball: [v2.24.0.tar.gz](https://github.com/ARMmbed/mbedtls/archive/v2.24.0.tar.gz)
    
 ---
 
