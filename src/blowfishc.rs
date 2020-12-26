@@ -1,4 +1,6 @@
 pub mod blowfish;
+use std::ptr::copy_nonoverlapping;
+use crate::blowfish::MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH;
 use crate::blowfish::MBEDTLS_BLOWFISH_ENCRYPT;
 use crate::blowfish::MBEDTLS_BLOWFISH_DECRYPT;
 use std::convert::TryInto;
@@ -421,7 +423,7 @@ pub fn mbedtls_blowfish_setkey(mut ctx : &mut mbedtls_blowfish_context, key:&str
     } 
     return 0;
 }
-
+// ecb encryption
 pub fn mbedtls_blowfish_crypt_ecb(mut ctx : &mut mbedtls_blowfish_context,mode:usize, mut input: [u8;MBEDTLS_BLOWFISH_BLOCKSIZE], mut output : &mut [u8;MBEDTLS_BLOWFISH_BLOCKSIZE] )->i32{
     let mut X0:u32=0;
     let mut X1:u32=0;
@@ -442,15 +444,75 @@ pub fn mbedtls_blowfish_crypt_ecb(mut ctx : &mut mbedtls_blowfish_context,mode:u
 
     return 0;
 }
+// cbc encryption
 
 pub fn mbedtls_blowfish_crypt_cbc(mut ctx : &mut mbedtls_blowfish_context,
                                 mode:usize,
-                                length:usize,
-                                iv:&mut [char],
-                                mut input: [u8;MBEDTLS_BLOWFISH_BLOCKSIZE], 
-                                mut output : &mut [u8;MBEDTLS_BLOWFISH_BLOCKSIZE] )->i32{
+                                mut length :usize,
+                                iv:&mut [char;MBEDTLS_BLOWFISH_BLOCKSIZE],
+                                mut input: String, 
+                                mut output :&mut String)->i32{
     let mut i:i32;
-    
+    let mut temp:[u8;MBEDTLS_BLOWFISH_BLOCKSIZE]=[0,0,0,0,0,0,0,0];
+    let mut inputbytes:[u8;MBEDTLS_BLOWFISH_BLOCKSIZE]=[0,0,0,0,0,0,0,0];
+    let mut outputbytes:[u8;MBEDTLS_BLOWFISH_BLOCKSIZE]=[0,0,0,0,0,0,0,0];
+    let mut res:String=String::from("").to_owned();
+    if length % MBEDTLS_BLOWFISH_BLOCKSIZE!=0 {
+        return MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH;
+    }
+    let mut k:usize=0;
+    if mode == MBEDTLS_BLOWFISH_DECRYPT {
+        while length>0 {
+            for i in 0..MBEDTLS_BLOWFISH_BLOCKSIZE{
+                inputbytes[i]=input.chars().nth(i+k).unwrap() as u8 ;
+                temp[i]=inputbytes[i];
+                outputbytes[i]=output.chars().nth(i+k).unwrap() as u8;
+            }
+            mbedtls_blowfish_crypt_ecb(&mut ctx,MBEDTLS_BLOWFISH_DECRYPT, inputbytes,&mut outputbytes);
+            for i in 0..MBEDTLS_BLOWFISH_BLOCKSIZE{
+                let temp1:u8=iv[i] as u8;
+                outputbytes[i]=outputbytes[i]^temp1;
+            }
+            for i in 0..MBEDTLS_BLOWFISH_BLOCKSIZE{
+                iv[i]=temp[i] as char;
+            }
+            
+        
+            k+=MBEDTLS_BLOWFISH_BLOCKSIZE;
+            length-=MBEDTLS_BLOWFISH_BLOCKSIZE;
+            let mut out:[char;MBEDTLS_BLOWFISH_BLOCKSIZE]=['0','0','0','0','0','0','0','0'];
+            for i in 0..MBEDTLS_BLOWFISH_BLOCKSIZE{
+                out[i]=outputbytes[i] as char;
+                res.push(out[i]);
+            }
+        }
+    }
+    else{
+        while length > 0{
+            for i in 0..MBEDTLS_BLOWFISH_BLOCKSIZE{
+                inputbytes[i]=input.chars().nth(i+k).unwrap() as u8 ;
+                outputbytes[i]=output.chars().nth(i+k).unwrap() as u8;
+            }
+            
+            for i in 0..MBEDTLS_BLOWFISH_BLOCKSIZE{
+                let temp1:u8=iv[i] as u8;
+                outputbytes[i]=inputbytes[i]^temp1;
+            }
+            
+            mbedtls_blowfish_crypt_ecb(&mut ctx,mode, outputbytes,&mut outputbytes);
+            for i in 0..MBEDTLS_BLOWFISH_BLOCKSIZE{
+                iv[i]=outputbytes[i] as char;
+            }
+            k+=MBEDTLS_BLOWFISH_BLOCKSIZE;
+            length-=MBEDTLS_BLOWFISH_BLOCKSIZE;
+            let mut out:[char;MBEDTLS_BLOWFISH_BLOCKSIZE]=['0','0','0','0','0','0','0','0'];
+            for i in 0..MBEDTLS_BLOWFISH_BLOCKSIZE{
+                out[i]=outputbytes[i] as char;
+                res.push(out[i]);
+            }
+        }
+    }
+    *output=res;
     return 0;
 }
                                 
