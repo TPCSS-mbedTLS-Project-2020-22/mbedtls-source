@@ -36,7 +36,7 @@ fn encode(dst: &mut String, dlen: usize, olen: &mut usize
     let (mut C1, mut C2, mut C3):(i32, i32, i32);
 
     let mut p: String;
-
+    p.as_
     if slen == 0 {
         *olen = 0;
         return 0;
@@ -47,7 +47,7 @@ fn encode(dst: &mut String, dlen: usize, olen: &mut usize
     //n = n * 4;
 
     n = slen;
-
+    
     p = *dst;
     for i in  0..n {
         C1 = src[0];
@@ -57,10 +57,7 @@ fn encode(dst: &mut String, dlen: usize, olen: &mut usize
 
 
 
-    } 
-    
-
-
+    }
     
 
 }
