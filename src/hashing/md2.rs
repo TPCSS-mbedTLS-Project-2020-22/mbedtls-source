@@ -50,7 +50,7 @@ fn zeroize(a: &mut Vec<u8>){
  *                 stronger message digests instead.
  *
  */
-pub(super) fn init(ctx: &mut super::MdContext_MD2){
+pub(super) fn init(ctx: &mut super::MdContextMD2){
     ctx.cksum = vec![0; 16];
     ctx.state = vec![0; 48];
     ctx.buffer = vec![0; 16];
@@ -67,7 +67,7 @@ pub(super) fn init(ctx: &mut super::MdContext_MD2){
  *                 stronger message digests instead.
  *
  */
-pub(super) fn free(ctx: &mut super::MdContext_MD2){
+pub(super) fn free(ctx: &mut super::MdContextMD2){
     // In perticular what is difference
     // between mbedtls_md2_free and mbedtls_md2_init
     zeroize(&mut ctx.cksum);
@@ -90,7 +90,7 @@ pub(super) fn free(ctx: &mut super::MdContext_MD2){
  *                 stronger message digests instead.
  *
  */
-pub(super) fn clone(dst: &mut super::MdContext_MD2, src: &super::MdContext_MD2){
+pub(super) fn clone(dst: &mut super::MdContextMD2, src: &super::MdContextMD2){
     dst.buffer[..].clone_from_slice(&src.buffer[..]);
     dst.cksum[..].clone_from_slice(&src.cksum[..]);
     dst.state[..].clone_from_slice(&src.state[..]);
@@ -109,7 +109,7 @@ pub(super) fn clone(dst: &mut super::MdContext_MD2, src: &super::MdContext_MD2){
  *                 stronger message digests instead.
  *
  */
-pub(super) fn starts_ret(ctx: &mut super::MdContext_MD2) -> i32{
+pub(super) fn starts_ret(ctx: &mut super::MdContextMD2) -> i32{
     zeroize(&mut ctx.cksum);
     zeroize(&mut ctx.state);
     zeroize(&mut ctx.buffer);
@@ -131,7 +131,7 @@ pub(super) fn starts_ret(ctx: &mut super::MdContext_MD2) -> i32{
  *                 stronger message digests instead.
  *
  */
-pub(super) fn update_ret(ctx: &mut super::MdContext_MD2, input: &Vec<u8>, _ilen: usize)->i32{
+pub(super) fn update_ret(ctx: &mut super::MdContextMD2, input: &Vec<u8>, _ilen: usize)->i32{
     let mut ret : i32 = error::ERR_ERROR_CORRUPTION_DETECTED;
     let mut fill: usize;
     let mut iptr: usize=0;
@@ -175,7 +175,7 @@ pub(super) fn update_ret(ctx: &mut super::MdContext_MD2, input: &Vec<u8>, _ilen:
  *
  */
 
-pub(super) fn finish_ret(ctx: &mut super::MdContext_MD2, output: &mut Vec<u8>)->i32{
+pub(super) fn finish_ret(ctx: &mut super::MdContextMD2, output: &mut Vec<u8>)->i32{
     use std::convert::TryFrom;
 
     let mut ret:i32 = error::ERR_ERROR_CORRUPTION_DETECTED;
@@ -213,7 +213,7 @@ pub(super) fn finish_ret(ctx: &mut super::MdContext_MD2, output: &mut Vec<u8>)->
  *                 stronger message digests instead.
  *
  */
-pub(super) fn internal_process(ctx: &mut super::MdContext_MD2) -> i32{
+pub(super) fn internal_process(ctx: &mut super::MdContextMD2) -> i32{
     let mut t: u8 = 0;
     
     for i in 0..16{
@@ -253,7 +253,7 @@ pub(super) fn internal_process(ctx: &mut super::MdContext_MD2) -> i32{
  */
 pub fn ret(input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> i32{
     let mut ret:i32 = error::ERR_ERROR_CORRUPTION_DETECTED;
-    let mut ctx: super::MdContext_MD2 = super::MdContext_MD2{ 
+    let mut ctx: super::MdContextMD2 = super::MdContextMD2{ 
             cksum: vec![0;16], 
             state: vec![0;48], 
             buffer: vec![0;16], 
