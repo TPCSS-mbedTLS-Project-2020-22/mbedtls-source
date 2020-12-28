@@ -1,6 +1,5 @@
 // From ssl.h
 
-
 /*
  * This structure is used for storing current session data.
  *
@@ -12,7 +11,8 @@
  *      mbedtls_ssl_session_save() and ssl_session_load()
  *      ssl_session_copy()
  */
-struct session {
+
+pub struct session {
     // TODO define optional mbedtls_time_t start
     ciphersuite: i32,           // choosen ciphersuite
     compression: i32,           // chosen compression
@@ -26,12 +26,12 @@ struct session {
     verify_result: u32,         // verification result
 
     // optional declarations if MBEDTLS_SSL_SESSION_TICKETS and MBEDTLS_SSL_CLI_C defined
-    ticket: std::vec::Vec,      // RFC 5077 session ticket
+    ticket: String,                // RFC 5077 session ticket
     ticket_len: usize,          // session ticket length
     ticket_lifetime: u32,
 
     // optional if MBEDTLS_SSL_MAX_FRAGMENT_LENGTH defined
-    mfl_code: std::vec::Vec,    // MaxFragmentLength negotiated by user
+    mfl_code: String,              // MaxFragmentLength negotiated by user
 
     // optional if MBEDTLS_SSL_TRUNCATED_HMAC defined
     trunc_hmac: i32,
@@ -40,7 +40,7 @@ struct session {
     encrypt_then_mac: i32,
 }
 
-struct context {
+pub struct context {
     // TODO define *conf of type mbedtls_ssl_config
 
     state: i32,
@@ -50,13 +50,14 @@ struct context {
 
     f_send: fn(),               // callback type: send data on the network
     f_recv: fn(),               // callback type: for network receive
-    f_recv_timeout,             // callback fro network receive with timeout
+    f_recv_timeout: fn(),             // callback fro network receive with timeout
 
     p_bio: std::ffi::c_void,    // Context for I/O operation
 
     // Session layer 
-    session_in: session,
-    session_out: session,
-    session: session,
-    session_negotiate: session,
+    session_in: session,        // current session data (in)
+    session_out: session,       // current session data (out)
+    session: session,           // negotiated session data
+    session_negotiate: session, // session data in negotiation
 }
+
