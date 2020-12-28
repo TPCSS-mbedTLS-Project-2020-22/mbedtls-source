@@ -26,6 +26,8 @@ fn main() {
     
     // TODO Declare Variable
     println!("TODO: Declare variables");
+    let cookie_ctx = mbed::ssl_tls::cookie;
+
     // TODO following init functions
     // mbed::net::init() -> net_socket.c
     // mbed::ssl::init() ->  ssl_tls.c

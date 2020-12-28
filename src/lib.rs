@@ -1,4 +1,4 @@
 pub mod ssl_tls;
-mod hashing;
-mod error;
+pub mod hashing;
+pub mod error;
 
