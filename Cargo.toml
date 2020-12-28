@@ -1,9 +1,13 @@
 [package]
 name = "mbed"
 version = "0.1.0"
-authors = ["Shashank Singh <cse.shashanksingh@gmail.com>"]
+authors = ["Shashank Singh <cse.shashanksingh@gmail.com>", "Vimal Patel <vimalm@iisc.ac.in>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+
+[features]
+MD2 = []
+MD4 = []
