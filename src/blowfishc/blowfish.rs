@@ -16,5 +16,5 @@ pub struct mbedtls_blowfish_context{
 
 pub fn run()
 {
-    println!("{}",MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA);
+    println!("{:?}",MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA);
 }
