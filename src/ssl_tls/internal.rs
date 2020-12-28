@@ -1,25 +1,61 @@
 // file ssl_internal.h
+use crate::hashing::MdTypeT;
+use crate::ssl_tls;
 
-use mbed::hashing::md_type_t;
+const MBEDTLS_SSL_MAX_BUFFERED_HS: usize =  4;
 
+
+
+#[allow(non_camel_case_types)]
 struct sig_hash_set_t {
-    rsa: md_type_t,
-    ecdsa: md_type_t,
+    rsa: MdTypeT,
+    ecdsa: MdTypeT,
 }
 
-
+#[allow(non_camel_case_types)]
+#[allow(dead_code)]
 struct hs_buffer {
     is_valid: u32,
-
+    is_fragmented: u32,
+    is_complete: u32,
+    data: String,
+    data_len: usize,
 }
 
+impl Default for hs_buffer {
+    fn default() -> hs_buffer {
+        hs_buffer {
+            is_valid: 1,
+            is_fragmented: 1,
+            is_complete: 1,
+            data: String::new(),
+            data_len: 0,
+        }
+
+    }
+}
+
+#[allow(non_camel_case_types)]
+#[allow(dead_code)]
+struct future_record {
+    data: String,
+    len: usize,
+    epoch: u32,
+}
+#[allow(non_camel_case_types)]
+#[allow(dead_code)]
 struct buffering {
     total_bytes_buffered: usize,
     seen_css: u8,
-
+    hs: [hs_buffer; MBEDTLS_SSL_MAX_BUFFERED_HS],
+    future_record: future_record,
 }
+
+
 // This structure contains the params only needed during handshake
-struct handshake_params {
+#[allow(non_camel_case_types)]
+#[allow(dead_code)]
+pub struct handshake_params {
     /*
      * Handshake specific crypto variables
      */
@@ -39,9 +75,13 @@ struct handshake_params {
     // many other optional declarations
 
 
-    buffering: struct {
-        total_bytes_buffered: usize,
-    },
+    buffering: buffering,
+    mtu: u16,
 
+
+    // some more optional declarations pertaining to checksum contexts
+
+
+    update_checksum: fn(&ssl_tls::ssl::context, &str, usize),
 
 }

@@ -1,4 +1,5 @@
 // From ssl.h
+use crate::ssl_tls;
 
 /*
  * This structure is used for storing current session data.
@@ -11,7 +12,8 @@
  *      mbedtls_ssl_session_save() and ssl_session_load()
  *      ssl_session_copy()
  */
-
+#[allow(non_camel_case_types)]
+#[allow(dead_code)]
 pub struct session {
     // TODO define optional mbedtls_time_t start
     ciphersuite: i32,           // choosen ciphersuite
@@ -26,12 +28,12 @@ pub struct session {
     verify_result: u32,         // verification result
 
     // optional declarations if MBEDTLS_SSL_SESSION_TICKETS and MBEDTLS_SSL_CLI_C defined
-    ticket: String,                // RFC 5077 session ticket
+    ticket: Vec<u8>,                // RFC 5077 session ticket
     ticket_len: usize,          // session ticket length
     ticket_lifetime: u32,
 
     // optional if MBEDTLS_SSL_MAX_FRAGMENT_LENGTH defined
-    mfl_code: String,              // MaxFragmentLength negotiated by user
+    mfl_code: Vec<u8>,              // MaxFragmentLength negotiated by user
 
     // optional if MBEDTLS_SSL_TRUNCATED_HMAC defined
     trunc_hmac: i32,
@@ -40,6 +42,26 @@ pub struct session {
     encrypt_then_mac: i32,
 }
 
+#[allow(non_camel_case_types)]
+#[allow(dead_code)]
+pub struct config {
+    ciphersuite_list: [i32; 4],
+    // callback for getting (pseudo-)random number
+    f_rng: fn() -> i32,
+    p_rng: fn(),
+
+    read_timeout: u32,          // timeout for mbedtsl_ssl_read (ms)
+
+    max_major_ver: Vec<u8>,
+    max_minor_ver: Vec<u8>,
+    min_major_ver: Vec<u8>,
+    min_minor_ver: Vec<u8>,
+
+
+}
+
+#[allow(non_camel_case_types)]
+#[allow(dead_code)]
 pub struct context {
     // TODO define *conf of type mbedtls_ssl_config
 
@@ -59,5 +81,8 @@ pub struct context {
     session_out: session,       // current session data (out)
     session: session,           // negotiated session data
     session_negotiate: session, // session data in negotiation
+
+    handshake: ssl_tls::internal::handshake_params,
+
 }
 

@@ -25,12 +25,12 @@ fn main() {
 
     // TODO Declare Variable
     println!("TODO: Declare variables");
-    let cookie_ctx: mbed::ssl_tls::cookie::cookie_ctx;
+    let mut cookie_ctx: mbed::ssl_tls::cookie::cookie_ctx;
     // TODO declare entropy and ctr_drbg context contact Hiren Kumar Saha and Mahesh Kumar
 
-    let ssl: mbed::ssl_tls::ssl::context;
-    // let conf: mbed::ssl_tls::ssl::config;
-
+    let mut ssl: mbed::ssl_tls::ssl::context;
+    let mut conf: mbed::ssl_tls::ssl::config;
+    
     // TODO following init functions
     // mbed::net::init() -> net_socket.c
     // mbed::ssl::init() ->  ssl_tls.c
