@@ -12,7 +12,7 @@
 // 1. To check the function call parameters : I am not sure what datatypes to use for ports, ips, protocols
 
 
-use std::net::{IpAddr, SocketAddr, TcpListener, UdpSocket};
+use std::net::{IpAddr, SocketAddr, TcpListener, TcpStream, UdpSocket};
 use std::str::FromStr;
 
 // Listing any Global macros needed
@@ -44,25 +44,37 @@ const MBEDTLS_NET_PROTO_UDP                 : i16 =  1      ; // The UDP transpo
 const MBEDTLS_NET_POLL_READ                 : i16 =  1      ; // Used in mbedtls_net_poll to check for pending data  
 const MBEDTLS_NET_POLL_WRITE                : i16 =  2      ; // Used in mbedtls_net_poll to check if write possible 
 
+const MBEDTLS_NET_OPER_SUCCESS              : i16 =  0      ; // Denotes a successful operation
 
+/// Internal Wrapper type for underlying transport layer protocol in the context
+enum TLProtocol {
+    TCP,
+    UDP
+}
 
 /// Wrapper type for sockets
 /// Currently backed by just a file descriptor, but might be more in the future
 /// (eg two file descriptors for combined IPv4 + IPv6 support, or additional
 /// structures for hand-made UDP demultiplexing)
 /// Rust : SS : Replaced fd by a tcpListener object in context
-/// 
-/// 
 pub struct MbedtlsNetContext {
-    // protocol : enum (TCP, UDP),
-    tcp_listener: Option<TcpListener>,
-    // udp_socket : Option<UdpSocket> 
+    //protocol : Option<TLProtocol, //do i really need this
+    tcp_listener : Option<TcpListener>,
+    tcp_stream : Option<TcpStream>,
+    tcp_stream_remote_addr : Option<SocketAddr>,
+
+    udp_socket : Option<UdpSocket> ,
+    udp_socket_remote_addr : Option<SocketAddr>
 }
 
 impl MbedtlsNetContext{
     pub fn new() -> Self {
         MbedtlsNetContext {
             tcp_listener : None,
+            tcp_stream : None,
+            tcp_stream_remote_addr : None,
+            udp_socket : None,
+            udp_socket_remote_addr : None,
         }
     }
 }
@@ -78,28 +90,40 @@ impl MbedtlsNetContext{
 /// Initiate a connection with host:port in the given protocol
 /// SS : host might need DNS resolution
 /// SS : get an address list after resolution, and try to connect to all addresses in the list
-fn mbedtls_net_connect(ctx: &mut MbedtlsNetContext, host:&str, port:&str, proto:&i32 ) -> i16 {
-    let retValue = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+pub fn mbedtls_net_connect(ctx: &mut MbedtlsNetContext, host:&str, port:&str, proto:&i32 ) -> i16 {
+    let mut ret_value = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
+    // SS : Assuming host and port to be valid numerics
+    let ipAddr = IpAddr::from_str(host).unwrap();
     
+    let portInt : u16 = port.parse().unwrap();
+    let sockAddr = SocketAddr::new(ipAddr, portInt);
+    
+    ctx.tcp_stream = match TcpStream::connect(sockAddr) {
+        Ok(tcp_stream) => {
+            ret_value = MBEDTLS_NET_OPER_SUCCESS;
+            Some(tcp_stream)
+        },
+        Err(e) => panic!(e),
+    };
 
-    retValue
+    ret_value
 }
 
 
 /// Create a receiving socket on bind_ip:port in the chosen
 /// protocol. If bind_ip == NULL, all interfaces are bound.
-pub fn mbedtls_net_bind(ctx: &mut MbedtlsNetContext, host:&str, port:&str, proto:&i32) -> i32 {
-    let mut retValue = 0 ;
+pub fn mbedtls_net_bind(ctx: &mut MbedtlsNetContext, host:&str, port:&str, proto:&i32) -> i16 {
+    let mut ret_value = 0 ;
     let ipAddr = IpAddr::from_str(host).unwrap();
-    // SS : Assuming host and port to be valid numerics and IPV4
+    // SS : Assuming host and port to be valid numerics
     
     let portInt : u16 = port.parse().unwrap();
     let sockAddr = SocketAddr::new(ipAddr, portInt);
 
     ctx.tcp_listener = match TcpListener::bind(sockAddr) {
         Ok(tcp_listener) => {
-            retValue = 0;
+            ret_value = MBEDTLS_NET_OPER_SUCCESS;
             Some(tcp_listener)
         },
         Err(e) => panic!(e),
@@ -109,7 +133,30 @@ pub fn mbedtls_net_bind(ctx: &mut MbedtlsNetContext, host:&str, port:&str, proto
     // let mut line=String::new();
     // let b1 = std::io::stdin().read_line(&mut line).unwrap(); 
 
-    retValue
+    ret_value
+}
+
+pub fn mbedtls_net_accept(  listener_ctx: &mut MbedtlsNetContext,
+                            client_ctx: &mut MbedtlsNetContext) -> i16 {
+
+    let mut ret_value = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    println!("Waiting for a remote host to connect ");
+    match &listener_ctx.tcp_listener {
+        Some(_tcp_listener) => {
+            match _tcp_listener.accept() {
+                Ok((_stream, addr)) => {
+                    println!("Remote host connected {}",addr);
+                    listener_ctx.tcp_stream  = Some(_stream);
+                    listener_ctx.tcp_stream_remote_addr = Some(addr);
+                }
+                Err(e) => panic!("couldn't get client: {:?}", e),
+            }
+        }   
+        None => panic!("Accept called on null listener!")
+    }
+    
+ret_value
 }
 
 pub fn print(){
