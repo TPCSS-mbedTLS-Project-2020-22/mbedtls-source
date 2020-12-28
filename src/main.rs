@@ -21,6 +21,12 @@ fn main(){
         tcp_ip::mbedtls_net_bind(&mut context, "127.0.0.1", "4442", &2);
 
         tcp_ip::mbedtls_net_accept(&mut context, &mut context_client);
+
+        let mut buf : [u8 ; 512] = [0;512];
+        tcp_ip::mbedtls_net_recv(&mut context_client, &mut buf, 6);
+
+        println!("Received message : {}", String::from_utf8_lossy(&buf));
+
     }
     
     else if(operation.eq_ignore_ascii_case("connect")){
@@ -28,6 +34,9 @@ fn main(){
         let mut context = tcp_ip::MbedtlsNetContext::new();
         tcp_ip::mbedtls_net_connect(&mut context, "127.0.0.1", "4442", &2);
 
+        println!("Sending message to server : HELLO");
+
+        tcp_ip::mbedtls_net_send(&mut context, b"HELLO");
     }
 
 

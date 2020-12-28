@@ -11,7 +11,7 @@
 // Notes :
 // 1. To check the function call parameters : I am not sure what datatypes to use for ports, ips, protocols
 
-
+use std::io::{self, Write, BufRead};
 use std::net::{IpAddr, SocketAddr, TcpListener, TcpStream, UdpSocket};
 use std::str::FromStr;
 
@@ -147,8 +147,9 @@ pub fn mbedtls_net_accept(  listener_ctx: &mut MbedtlsNetContext,
             match _tcp_listener.accept() {
                 Ok((_stream, addr)) => {
                     println!("Remote host connected {}",addr);
-                    listener_ctx.tcp_stream  = Some(_stream);
-                    listener_ctx.tcp_stream_remote_addr = Some(addr);
+                    client_ctx.tcp_stream  = Some(_stream);
+                    client_ctx.tcp_stream_remote_addr = Some(addr);
+                    ret_value = MBEDTLS_NET_OPER_SUCCESS;
                 }
                 Err(e) => panic!("couldn't get client: {:?}", e),
             }
@@ -158,6 +159,54 @@ pub fn mbedtls_net_accept(  listener_ctx: &mut MbedtlsNetContext,
     
 ret_value
 }
+
+pub fn mbedtls_net_send(ctx : &MbedtlsNetContext,
+                        msg : &[u8]) -> i16 {
+    let mut ret_value = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    let mut tcp_stream = ctx.tcp_stream.as_ref().unwrap();
+
+    let bytes_sent = match tcp_stream.write_all(msg) {
+        Ok(_bytes) => _bytes,
+        Err(e) => panic!(e) 
+    };
+
+    tcp_stream.flush();
+    ret_value = MBEDTLS_NET_OPER_SUCCESS;
+
+ret_value
+}
+
+pub fn mbedtls_net_recv(ctx : &MbedtlsNetContext,
+                        recv_buf : &mut [u8],
+                        max_read_bytes_len : u32) -> i16 {
+    let mut ret_value = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    let mut tcp_stream = ctx.tcp_stream.as_ref().unwrap();
+
+    let mut reader = io::BufReader::new(&mut tcp_stream);
+
+    // Read current current data in the TcpStream
+    let received_bytes_buffer: &[u8] = reader.fill_buf().unwrap();
+
+    // Read at most 'read_bytes_len' bytes from the buffer
+    // recv_buf = &mut received_bytes_buffer[..read_bytes_len as usize];
+    // recv_buf = (received_bytes_buffer[..read_bytes_len as usize]).clone();
+
+    let mut bytes_to_consume = max_read_bytes_len;
+    if received_bytes_buffer.len() < max_read_bytes_len as usize {
+        bytes_to_consume = received_bytes_buffer.len() as u32;
+    }
+         
+    for i in 0..bytes_to_consume {
+        recv_buf[i as usize] = received_bytes_buffer[i as usize];
+    }
+
+    // Mark the bytes read as consumed so the buffer will not return them in a subsequent read
+    reader.consume(bytes_to_consume as usize);
+    ret_value = MBEDTLS_NET_OPER_SUCCESS;
+
+ret_value
+}
+
 
 pub fn print(){
     println!("Hey, inside tcp_ip library");
