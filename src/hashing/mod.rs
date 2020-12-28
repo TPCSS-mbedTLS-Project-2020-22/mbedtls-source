@@ -1,152 +1,167 @@
+#[cfg(feature = "MD2")]
 pub mod md2;
+#[cfg(feature = "MD4")]
 pub mod md4;
 
 use super::error;
 
-pub const ERR_MD_FEATURE_UNAVAILABLE : i32 = -0x5080;  /**< The selected feature is not available. */
-pub const ERR_MD_BAD_INPUT_DATA      : i32 = -0x5100;  /**< Bad input parameters to function. */
-pub const ERR_MD_ALLOC_FAILED        : i32 = -0x5180;  /**< Failed to allocate memory. */
-pub const ERR_MD_FILE_IO_ERROR       : i32 = -0x5200;  /**< Opening or reading of file failed. */
+/// The selected feature is not available.
+pub const ERR_MD_FEATURE_UNAVAILABLE : i32 = -0x5080;
+/// Bad input parameters to function.
+pub const ERR_MD_BAD_INPUT_DATA      : i32 = -0x5100;
+/// Failed to allocate memory.
+pub const ERR_MD_ALLOC_FAILED        : i32 = -0x5180;
+/// Opening or reading of file failed.
+pub const ERR_MD_FILE_IO_ERROR       : i32 = -0x5200;
+
 
 const MD_MAX_SIZE: usize = if cfg!(feature = "SHA512") {64} else{32};
 const MD_MAX_BLOCK_SIZE: usize = if cfg!(feature = "SHA512") {128} else{64};
 
-pub enum md_type_t{
-    /**< None. */
+/// Supported message digests
+pub enum MdTypeT{
+    /// None.
     NONE=0,    
-    /**< The MD2 message digest. */
+    /// The MD2 message digest.
     MD2,       
-    /**< The MD4 message digest. */
+    /// The MD4 message digest.
     MD4,       
-    /**< The MD5 message digest. */
+    /// The MD5 message digest.
     MD5,       
-    /**< The SHA-1 message digest. */
+    /// The SHA-1 message digest.
     SHA1,      
-    /**< The SHA-224 message digest. */
+    /// The SHA-224 message digest.
     SHA224,    
-    /**< The SHA-256 message digest. */
+    /// The SHA-256 message digest.
     SHA256,    
-    /**< The SHA-384 message digest. */
+    /// The SHA-384 message digest.
     SHA384,    
-    /**< The SHA-512 message digest. */
+    /// The SHA-512 message digest.
     SHA512,    
-    /**< The RIPEMD-160 message digest. */
+    /// The RIPEMD-160 message digest.
     RIPEMD160, 
 }
 
-const supported_digests: [md_type_t; 2] = [
+const SUPPORTED_DIGESTS: &'static [MdTypeT] = &[
         #[cfg(feature = "MD2")]
-        md_type_t::MD2,
+        MdTypeT::MD2,
         
         #[cfg(feature = "MD4")]
-        md_type_t::MD4,
+        MdTypeT::MD4,
         
         #[cfg(feature = "MD5")]
-        md_type_t::MD5,
+        MdTypeT::MD5,
         
         #[cfg(feature = "SHA1")]
-        md_type_t::SHA1,
+        MdTypeT::SHA1,
         
         #[cfg(all(feature = "SHA256", not(feature = "NO_SHA224")))]
-        md_type_t::SHA224,
+        MdTypeT::SHA224,
         
         #[cfg(feature = "SHA256")]
-        md_type_t::SHA256,
+        MdTypeT::SHA256,
         
         #[cfg(all(feature = "SHA512", not(feature = "NO_SHA384")))]
-        md_type_t::SHA384,
+        MdTypeT::SHA384,
         
         #[cfg(feature = "SHA512")]
-        md_type_t::SHA512,
+        MdTypeT::SHA512,
         
         #[cfg(feature = "RIPEMD160")]
-        md_type_t::RIPEMD160
+        MdTypeT::RIPEMD160
 ];
 
+const DUMMY_INFO: MdInfoT = MdInfoT{
+    name: ("none"),
+    md_type: MdTypeT::NONE,
+    size: 0,
+    block_size: 0,
+};
+
 #[cfg(feature = "MD2")]
-pub const md2_info: md_info_t = md_info_t{
+pub const MD2_INFO: MdInfoT = MdInfoT{
     name: ("MD2"),
-    md_type: md_type_t::MD2,
+    md_type: MdTypeT::MD2,
     size: 16,
     block_size: 16,
 };
 
 #[cfg(feature = "MD4")]
-const md4_info: md_info_t = md_info_t{
+const MD4_INFO: MdInfoT = MdInfoT{
     name: ("MD4"),
-    md_type: md_type_t::MD4,
+    md_type: MdTypeT::MD4,
     size: 16,
     block_size: 64,
 };
 
 #[cfg(feature = "MD5")]
-const md5_info: md_info_t = md_info_t{
+const MD5_INFO: MdInfoT = MdInfoT{
     name: ("MD5"),
-    md_type: md_type_t::MD5,
+    md_type: MdTypeT::MD5,
     size: 16,
     block_size: 64,
 };
 
 #[cfg(feature = "RIPEMD160")]
-const ripemd160_info: md_info_t = md_info_t{
+const RIPEMD160_INFO: MdInfoT = MdInfoT{
     name: ("RIPEMD160"),
-    md_type: md_type_t::RIPEMD160,
+    md_type: MdTypeT::RIPEMD160,
     size: 20,
     block_size: 64,
 };
 
 #[cfg(feature = "SHA1")]
-const sha1_info: md_info_t = md_info_t{
+const SHA1_INFO: MdInfoT = MdInfoT{
     name: ("SHA1"),
-    md_type: md_type_t::SHA1,
+    md_type: MdTypeT::SHA1,
     size: 20,
     block_size: 64,
 };
 
 #[cfg(all(feature = "SHA256", not(feature = "NO_SHA224")))]
-const sha224_info: md_info_t = md_info_t{
+const SHA224_INFO: MdInfoT = MdInfoT{
     name: ("SHA224"),
-    md_type: md_type_t::SHA224,
+    md_type: MdTypeT::SHA224,
     size: 28,
     block_size: 64,
 };
 
 #[cfg(feature = "SHA256")]
-const sha256_info: md_info_t = md_info_t{
+const SHA256_INFO: MdInfoT = MdInfoT{
     name: ("SHA256"),
-    md_type: md_type_t::SHA256,
+    md_type: MdTypeT::SHA256,
     size: 32,
     block_size: 64,
 };
 
 #[cfg(all(feature = "SHA512", not(feature = "NO_SHA384")))]
-const sha384_info: md_info_t = md_info_t{
+const SHA384_INFO: MdInfoT = MdInfoT{
     name: ("SHA384"),
-    md_type: md_type_t::SHA384,
+    md_type: MdTypeT::SHA384,
     size: 48,
     block_size: 128,
 };
 
 #[cfg(feature = "SHA512")]
-const sha512_info: md_info_t = md_info_t{
+const SHA512_INFO: MdInfoT = MdInfoT{
     name: ("SHA512"),
-    md_type: md_type_t::SHA512,
+    md_type: MdTypeT::SHA512,
     size: 64,
     block_size: 128,
 };
 
 pub struct Context{
     /// Information about the associated message digest.
-    md_info: &'static md_info_t,
+    md_info: &'static MdInfoT,
     /// The digest-specific context for MD2.
-    md_ctx_md_2: MdContext_MD2,
+    md_ctx_md_2: MdContextMD2,
     /// The digest-specific context for non-MD2.
     md_ctx: MdContext,
     /// The HMAC part of the context.
     hmac_ctx: Vec<u8>,
 }
 
-struct MdContext_MD2{
+struct MdContextMD2{
     /// checksum of the data block
     cksum: Vec<u8>,    
     /// intermediate digest state
@@ -166,70 +181,70 @@ struct MdContext{
     buffer: Vec<u8>,
 }
 
-fn list() -> &'static [md_type_t] {
-    return &supported_digests;
+fn list() -> &'static [MdTypeT] {
+    return &SUPPORTED_DIGESTS;
 }
 
-fn info_from_type(md_type: &md_type_t) -> Option<&'static md_info_t>{
+fn info_from_type(md_type: &MdTypeT) -> Option<&'static MdInfoT>{
     match md_type{
         #[cfg(feature = "MD2")]
-        md_type_t::MD2 => return Some(&md2_info),
+        MdTypeT::MD2 => return Some(&MD2_INFO),
         
         #[cfg(feature = "MD4")]
-        md_type_t::MD4 => return Some(&md4_info),
+        MdTypeT::MD4 => return Some(&MD4_INFO),
         
         #[cfg(feature = "MD5")]
-        md_type_t::MD5 => return Some(&md5_info),
+        MdTypeT::MD5 => return Some(&MD5_INFO),
         
         #[cfg(feature = "SHA1")]
-        md_type_t::SHA1 => return Some(&sha1_info),
+        MdTypeT::SHA1 => return Some(&SHA1_INFO),
         
         #[cfg(all(feature = "SHA256", not(feature = "NO_SHA224")))]
-        md_type_t::SHA224 => return Some(&sha224_info),
+        MdTypeT::SHA224 => return Some(&SHA224_INFO),
         
         #[cfg(feature = "SHA256")]
-        md_type_t::SHA256 => return Some(&sha256_info),
+        MdTypeT::SHA256 => return Some(&SHA256_INFO),
         
         #[cfg(all(feature = "SHA512", not(feature = "NO_SHA384")))]
-        md_type_t::SHA384 => return Some(&sha384_info),
+        MdTypeT::SHA384 => return Some(&SHA384_INFO),
         
         #[cfg(feature = "SHA512")]
-        md_type_t::SHA512 => return Some(&sha512_info),
+        MdTypeT::SHA512 => return Some(&SHA512_INFO),
         
         #[cfg(feature = "RIPEMD160")]
-        md_type_t::RIPEMD160 => return Some(&ripemd160_info),
+        MdTypeT::RIPEMD160 => return Some(&RIPEMD160_INFO),
         _ => return None,
     }
 }
 
-fn info_from_string(md_name: &str) -> Option<&'static md_info_t>{
+fn info_from_string(md_name: &str) -> Option<&'static MdInfoT>{
     match md_name{
         #[cfg(feature = "MD2")]
-        "MD2" => return info_from_type(&md_type_t::MD2),
+        "MD2" => return info_from_type(&MdTypeT::MD2),
         
         #[cfg(feature = "MD4")]
-        "MD4" => return info_from_type(&md_type_t::MD4),
+        "MD4" => return info_from_type(&MdTypeT::MD4),
         
         #[cfg(feature = "MD5")]
-        "MD5" => return info_from_type(&md_type_t::MD5),
+        "MD5" => return info_from_type(&MdTypeT::MD5),
         
         #[cfg(feature = "SHA1")]
-        "SHA1" => return info_from_type(&md_type_t::SHA1),
+        "SHA1" => return info_from_type(&MdTypeT::SHA1),
         
         #[cfg(all(feature = "SHA256", not(feature = "NO_SHA224")))]
-        "SHA224" => return info_from_type(&md_type_t::SHA224),
+        "SHA224" => return info_from_type(&MdTypeT::SHA224),
         
         #[cfg(feature = "SHA256")]
-        "SHA256" => return info_from_type(&md_type_t::SHA256),
+        "SHA256" => return info_from_type(&MdTypeT::SHA256),
         
         #[cfg(all(feature = "SHA512", not(feature = "NO_SHA384")))]
-        "SHA384" => return info_from_type(&md_type_t::SHA384),
+        "SHA384" => return info_from_type(&MdTypeT::SHA384),
         
         #[cfg(feature = "SHA512")]
-        "SHA512" => return info_from_type(&md_type_t::SHA512),
+        "SHA512" => return info_from_type(&MdTypeT::SHA512),
         
         #[cfg(feature = "RIPEMD160")]
-        "RIPEMD160" => return info_from_type(&md_type_t::RIPEMD160),
+        "RIPEMD160" => return info_from_type(&MdTypeT::RIPEMD160),
         
         _ => return None,
     }
@@ -239,11 +254,11 @@ fn info_from_string(md_name: &str) -> Option<&'static md_info_t>{
  * Message digest information.
  * Allows message digest functions to be called in a generic way.
  */
-pub struct md_info_t{
+pub struct MdInfoT{
     /// Name of the message digest
     name: &'static str,
     /// Digest identifier
-    md_type: md_type_t,
+    md_type: MdTypeT,
     /// Output length of the digest function in bytes
     size: u8,
     /// Block length of the digest function in bytes
@@ -261,7 +276,7 @@ pub struct md_info_t{
 
 fn create_context() -> Box<Context> {
     //TODO: generate context based on given type
-    let md_ctx_md2 = MdContext_MD2{
+    let md_ctx_md2 = MdContextMD2{
         cksum: Vec::new(),
         state: Vec::new(),
         buffer: Vec::new(),
@@ -276,7 +291,7 @@ fn create_context() -> Box<Context> {
 
     let ctx = Context{
         // Note that this is just a placeholder
-        md_info: &md2_info,
+        md_info: &DUMMY_INFO,
         md_ctx_md_2: md_ctx_md2,
         md_ctx: md_ctx,
         hmac_ctx: Vec::new(),
@@ -302,61 +317,61 @@ fn create_context() -> Box<Context> {
  * \return          #ERR_MD_BAD_INPUT_DATA on parameter-verification
  *                  failure.
  */
-fn setup(ctx: &mut Context, md_type: &md_type_t, hmac: bool) -> i32{
+fn setup(ctx: &mut Context, md_type: &MdTypeT, hmac: bool) -> i32{
     match md_type{
         
         #[cfg(feature = "MD2")]
-        md_type_t::MD2 => {
+        MdTypeT::MD2 => {
             md2::init(&mut ctx.md_ctx_md_2);
-            ctx.md_info = &md2_info;
+            ctx.md_info = &MD2_INFO;
         },
         
         #[cfg(feature = "MD4")]
-        md_type_t::MD4 => {
+        MdTypeT::MD4 => {
             md4::init(&mut ctx.md_ctx);
-            ctx.md_info = &md4_info;
+            ctx.md_info = &MD4_INFO;
         },
         
         #[cfg(feature = "MD5")]
-        md_type_t::MD5 => {
+        MdTypeT::MD5 => {
             md5::init(&mut ctx.md_ctx);
-            ctx.md_info = &md5_info;
+            ctx.md_info = &MD5_INFO;
         },
         
         #[cfg(feature = "SHA1")]
-        md_type_t::SHA1 => {
+        MdTypeT::SHA1 => {
             sha1::init(&mut ctx.md_ctx);
-            ctx.md_info = &sha1_info;
+            ctx.md_info = &SHA1_INFO;
         },
         
         #[cfg(all(feature = "SHA256", not(feature = "NO_SHA224")))]
-        md_type_t::SHA224 => {
+        MdTypeT::SHA224 => {
             sha256::init(&mut ctx.md_ctx);
-            ctx.md_info = &sha224_info;
+            ctx.md_info = &SHA224_INFO;
         },
         
         #[cfg(feature = "SHA256")]
-        md_type_t::SHA256 => {
+        MdTypeT::SHA256 => {
             sha256::init(&mut ctx.md_ctx);
-            ctx.md_info = &sha256_info;
+            ctx.md_info = &SHA256_INFO;
         },
         
         #[cfg(all(feature = "SHA512", not(feature = "NO_SHA384")))]
-        md_type_t::SHA384 => {
+        MdTypeT::SHA384 => {
             sha512::init(&mut ctx.md_ctx);
-            ctx.md_info = &sha384_info;
+            ctx.md_info = &SHA384_INFO;
         },
         
         #[cfg(feature = "SHA512")]
-        md_type_t::SHA512 => {
+        MdTypeT::SHA512 => {
             sha512::init(&mut ctx.md_ctx);
-            ctx.md_info = &sha512_info;
+            ctx.md_info = &SHA512_INFO;
         },
         
         #[cfg(feature = "RIPEMD160")]
-        md_type_t::RIPEMD160 => {
+        MdTypeT::RIPEMD160 => {
             ripemd160::init(&mut ctx.md_ctx);
-            ctx.md_info = &ripemd160_info;
+            ctx.md_info = &RIPEMD160_INFO;
         },
     
         _ => return ERR_MD_BAD_INPUT_DATA,
@@ -381,31 +396,31 @@ pub fn free(ctx: &mut Context){
     match ctx.md_info.md_type{
         
         #[cfg(feature = "MD2")]
-        md_type_t::MD2 => md2::free(&mut ctx.md_ctx_md_2),
+        MdTypeT::MD2 => md2::free(&mut ctx.md_ctx_md_2),
         
         #[cfg(feature = "MD4")]
-        md_type_t::MD4 => md4::free(&mut ctx.md_ctx),
+        MdTypeT::MD4 => md4::free(&mut ctx.md_ctx),
         
         #[cfg(feature = "MD5")]
-        md_type_t::MD5 => md5::free(&mut ctx.md_ctx),
+        MdTypeT::MD5 => md5::free(&mut ctx.md_ctx),
         
         #[cfg(feature = "SHA1")]
-        md_type_t::SHA1 => sha1::free(&mut ctx.md_ctx),
+        MdTypeT::SHA1 => sha1::free(&mut ctx.md_ctx),
         
         #[cfg(all(feature = "SHA256", not(feature = "NO_SHA224")))]
-        md_type_t::SHA224 => sha256::free(&mut ctx.md_ctx),
+        MdTypeT::SHA224 => sha256::free(&mut ctx.md_ctx),
         
         #[cfg(feature = "SHA256")]
-        md_type_t::SHA256 => sha256::free(&mut ctx.md_ctx),
+        MdTypeT::SHA256 => sha256::free(&mut ctx.md_ctx),
         
         #[cfg(all(feature = "SHA512", not(feature = "NO_SHA384")))]
-        md_type_t::SHA384 => sha512::free(&mut ctx.md_ctx),
+        MdTypeT::SHA384 => sha512::free(&mut ctx.md_ctx),
         
         #[cfg(feature = "SHA512")]
-        md_type_t::SHA512 => sha512::free(&mut ctx.md_ctx),
+        MdTypeT::SHA512 => sha512::free(&mut ctx.md_ctx),
         
         #[cfg(feature = "RIPEMD160")]
-        md_type_t::RIPEMD160 => ripemd160::free(&mut ctx.md_ctx),
+        MdTypeT::RIPEMD160 => ripemd160::free(&mut ctx.md_ctx),
 
         _ => panic!("Control flow would not have reached here!"),
     }
@@ -442,31 +457,31 @@ pub fn clone(dst: &mut Context , src: &Context) -> i32{
     }
     match src.md_info.md_type{
         #[cfg(feature = "MD2")]
-        md_type_t::MD2 => md2::clone(&mut dst.md_ctx_md_2, &src.md_ctx_md_2),
+        MdTypeT::MD2 => md2::clone(&mut dst.md_ctx_md_2, &src.md_ctx_md_2),
         
         #[cfg(feature = "MD4")]
-        md_type_t::MD4 => md4::clone(&mut dst.md_ctx, &src.md_ctx),
+        MdTypeT::MD4 => md4::clone(&mut dst.md_ctx, &src.md_ctx),
         
         #[cfg(feature = "MD5")]
-        md_type_t::MD5 => md5::clone(&mut dst.md_ctx, &src.md_ctx),
+        MdTypeT::MD5 => md5::clone(&mut dst.md_ctx, &src.md_ctx),
         
         #[cfg(feature = "SHA1")]
-        md_type_t::SHA1 => sha1::clone(&mut dst.md_ctx, &src.md_ctx),
+        MdTypeT::SHA1 => sha1::clone(&mut dst.md_ctx, &src.md_ctx),
         
         #[cfg(all(feature = "SHA256", not(feature = "NO_SHA224")))]
-        md_type_t::SHA224 => sha256::clone(&mut dst.md_ctx, &src.md_ctx),
+        MdTypeT::SHA224 => sha256::clone(&mut dst.md_ctx, &src.md_ctx),
         
         #[cfg(feature = "SHA256")]
-        md_type_t::SHA256 => sha256::clone(&mut dst.md_ctx, &src.md_ctx),
+        MdTypeT::SHA256 => sha256::clone(&mut dst.md_ctx, &src.md_ctx),
         
         #[cfg(all(feature = "SHA512", not(feature = "NO_SHA384")))]
-        md_type_t::SHA384 => sha512::clone(&mut dst.md_ctx, &src.md_ctx),
+        MdTypeT::SHA384 => sha512::clone(&mut dst.md_ctx, &src.md_ctx),
         
         #[cfg(feature = "SHA512")]
-        md_type_t::SHA512 => sha512::clone(&mut dst.md_ctx, &src.md_ctx),
+        MdTypeT::SHA512 => sha512::clone(&mut dst.md_ctx, &src.md_ctx),
         
         #[cfg(feature = "RIPEMD160")]
-        md_type_t::RIPEMD160 => ripemd160::clone(&mut dst.md_ctx, &src.md_ctx),
+        MdTypeT::RIPEMD160 => ripemd160::clone(&mut dst.md_ctx, &src.md_ctx),
         _ => return ERR_MD_BAD_INPUT_DATA,
     }
     return 0;
@@ -489,31 +504,31 @@ pub fn starts(ctx: &mut Context) -> i32{
     match ctx.md_info.md_type{
         
         #[cfg(feature = "MD2")]
-        md_type_t::MD2 => return md2::starts_ret(&mut ctx.md_ctx_md_2),
+        MdTypeT::MD2 => return md2::starts_ret(&mut ctx.md_ctx_md_2),
         
         #[cfg(feature = "MD4")]
-        md_type_t::MD4 => return md4::starts_ret(&mut ctx.md_ctx),
+        MdTypeT::MD4 => return md4::starts_ret(&mut ctx.md_ctx),
         
         #[cfg(feature = "MD5")]
-        md_type_t::MD5 => return md4::starts_ret(&mut ctx.md_ctx),
+        MdTypeT::MD5 => return md4::starts_ret(&mut ctx.md_ctx),
         
         #[cfg(feature = "SHA1")]
-        md_type_t::SHA1 => return sha1::starts_ret(&mut ctx.md_ctx),
+        MdTypeT::SHA1 => return sha1::starts_ret(&mut ctx.md_ctx),
         
         #[cfg(all(feature = "SHA256", not(feature = "NO_SHA224")))]
-        md_type_t::SHA224 => return sha256::starts_ret(&mut ctx.md_ctx, 1),
+        MdTypeT::SHA224 => return sha256::starts_ret(&mut ctx.md_ctx, 1),
         
         #[cfg(feature = "SHA256")]
-        md_type_t::SHA256 => return sha256::starts_ret(&mut ctx.md_ctx, 0),
+        MdTypeT::SHA256 => return sha256::starts_ret(&mut ctx.md_ctx, 0),
         
         #[cfg(all(feature = "SHA512", not(feature = "NO_SHA384")))]
-        md_type_t::SHA384 => return sha512::starts_ret(&mut ctx.md_ctx, 1),
+        MdTypeT::SHA384 => return sha512::starts_ret(&mut ctx.md_ctx, 1),
         
         #[cfg(feature = "SHA512")]
-        md_type_t::SHA512 => return sha512::starts_ret(&mut ctx.md_ctx, 0),
+        MdTypeT::SHA512 => return sha512::starts_ret(&mut ctx.md_ctx, 0),
         
         #[cfg(feature = "RIPEMD160")]
-        md_type_t::RIPEMD160 => return ripemd160::starts_ret(&mut ctx.md_ctx),
+        MdTypeT::RIPEMD160 => return ripemd160::starts_ret(&mut ctx.md_ctx),
         
         _ => return ERR_MD_BAD_INPUT_DATA,
     }
@@ -539,31 +554,31 @@ pub fn update(ctx: &mut Context, input: &Vec<u8>, ilen: usize) -> i32{
     match ctx.md_info.md_type{
         
         #[cfg(feature = "MD2")]
-        md_type_t::MD2 => return md2::update_ret(&mut ctx.md_ctx_md_2, input, ilen),
+        MdTypeT::MD2 => return md2::update_ret(&mut ctx.md_ctx_md_2, input, ilen),
         
         #[cfg(feature = "MD4")]
-        md_type_t::MD4 => return md4::update_ret(&mut ctx.md_ctx, input, ilen),
+        MdTypeT::MD4 => return md4::update_ret(&mut ctx.md_ctx, input, ilen),
         
         #[cfg(feature = "MD5")]
-        md_type_t::MD5 => return md4::update_ret(&mut ctx.md_ctx, input, ilen),
+        MdTypeT::MD5 => return md4::update_ret(&mut ctx.md_ctx, input, ilen),
         
         #[cfg(feature = "SHA1")]
-        md_type_t::SHA1 => return sha1::update_ret(&mut ctx.md_ctx, input, ilen),
+        MdTypeT::SHA1 => return sha1::update_ret(&mut ctx.md_ctx, input, ilen),
         
         #[cfg(all(feature = "SHA256", not(feature = "NO_SHA224")))]
-        md_type_t::SHA224 => return sha256::update_ret(&mut ctx.md_ctx, input, ilen),
+        MdTypeT::SHA224 => return sha256::update_ret(&mut ctx.md_ctx, input, ilen),
         
         #[cfg(feature = "SHA256")]
-        md_type_t::SHA256 => return sha256::update_ret(&mut ctx.md_ctx, input, ilen),
+        MdTypeT::SHA256 => return sha256::update_ret(&mut ctx.md_ctx, input, ilen),
         
         #[cfg(all(feature = "SHA512", not(feature = "NO_SHA384")))]
-        md_type_t::SHA384 => return sha512::update_ret(&mut ctx.md_ctx, input, ilen),
+        MdTypeT::SHA384 => return sha512::update_ret(&mut ctx.md_ctx, input, ilen),
         
         #[cfg(feature = "SHA512")]
-        md_type_t::SHA512 => return sha512::update_ret(&mut ctx.md_ctx, input, ilen),
+        MdTypeT::SHA512 => return sha512::update_ret(&mut ctx.md_ctx, input, ilen),
         
         #[cfg(feature = "RIPEMD160")]
-        md_type_t::RIPEMD160 => return ripemd160::update_ret(&mut ctx.md_ctx, input, ilen),
+        MdTypeT::RIPEMD160 => return ripemd160::update_ret(&mut ctx.md_ctx, input, ilen),
         
         _ => return ERR_MD_BAD_INPUT_DATA,
     }
@@ -591,73 +606,73 @@ pub fn finish(ctx: &mut Context, output: &mut Vec<u8>) -> i32{
     match ctx.md_info.md_type{
         
         #[cfg(feature = "MD2")]
-        md_type_t::MD2 => return md2::finish_ret(&mut ctx.md_ctx_md_2, output),
+        MdTypeT::MD2 => return md2::finish_ret(&mut ctx.md_ctx_md_2, output),
         
         #[cfg(feature = "MD4")]
-        md_type_t::MD4 => return md4::finish_ret(&mut ctx.md_ctx, output),
+        MdTypeT::MD4 => return md4::finish_ret(&mut ctx.md_ctx, output),
         
         #[cfg(feature = "MD5")]
-        md_type_t::MD5 => return md4::finish_ret(&mut ctx.md_ctx, output),
+        MdTypeT::MD5 => return md4::finish_ret(&mut ctx.md_ctx, output),
         
         #[cfg(feature = "SHA1")]
-        md_type_t::SHA1 => return sha1::finish_ret(&mut ctx.md_ctx, output),
+        MdTypeT::SHA1 => return sha1::finish_ret(&mut ctx.md_ctx, output),
         
         #[cfg(all(feature = "SHA256", not(feature = "NO_SHA224")))]
-        md_type_t::SHA224 => return sha256::finish_ret(&mut ctx.md_ctx, output),
+        MdTypeT::SHA224 => return sha256::finish_ret(&mut ctx.md_ctx, output),
         
         #[cfg(feature = "SHA256")]
-        md_type_t::SHA256 => return sha256::finish_ret(&mut ctx.md_ctx, output),
+        MdTypeT::SHA256 => return sha256::finish_ret(&mut ctx.md_ctx, output),
         
         #[cfg(all(feature = "SHA512", not(feature = "NO_SHA384")))]
-        md_type_t::SHA384 => return sha512::finish_ret(&mut ctx.md_ctx, output),
+        MdTypeT::SHA384 => return sha512::finish_ret(&mut ctx.md_ctx, output),
         
         #[cfg(feature = "SHA512")]
-        md_type_t::SHA512 => return sha512::finish_ret(&mut ctx.md_ctx, output),
+        MdTypeT::SHA512 => return sha512::finish_ret(&mut ctx.md_ctx, output),
         
         #[cfg(feature = "RIPEMD160")]
-        md_type_t::RIPEMD160 => return ripemd160::finish_ret(&mut ctx.md_ctx, output),
+        MdTypeT::RIPEMD160 => return ripemd160::finish_ret(&mut ctx.md_ctx, output),
         
         _ => return ERR_MD_BAD_INPUT_DATA,
     }
 
 }
 
-fn md(md_info: &md_info_t, input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> i32{
+fn md(md_info: &MdInfoT, input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> i32{
     match md_info.md_type{
         
         #[cfg(feature = "MD2")]
-        md_type_t::MD2 => return md2::ret(input, ilen, output),
+        MdTypeT::MD2 => return md2::ret(input, ilen, output),
         
         #[cfg(feature = "MD4")]
-        md_type_t::MD4 => return md4::ret(input, ilen, output),
+        MdTypeT::MD4 => return md4::ret(input, ilen, output),
         
         #[cfg(feature = "MD5")]
-        md_type_t::MD5 => return md5::ret(input, ilen, output),
+        MdTypeT::MD5 => return md5::ret(input, ilen, output),
         
         #[cfg(feature = "SHA1")]
-        md_type_t::SHA1 => return sha1::ret(input, ilen, output),
+        MdTypeT::SHA1 => return sha1::ret(input, ilen, output),
         
         #[cfg(all(feature = "SHA256", not(feature = "NO_SHA224")))]
-        md_type_t::SHA224 => return sha256::ret(input, ilen, output, 1),
+        MdTypeT::SHA224 => return sha256::ret(input, ilen, output, 1),
         
         #[cfg(feature = "SHA256")]
-        md_type_t::SHA256 => return sha256::ret(input, ilen, output, 0),
+        MdTypeT::SHA256 => return sha256::ret(input, ilen, output, 0),
         
         #[cfg(all(feature = "SHA512", not(feature = "NO_SHA384")))]
-        md_type_t::SHA384 => return sha512::ret(input, ilen, output, 1),
+        MdTypeT::SHA384 => return sha512::ret(input, ilen, output, 1),
         
         #[cfg(feature = "SHA384")]
-        md_type_t::SHA512 => return sha512::ret(input, ilen, output, 0),
+        MdTypeT::SHA512 => return sha512::ret(input, ilen, output, 0),
 
         #[cfg(feature = "RIPEMD160")]
-        md_type_t::RIPEMD160 => return ripemd160::ret(input, ilen, output),
+        MdTypeT::RIPEMD160 => return ripemd160::ret(input, ilen, output),
 
         _ => return ERR_MD_BAD_INPUT_DATA,
     };
 }
 
 // #[cfg(feature = "FS_IO")]
-fn md_file(md_info: &md_info_t, path_str: &String, output: &mut Vec<u8>) -> i32 {
+fn md_file(md_info: &MdInfoT, path_str: &String, output: &mut Vec<u8>) -> i32 {
     use std::fs::File;
     use std::path::Path;
     use std::io::{self, prelude::*, BufReader};
@@ -813,7 +828,7 @@ pub fn hmac_reset(ctx: &mut Context) -> i32{
     return update(ctx, &ipad, ctx.md_info.block_size as usize);
 }
 
-fn hmac(md_info: &md_info_t, key: &Vec<u8>, keylen: usize, input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> i32{
+fn hmac(md_info: &MdInfoT, key: &Vec<u8>, keylen: usize, input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> i32{
     let mut ctx = create_context();
     let mut ret = error::ERR_ERROR_CORRUPTION_DETECTED;
     
@@ -847,45 +862,45 @@ fn hmac(md_info: &md_info_t, key: &Vec<u8>, keylen: usize, input: &Vec<u8>, ilen
 fn process(ctx: &mut Context, data: &[u8])->i32{
     match ctx.md_info.md_type{
         #[cfg(feature = "MD2")]
-        md_type_t::MD2 => return md2::internal_process(&mut ctx.md_ctx_md_2),
+        MdTypeT::MD2 => return md2::internal_process(&mut ctx.md_ctx_md_2),
         
         #[cfg(feature = "MD4")]
-        md_type_t::MD4 => return md4::internal_process(&mut ctx.md_ctx, data),
+        MdTypeT::MD4 => return md4::internal_process(&mut ctx.md_ctx, data),
         
         #[cfg(feature = "MD5")]
-        md_type_t::MD5 => return md5::internal_process(&mut ctx.md_ctx, data),
+        MdTypeT::MD5 => return md5::internal_process(&mut ctx.md_ctx, data),
         
         #[cfg(feature = "SHA1")]
-        md_type_t::SHA1 => return sha1::internal_process(&mut ctx.md_ctx, data),
+        MdTypeT::SHA1 => return sha1::internal_process(&mut ctx.md_ctx, data),
         
         #[cfg(all(feature = "SHA256", not(feature = "NO_SHA224")))]
-        md_type_t::SHA224 => return sha256::internal_process(&mut ctx.md_ctx, data),
+        MdTypeT::SHA224 => return sha256::internal_process(&mut ctx.md_ctx, data),
         
         #[cfg(feature = "SHA256")]
-        md_type_t::SHA256 => return sha256::internal_process(&mut ctx.md_ctx, data),
+        MdTypeT::SHA256 => return sha256::internal_process(&mut ctx.md_ctx, data),
         
         #[cfg(all(feature = "SHA512", not(feature = "NO_SHA384")))]
-        md_type_t::SHA384 => return sha512::internal_process(&mut ctx.md_ctx, data),
+        MdTypeT::SHA384 => return sha512::internal_process(&mut ctx.md_ctx, data),
         
         #[cfg(feature = "SHA512")]
-        md_type_t::SHA512 => return sha512::internal_process(&mut ctx.md_ctx, data),
+        MdTypeT::SHA512 => return sha512::internal_process(&mut ctx.md_ctx, data),
         
         #[cfg(feature = "RIPEMD160")]
-        md_type_t::RIPEMD160 => return ripemd160::internal_process(&mut ctx.md_ctx, data),
+        MdTypeT::RIPEMD160 => return ripemd160::internal_process(&mut ctx.md_ctx, data),
 
         _ => return ERR_MD_BAD_INPUT_DATA,
     }
 }
 
-fn get_size(md_info: md_info_t) -> u8{
+fn get_size(md_info: MdInfoT) -> u8{
     return md_info.size;
 }
 
-fn get_type(md_info: md_info_t) -> md_type_t{
+fn get_type(md_info: MdInfoT) -> MdTypeT{
     return md_info.md_type;
 }
 
-fn get_name(md_info: &md_info_t) -> &'static str{
+fn get_name(md_info: &MdInfoT) -> &'static str{
     return md_info.name;
 }
 #[cfg(test)]
@@ -932,12 +947,13 @@ mod test{
         .unwrap_or(a.len().cmp(&b.len()))
     }
 
+    #[cfg(feature = "MD2")]
     #[test]
     pub fn md_test(){
         let mut md2sum: Vec<u8> = vec![0; 16];
         for i in 0..7{
             assert_eq!(0, 
-                super::md( &super::md2_info, 
+                super::md( &super::MD2_INFO, 
                 &test_str[i].as_bytes().to_vec(), 
                 test_strlen[i], &mut md2sum)
             );
@@ -949,20 +965,23 @@ mod test{
         }
     }
 
-    #[test]
+    #[cfg(feature = "MD2")]
+    // #[test]
+    //If you want to enable this test create appropriate md2_input.txt
     pub fn md_file_test(){
         // TODO: This test uses hardcoded absolute file path. Fix this.
         let mut md2sum: Vec<u8> = vec![0; 16];
         let path = String::from(
             "C:\\Users\\vimal patel\\Desktop\\TPCSS_MBED_TLS\\source\\src\\hashing\\test\\md2_input.txt"
         );
-        assert_eq!(0, super::md_file( &super::md2_info, &path, &mut md2sum));
+        assert_eq!(0, super::md_file( &super::MD2_INFO, &path, &mut md2sum));
         assert_eq!(cmp::Ordering::Equal, compare(md2sum.as_ref(), &test_sum[6]));
     }
 
+    // MD2 based HMAC tests
+    #[cfg(feature = "MD2")]
     #[test]
     fn hmac_test(){
-        // MD2 based HMAC tests
         let key = String::from("key");
         let input = String::from("The quick brown fox jumps over the lazy dog");
         let actual_output: [u8; 16] = [
@@ -971,11 +990,11 @@ mod test{
             0x85, 0x04, 0x57, 0x81,
             0x46, 0x13, 0xb0, 0xc1
         ];
-        let mut output: Vec<u8> = vec![0; super::md2_info.size as usize];
+        let mut output: Vec<u8> = vec![0; super::MD2_INFO.size as usize];
         let key_vec = key.as_bytes().to_vec();
         let input_vec = input.as_bytes().to_vec();
         
-        assert_eq!(0, super::hmac(&super::md2_info, 
+        assert_eq!(0, super::hmac(&super::MD2_INFO, 
                         &key_vec, key_vec.len(), 
                         &input_vec, input_vec.len(), 
                         &mut output));
