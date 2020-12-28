@@ -1,10 +1,6 @@
 //#if !defined(MBEDTLS_X509_MAX_INTERMEDIATE_CA)
 pub const MBEDTLS_X509_MAX_INTERMEDIATE_CA   : i32 =  8;
 
-pub fn print(){
-    println!("Done!!");
-}
-
 pub const MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE              : i32 = -0x2080;  /**< Unavailable feature, e.g. RSA hashing/encryption combination. */
 pub const MBEDTLS_ERR_X509_UNKNOWN_OID                      : i32 = -0x2100;  /**< Requested OID is unknown. */
 pub const MBEDTLS_ERR_X509_INVALID_FORMAT                   : i32 = -0x2180;  /**< The CRT/CRL/CSR format is invalid, e.g. different type expected. */
@@ -103,3 +99,57 @@ pub const MBEDTLS_X509_FORMAT_PEM                 : i32 = 2;
 pub const MBEDTLS_X509_MAX_DN_NAME_SIZE         : i32 = 256; /* Maximum value size of a DN entry */
 
 
+
+
+
+
+
+
+//asn1.h file
+//===========================================================================================================================================
+
+pub const MBEDTLS_ERR_ASN1_OUT_OF_DATA                      : i32 = -0x0060;  /**< Out of data when parsing an ASN1 data structure. */
+pub const MBEDTLS_ERR_ASN1_UNEXPECTED_TAG                   : i32 = -0x0062;  /**< ASN1 tag was of an unexpected value. */
+pub const MBEDTLS_ERR_ASN1_INVALID_LENGTH                   : i32 = -0x0064;  /**< Error when trying to determine the length or invalid length. */
+pub const MBEDTLS_ERR_ASN1_LENGTH_MISMATCH                  : i32 = -0x0066;  /**< Actual length differs from expected length. */
+pub const MBEDTLS_ERR_ASN1_INVALID_DATA                     : i32 = -0x0068;  /**< Data is invalid. */
+pub const MBEDTLS_ERR_ASN1_ALLOC_FAILED                     : i32 = -0x006A;  /**< Memory allocation failed */
+pub const MBEDTLS_ERR_ASN1_BUF_TOO_SMALL                    : i32 = -0x006C;  /**< Buffer too small when writing ASN.1 data structure. */
+
+pub const MBEDTLS_ASN1_BOOLEAN                 : i32 = 0x01;
+pub const MBEDTLS_ASN1_INTEGER                 : i32 = 0x02;
+pub const MBEDTLS_ASN1_BIT_STRING              : i32 = 0x03;
+pub const MBEDTLS_ASN1_OCTET_STRING            : i32 = 0x04;
+pub const MBEDTLS_ASN1_NULL                    : i32 = 0x05;
+pub const MBEDTLS_ASN1_OID                     : i32 = 0x06;
+pub const MBEDTLS_ASN1_ENUMERATED              : i32 = 0x0A;
+pub const MBEDTLS_ASN1_UTF8_STRING             : i32 = 0x0C;
+pub const MBEDTLS_ASN1_SEQUENCE                : i32 = 0x10;
+pub const MBEDTLS_ASN1_SET                     : i32 = 0x11;
+pub const MBEDTLS_ASN1_PRINTABLE_STRING        : i32 = 0x13;
+pub const MBEDTLS_ASN1_T61_STRING              : i32 = 0x14;
+pub const MBEDTLS_ASN1_IA5_STRING              : i32 = 0x16;
+pub const MBEDTLS_ASN1_UTC_TIME                : i32 = 0x17;
+pub const MBEDTLS_ASN1_GENERALIZED_TIME        : i32 = 0x18;
+pub const MBEDTLS_ASN1_UNIVERSAL_STRING        : i32 = 0x1C;
+pub const MBEDTLS_ASN1_BMP_STRING              : i32 = 0x1E;
+pub const MBEDTLS_ASN1_PRIMITIVE               : i32 = 0x00;
+pub const MBEDTLS_ASN1_CONSTRUCTED             : i32 = 0x20;
+pub const MBEDTLS_ASN1_CONTEXT_SPECIFIC        : i32 = 0x80;
+
+pub const MBEDTLS_ASN1_TAG_CLASS_MASK          : i32 = 0xC0;
+pub const MBEDTLS_ASN1_TAG_PC_MASK             : i32 = 0x20;
+pub const MBEDTLS_ASN1_TAG_VALUE_MASK          : i32 = 0x1F;
+
+//#define MBEDTLS_OID_SIZE(x) (sizeof(x) - 1)
+
+
+//error.h file
+//===========================================================================================================================================
+
+pub const MBEDTLS_ERR_ERROR_GENERIC_ERROR       : i32 = -0x0001;  /**< Generic error */
+pub const MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED : i32 = -0x006E;  /**< This is a bug in the library */
+
+pub fn print(){
+    println!("Done!!");
+}
