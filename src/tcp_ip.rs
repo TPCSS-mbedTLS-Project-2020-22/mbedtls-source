@@ -59,12 +59,12 @@ enum TLProtocol {
 /// Rust : SS : Replaced fd by a tcpListener object in context
 pub struct MbedtlsNetContext {
     //protocol : Option<TLProtocol, //do i really need this
-    tcp_listener : Option<TcpListener>,
-    tcp_stream : Option<TcpStream>,
-    tcp_stream_remote_addr : Option<SocketAddr>,
+    pub tcp_listener : Option<TcpListener>,
+    pub tcp_stream : Option<TcpStream>,
+    pub tcp_stream_remote_addr : Option<SocketAddr>,
 
-    udp_socket : Option<UdpSocket> ,
-    udp_socket_remote_addr : Option<SocketAddr>
+    pub udp_socket : Option<UdpSocket> ,
+    pub udp_socket_remote_addr : Option<SocketAddr>
 }
 
 impl MbedtlsNetContext{

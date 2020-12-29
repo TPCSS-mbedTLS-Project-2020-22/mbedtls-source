@@ -1,5 +1,5 @@
 extern crate mbed;
-
+use std::net::{IpAddr, SocketAddr, TcpListener, TcpStream, UdpSocket};
 // You may run this program with the command ~ cargo run --example dtls-server
 
 /*
@@ -22,14 +22,30 @@ extern crate mbed;
 fn main() {
     // Just a test function
     mbed::ssl_tls::foo();
+    mbed::tcp_ip::print();
 
     // TODO Declare Variable
     println!("TODO: Declare variables");
+    let mut listen_fd =  mbed::tcp_ip::MbedtlsNetContext {
+        tcp_listener: None,
+        tcp_stream: None,
+        tcp_stream_remote_addr: None,
+        udp_socket: None,
+        udp_socket_remote_addr: None,
+    };
+    let mut client_fd = mbed::tcp_ip::MbedtlsNetContext {
+        tcp_listener: None,
+        tcp_stream: None,
+        tcp_stream_remote_addr: None,
+        udp_socket: None,
+        udp_socket_remote_addr: None,
+    };
     let mut cookie_ctx: mbed::ssl_tls::cookie::cookie_ctx;
     // TODO declare entropy and ctr_drbg context contact Hiren Kumar Saha and Mahesh Kumar
 
     let mut ssl: mbed::ssl_tls::ssl::context;
     let mut conf: mbed::ssl_tls::ssl::config;
+    let proto = 0;              // TODO TLProtocol enum needs to be pulished
     
     // TODO following init functions
     // mbed::net::init() -> net_socket.c
@@ -53,7 +69,10 @@ fn main() {
      * TODO 2. Setup the "listening" UDP socket
      */
     println!("TODO: 2. Setup the listening UDPP socket");
+    mbed::tcp_ip::mbedtls_net_bind(&mut listen_fd, "127.0.0.1", "8000", &proto);
     // mbed::net::bind()  -> net_sockets.c
+    mbed::tcp_ip::mbedtls_net_bind(&mut client_fd, "127.0.0.1", "8080", &proto);
+
     // mbed::ctr::drbg::seed() -> ctr_drbg.c  // seeding the random generator
     // mbed::ssl::config_defaults()  -> ssl_tls.c  // setting up dtls data
     // mbed::ssl::conf_rng( callback mbed::ctr::drbg::random)  -> ssl_tls.c & ctr_drbg.c
@@ -69,6 +88,7 @@ fn main() {
     // *mbed::ssl::set_timer_cb() -> ssl_tls.c
     // mbed::net::free() -> net_sockets.c
 
+
     // *mbed::ssl::session_reset() -> ssl_tls.c calls a seemingly complicated function,
     // mbedtls_ssl_session_reset_int in the same file that reset an initialized and used SSL context
     // for reuse while retaining all application-set variables
@@ -76,6 +96,7 @@ fn main() {
     // TODO: 3. Wait for remote connection ...
     println!("TODO: 3. Wait for remote connection ... ");
     // *mbed:net::accept() -> net_sockets.c   // NOTE: mostly calls socket library files
+    mbed::tcp_ip::mbedtls_net_accept(&mut listen_fd, &mut client_fd);
 
     // TODO: 4. Hello verify request cookie
     // mbed::ssl::set_client_transport_id() -> ssl_srv.c
