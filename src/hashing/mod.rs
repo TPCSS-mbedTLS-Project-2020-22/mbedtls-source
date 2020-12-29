@@ -2,7 +2,8 @@
 pub mod md2;
 #[cfg(feature = "MD4")]
 pub mod md4;
-
+#[cfg(feature = "MD5")]
+pub mod md5;
 use super::error;
 
 /// The selected feature is not available.
@@ -510,7 +511,7 @@ pub fn starts(ctx: &mut Context) -> i32{
         MdTypeT::MD4 => return md4::starts_ret(&mut ctx.md_ctx),
         
         #[cfg(feature = "MD5")]
-        MdTypeT::MD5 => return md4::starts_ret(&mut ctx.md_ctx),
+        MdTypeT::MD5 => return md5::starts_ret(&mut ctx.md_ctx),
         
         #[cfg(feature = "SHA1")]
         MdTypeT::SHA1 => return sha1::starts_ret(&mut ctx.md_ctx),
@@ -560,7 +561,7 @@ pub fn update(ctx: &mut Context, input: &Vec<u8>, ilen: usize) -> i32{
         MdTypeT::MD4 => return md4::update_ret(&mut ctx.md_ctx, input, ilen),
         
         #[cfg(feature = "MD5")]
-        MdTypeT::MD5 => return md4::update_ret(&mut ctx.md_ctx, input, ilen),
+        MdTypeT::MD5 => return md5::update_ret(&mut ctx.md_ctx, input, ilen),
         
         #[cfg(feature = "SHA1")]
         MdTypeT::SHA1 => return sha1::update_ret(&mut ctx.md_ctx, input, ilen),
@@ -612,7 +613,7 @@ pub fn finish(ctx: &mut Context, output: &mut Vec<u8>) -> i32{
         MdTypeT::MD4 => return md4::finish_ret(&mut ctx.md_ctx, output),
         
         #[cfg(feature = "MD5")]
-        MdTypeT::MD5 => return md4::finish_ret(&mut ctx.md_ctx, output),
+        MdTypeT::MD5 => return md5::finish_ret(&mut ctx.md_ctx, output),
         
         #[cfg(feature = "SHA1")]
         MdTypeT::SHA1 => return sha1::finish_ret(&mut ctx.md_ctx, output),

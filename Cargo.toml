@@ -11,3 +11,4 @@ edition = "2018"
 [features]
 MD2 = []
 MD4 = []
+MD5 = []
