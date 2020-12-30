@@ -58,7 +58,7 @@ enum TLProtocol {
 /// structures for hand-made UDP demultiplexing)
 /// Rust : SS : Replaced fd by a tcpListener object in context
 pub struct MbedtlsNetContext {
-    //protocol : Option<TLProtocol, //do i really need this
+    protocol : Option<TLProtocol>, //do i really need this
     tcp_listener : Option<TcpListener>,
     tcp_stream : Option<TcpStream>,
     tcp_stream_remote_addr : Option<SocketAddr>,
@@ -70,6 +70,7 @@ pub struct MbedtlsNetContext {
 impl MbedtlsNetContext{
     pub fn new() -> Self {
         MbedtlsNetContext {
+            protocol: None,
             tcp_listener : None,
             tcp_stream : None,
             tcp_stream_remote_addr : None,
@@ -102,7 +103,7 @@ pub fn mbedtls_net_connect(ctx: &mut MbedtlsNetContext, host:&str, port:&str, pr
     ctx.tcp_stream = match TcpStream::connect(sockAddr) {
         Ok(tcp_stream) => {
             ret_value = MBEDTLS_NET_OPER_SUCCESS;
-            Some(tcp_stream)
+            Some(tcp_stream) 
         },
         Err(e) => panic!(e),
     };
@@ -114,12 +115,13 @@ pub fn mbedtls_net_connect(ctx: &mut MbedtlsNetContext, host:&str, port:&str, pr
 /// Create a receiving socket on bind_ip:port in the chosen
 /// protocol. If bind_ip == NULL, all interfaces are bound.
 pub fn mbedtls_net_bind(ctx: &mut MbedtlsNetContext, host:&str, port:&str, proto:&i32) -> i16 {
-    let mut ret_value = 0 ;
+    let mut ret_value = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED ;
     let ipAddr = IpAddr::from_str(host).unwrap();
     // SS : Assuming host and port to be valid numerics
     
     let portInt : u16 = port.parse().unwrap();
     let sockAddr = SocketAddr::new(ipAddr, portInt);
+    
 
     ctx.tcp_listener = match TcpListener::bind(sockAddr) {
         Ok(tcp_listener) => {
@@ -128,10 +130,6 @@ pub fn mbedtls_net_bind(ctx: &mut MbedtlsNetContext, host:&str, port:&str, proto
         },
         Err(e) => panic!(e),
     };
-
-    // println!("Inside bind method. Press enter to end the program : ");
-    // let mut line=String::new();
-    // let b1 = std::io::stdin().read_line(&mut line).unwrap(); 
 
     ret_value
 }
@@ -188,9 +186,6 @@ pub fn mbedtls_net_recv(ctx : &MbedtlsNetContext,
     let received_bytes_buffer: &[u8] = reader.fill_buf().unwrap();
 
     // Read at most 'read_bytes_len' bytes from the buffer
-    // recv_buf = &mut received_bytes_buffer[..read_bytes_len as usize];
-    // recv_buf = (received_bytes_buffer[..read_bytes_len as usize]).clone();
-
     let mut bytes_to_consume = max_read_bytes_len;
     if received_bytes_buffer.len() < max_read_bytes_len as usize {
         bytes_to_consume = received_bytes_buffer.len() as u32;
