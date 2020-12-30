@@ -4,6 +4,9 @@ pub mod md2;
 pub mod md4;
 #[cfg(feature = "MD5")]
 pub mod md5;
+#[cfg(feature = "SHA1")]
+pub mod sha1;
+
 use super::error;
 
 /// The selected feature is not available.
