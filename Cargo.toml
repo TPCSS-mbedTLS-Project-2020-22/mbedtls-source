@@ -1,5 +1,5 @@
 [package]
-name = "mbed"
+name = "mbedtls"
 version = "0.1.0"
 authors = ["Shashank Singh <cse.shashanksingh@gmail.com>"]
 edition = "2018"
