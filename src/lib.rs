@@ -1,2 +1,2 @@
 mod ssl_tls;
-mod base64;
+pub mod base64;
