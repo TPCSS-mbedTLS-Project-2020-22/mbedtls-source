@@ -829,7 +829,7 @@ pub fn hmac_reset(ctx: &mut Context) -> i32{
     return update(ctx, &ipad, ctx.md_info.block_size as usize);
 }
 
-fn hmac(md_info: &MdInfoT, key: &Vec<u8>, keylen: usize, input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> i32{
+pub fn hmac(md_info: &MdInfoT, key: &Vec<u8>, keylen: usize, input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> i32{
     let mut ctx = create_context();
     let mut ret = error::ERR_ERROR_CORRUPTION_DETECTED;
     
@@ -860,7 +860,7 @@ fn hmac(md_info: &MdInfoT, key: &Vec<u8>, keylen: usize, input: &Vec<u8>, ilen: 
     return ret;
 }
 
-fn process(ctx: &mut Context, data: &[u8])->i32{
+pub fn process(ctx: &mut Context, data: &[u8])->i32{
     match ctx.md_info.md_type{
         #[cfg(feature = "MD2")]
         MdTypeT::MD2 => return md2::internal_process(&mut ctx.md_ctx_md_2),
@@ -893,15 +893,15 @@ fn process(ctx: &mut Context, data: &[u8])->i32{
     }
 }
 
-fn get_size(md_info: MdInfoT) -> u8{
+pub fn get_size(md_info: MdInfoT) -> u8{
     return md_info.size;
 }
 
-fn get_type(md_info: MdInfoT) -> MdTypeT{
+pub fn get_type(md_info: MdInfoT) -> MdTypeT{
     return md_info.md_type;
 }
 
-fn get_name(md_info: &MdInfoT) -> &'static str{
+pub fn get_name(md_info: &MdInfoT) -> &'static str{
     return md_info.name;
 }
 #[cfg(test)]
