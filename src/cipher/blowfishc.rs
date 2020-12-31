@@ -1,16 +1,15 @@
 pub mod blowfish;
-use std::ptr::copy_nonoverlapping;
-use crate::blowfish::MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH;
-use crate::blowfish::MBEDTLS_BLOWFISH_ENCRYPT;
-use crate::blowfish::MBEDTLS_BLOWFISH_DECRYPT;
+use crate::cipher::blowfishc::blowfish::MBEDTLS_BLOWFISH_ENCRYPT;
+use crate::cipher::blowfishc::blowfish::MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH;
+use crate::cipher::blowfishc::blowfish::MBEDTLS_BLOWFISH_DECRYPT;
 use std::convert::TryInto;
-use crate::blowfish::MBEDTLS_BLOWFISH_MIN_KEY_BITS;
-use crate::blowfish::MBEDTLS_BLOWFISH_MAX_KEY_BITS;
-use crate::blowfish::MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA;
+use crate::cipher::blowfishc::blowfish::MBEDTLS_BLOWFISH_MAX_KEY_BITS;
+use crate::cipher::blowfishc::blowfish::MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA;
+use crate::cipher::blowfishc::blowfish::MBEDTLS_BLOWFISH_MIN_KEY_BITS;
 use std::ptr::write_bytes;
-use crate::blowfish::MBEDTLS_BLOWFISH_ROUNDS;
-use crate::blowfish::MBEDTLS_BLOWFISH_BLOCKSIZE;
-use crate::blowfish::MODULU32;
+use crate::cipher::blowfishc::blowfish::MBEDTLS_BLOWFISH_ROUNDS;
+use crate::cipher::blowfishc::blowfish::MODULU32;
+use crate::cipher::blowfishc::blowfish::MBEDTLS_BLOWFISH_BLOCKSIZE;
 use std::convert::TryFrom;
 use blowfish::mbedtls_blowfish_context;
 pub fn get_uint32_be(n : &mut u32,b :&mut [u8],i: usize ){
