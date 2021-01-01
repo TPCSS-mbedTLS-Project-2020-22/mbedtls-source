@@ -1,46 +1,55 @@
-//Added by Aman: Test library use
-
-use std::env;
 use mbed::tcp_ip;
+use std::env;
 
-fn main(){
-    tcp_ip::print();
+fn main() {
 
+    //Extract 'protocol' and 'mode' of operation
     let args: Vec<String> = env::args().collect();
+    let proto_str = (&args[1]).to_uppercase();        // tcp/udp
+    let mode = (&args[2]).to_uppercase();             // server/client
+    let msg = (&args[3])[..].as_bytes();
 
-    let operation = &args[1];
+    let proto = match &proto_str[..] {
+        "TCP" => tcp_ip::TLProtocol::TCP,
+        "UDP" => tcp_ip::TLProtocol::UDP,
+        _ => panic!("Undefined Protocol"),
+    };
 
-    println!("You have asked for operation : {}", operation);
 
-    let mut context = tcp_ip::MbedtlsNetContext::new();
-    let mut context_client = tcp_ip::MbedtlsNetContext::new();
+    println!("\nStarting {} {}...\n", proto_str, mode);
 
-    if(operation.eq_ignore_ascii_case("bind")) {
-        println!("Trying to open a TCP socket");
-        
-        tcp_ip::mbedtls_net_bind(&mut context, "127.0.0.1", "4442", &2);
+    //Initialize context
+    let mut context = tcp_ip::MbedtlsNetContext::new(proto);
+    // match context.protocol.unwrap() {
+    //     tcp_ip::TLProtocol::TCP => println!("TCP"),
+    //     tcp_ip::TLProtocol::UDP => println!("UDP")
+    // }
 
-        tcp_ip::mbedtls_net_accept(&mut context, &mut context_client);
 
-        let mut buf : [u8 ; 512] = [0;512];
-        tcp_ip::mbedtls_net_recv(&mut context_client, &mut buf, 6);
+    if mode.eq_ignore_ascii_case("SERVER") {
 
-        println!("Received message : {}", String::from_utf8_lossy(&buf));
+        println!("Trying to open a {} socket", proto_str);
+        tcp_ip::mbedtls_net_bind(&mut context, "127.0.0.1", "4442", &proto);
 
+        loop{
+            let mut context_client = tcp_ip::MbedtlsNetContext::new(proto);
+            tcp_ip::mbedtls_net_accept(&mut context, &mut context_client);
+            
+            let mut buf: [u8; 512] = [0; 512];
+            tcp_ip::mbedtls_net_recv(&mut context_client, &mut buf, 6); 
+            println!("Received message : {}", String::from_utf8_lossy(&buf));
+        }
+    } 
+    else if mode.eq_ignore_ascii_case("CLIENT") {
+        println!("Trying to connect to the open socket");
+        tcp_ip::mbedtls_net_connect(&mut context, "127.0.0.1", "4442", &proto);
+
+        println!("Sending message to server : {}", &args[3]);
+        tcp_ip::mbedtls_net_send(&mut context, msg);
     }
     
-    else if(operation.eq_ignore_ascii_case("connect")){
-        println!("Trying to connect to the open socket");
-        let mut context = tcp_ip::MbedtlsNetContext::new();
-        tcp_ip::mbedtls_net_connect(&mut context, "127.0.0.1", "4442", &2);
-
-        println!("Sending message to server : HELLO");
-
-        tcp_ip::mbedtls_net_send(&mut context, b"HELLO");
-    }
-
 
     println!("Press enter to end the program : ");
-    let mut line=String::new();
-    let b1 = std::io::stdin().read_line(&mut line).unwrap();   
+    let mut line = String::new();
+    let b1 = std::io::stdin().read_line(&mut line).unwrap();
 }
