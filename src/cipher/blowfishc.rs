@@ -1,17 +1,16 @@
-pub mod blowfish;
-use crate::cipher::blowfishc::blowfish::MBEDTLS_BLOWFISH_ENCRYPT;
-use crate::cipher::blowfishc::blowfish::MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH;
-use crate::cipher::blowfishc::blowfish::MBEDTLS_BLOWFISH_DECRYPT;
+use crate::cipher::blowfish_header::MBEDTLS_BLOWFISH_ENCRYPT;
+use crate::cipher::blowfish_header::MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH;
+use crate::cipher::blowfish_header::MBEDTLS_BLOWFISH_DECRYPT;
 use std::convert::TryInto;
-use crate::cipher::blowfishc::blowfish::MBEDTLS_BLOWFISH_MAX_KEY_BITS;
-use crate::cipher::blowfishc::blowfish::MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA;
-use crate::cipher::blowfishc::blowfish::MBEDTLS_BLOWFISH_MIN_KEY_BITS;
+use crate::cipher::blowfish_header::MBEDTLS_BLOWFISH_MAX_KEY_BITS;
+use crate::cipher::blowfish_header::MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA;
+use crate::cipher::blowfish_header::MBEDTLS_BLOWFISH_MIN_KEY_BITS;
 use std::ptr::write_bytes;
-use crate::cipher::blowfishc::blowfish::MBEDTLS_BLOWFISH_ROUNDS;
-use crate::cipher::blowfishc::blowfish::MODULU32;
-use crate::cipher::blowfishc::blowfish::MBEDTLS_BLOWFISH_BLOCKSIZE;
+use crate::cipher::blowfish_header::MBEDTLS_BLOWFISH_ROUNDS;
+use crate::cipher::blowfish_header::MODULU32;
+use crate::cipher::blowfish_header::MBEDTLS_BLOWFISH_BLOCKSIZE;
 use std::convert::TryFrom;
-use blowfish::mbedtls_blowfish_context;
+use crate::cipher::blowfish_header::mbedtls_blowfish_context;
 pub fn get_uint32_be(n : &mut u32,b :&mut [u8],i: usize ){
     *n=u32::from( b[i])<<24 |
         u32::from( b[i+1])<<16 |
@@ -25,7 +24,7 @@ pub fn put_uint32_be(n :  u32, b :&mut [u8;MBEDTLS_BLOWFISH_BLOCKSIZE],i: usize)
     b[i + 3]=u8::try_from(n & 0xFF ).unwrap();
 }
 
-pub const P:[u32;blowfish::MBEDTLS_BLOWFISH_ROUNDS+2]=[0x243F6A88,0x85A308D3, 0x13198A2E, 0x03707344,
+pub const P:[u32;crate::cipher::blowfish_header::MBEDTLS_BLOWFISH_ROUNDS+2]=[0x243F6A88,0x85A308D3, 0x13198A2E, 0x03707344,
                                                     0xA4093822, 0x299F31D0, 0x082EFA98, 0xEC4E6C89,
                                                     0x452821E6, 0x38D01377, 0xBE5466CF, 0x34E90C6C,
                                                     0xC0AC29B7, 0xC97C50DD, 0x3F84D5B5, 0xB5470917,

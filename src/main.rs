@@ -2,12 +2,11 @@
 mod cipher;
 use crate::cipher::blowfishc::mbedtls_blowfish_crypt_ctr;
 use crate::cipher::blowfishc::mbedtls_blowfish_crypt_cfb64;
-use crate::cipher::blowfishc::blowfish::MBEDTLS_BLOWFISH_BLOCKSIZE;
+use crate::cipher::blowfish_header::MBEDTLS_BLOWFISH_BLOCKSIZE;
 use crate::cipher::blowfishc::mbedtls_blowfish_crypt_cbc;
-use cipher::blowfishc::blowfish;
-use crate::cipher::blowfishc::blowfish::MBEDTLS_BLOWFISH_ENCRYPT;
-use crate::cipher::blowfishc::blowfish::MBEDTLS_BLOWFISH_DECRYPT;
-use blowfish::mbedtls_blowfish_context;
+use crate::cipher::blowfish_header::MBEDTLS_BLOWFISH_ENCRYPT;
+use crate::cipher::blowfish_header::MBEDTLS_BLOWFISH_DECRYPT;
+use crate::cipher::blowfish_header::mbedtls_blowfish_context;
 use cipher::blowfishc::get_uint32_be;
 use cipher::blowfishc::put_uint32_be;
 
@@ -44,7 +43,7 @@ fn main() {
     let mut d:[u8;8]=[0,0,0,0,0,0,0,0];
     cipher::blowfishc::mbedtls_blowfish_crypt_ecb(&mut ctx,MBEDTLS_BLOWFISH_DECRYPT, c,&mut d);
     println!("{:?}",d);
-    blowfish::run();
+    crate::cipher::blowfish_header::run();
     let mut iv:  [char;MBEDTLS_BLOWFISH_BLOCKSIZE]=['1','2','3','4','5','6','7','8'];
     let mut k= String::from("ijklmnopijklmnop");
     //out="hmm";

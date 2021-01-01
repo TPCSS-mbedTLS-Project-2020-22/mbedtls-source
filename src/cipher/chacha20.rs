@@ -1,11 +1,9 @@
-use crate::cipher::chacha20::chacha20_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-use crate::cipher::chacha20::chacha20_header::CHACHA20_CTR_INDEX;
-use crate::cipher::chacha20::chacha20_header::MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA;
+use crate::cipher::chacha20_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+use crate::cipher::chacha20_header::CHACHA20_CTR_INDEX;
+use crate::cipher::chacha20_header::MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA;
 use std::ptr::write_bytes;
-use crate::cipher::chacha20::chacha20_header::CHACHA20_BLOCK_SIZE_BYTES;
-use crate::cipher::chacha20::chacha20_header::mbedtls_chacha20_context;
-
-pub mod chacha20_header;
+use crate::cipher::chacha20_header::CHACHA20_BLOCK_SIZE_BYTES;
+use crate::cipher::chacha20_header::mbedtls_chacha20_context;
 
 pub fn ROTL32(value:u32,amount:usize)->u32{
     let ret:u32;
@@ -277,4 +275,5 @@ pub fn run()
     println!("{}",k);
     test1(k);
     println!("{}",k);
+    println!("{}",MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA);
 }
