@@ -1,443 +1,552 @@
 //TO DO:
-//asn1.h
-mod x509_header;
-mod md_header;
-mod pk_header;
+
+//sprintf
+
+use chrono::{Datelike, Timelike, Utc};
+use std::mem::size_of;
+
+
+#[path = "../x509/x509_header.rs"]  mod x509_header;
+
+#[path = "../x509/pk_header.rs"] mod pk_header;
+
+#[path = "../x509/md_header.rs"] mod md_header;
 
 fn nop() {}
 
+
+pub struct p
+{
+    pub ptr: Vec<u8>,
+    pub iptr: usize,
+}
+
+impl p{
+    fn copy(&self) -> p {
+        let x = p{ptr: self.ptr[..].iter().cloned().collect(), iptr: self.iptr};
+        return x
+    }
+}
+
+impl md_header::mbedtls_md_type_t {
+    pub fn copy(&self) -> md_header::mbedtls_md_type_t {
+        match &self {
+            MBEDTLS_MD_NONE => return md_header::mbedtls_md_type_t::MBEDTLS_MD_NONE,
+            MBEDTLS_MD_MD2 => return md_header::mbedtls_md_type_t::MBEDTLS_MD_MD2,
+            MBEDTLS_MD_MD4 => return md_header::mbedtls_md_type_t::MBEDTLS_MD_MD4,
+            MBEDTLS_MD_MD5 => return md_header::mbedtls_md_type_t::MBEDTLS_MD_MD5,
+            MBEDTLS_MD_SHA1 => return md_header::mbedtls_md_type_t::MBEDTLS_MD_SHA1,
+            MBEDTLS_MD_SHA224 => return md_header::mbedtls_md_type_t::MBEDTLS_MD_SHA224,
+            MBEDTLS_MD_SHA256 => return md_header::mbedtls_md_type_t::MBEDTLS_MD_SHA256,
+            MBEDTLS_MD_SHA384 => return md_header::mbedtls_md_type_t::MBEDTLS_MD_SHA384,
+            MBEDTLS_MD_SHA512 => return md_header::mbedtls_md_type_t::MBEDTLS_MD_SHA512,
+            MBEDTLS_MD_RIPEMD160 => return md_header::mbedtls_md_type_t::MBEDTLS_MD_RIPEMD160,
+        };
+    }
+}
+//========================================================================================================================================
+
 pub struct mbedtls_x509_buf
 {
-    pub tag: i32,                /**< ASN1 type, e.g. MBEDTLS_ASN1_UTF8_STRING. */
-    pub len: i32,             /**< ASN1 length, in octets. */
-    pub p: char,      
+    pub len: usize,
+    pub tag: u8,
+    pub p: p,
+}
+
+impl mbedtls_x509_buf{
+    fn copy(&self) -> mbedtls_x509_buf {
+        let x = mbedtls_x509_buf{len: self.len, tag: self.tag, p: self.p.copy()};
+        return x
+    }
 }
 
 pub struct mbedtls_x509_name
 {
-    pub oid: mbedtls_x509_buf,                   /**< The object identifier. */
-    pub val: mbedtls_x509_buf,                   /**< The named value. */
-    pub next: struct mbedtls_x509_name,  /**< The next entry in the sequence. */                    //pointer????????
-    pub next_merged: char,      /**< Merge next item into the current one? */
+    pub oid: mbedtls_x509_buf,
+    pub val: mbedtls_x509_buf,
+    pub next: Option<Box<mbedtls_x509_name>>,
+    pub next_merged: u8,
 }
 
-pub struct mbedtls_x509_time
-{
-    pub year: i32; pub mon: i32; pub day: i32,          /**< Date. */
-    pub hour: i32; pub min: i32; pub sec: i32,          /**< Time. */        
+impl mbedtls_x509_name{
+    fn new() -> Box<mbedtls_x509_name> {
+        return Box::new(mbedtls_x509_name{
+            oid: mbedtls_x509_buf{
+                len: 0, 
+                tag: 0, 
+                p: p{
+                    ptr: Vec::new(), 
+                    iptr: 0, }
+            },
+            val: mbedtls_x509_buf{
+                len: 0, 
+                tag: 0, 
+                p: p{
+                    ptr: Vec::new(), 
+                    iptr: 0, }
+            },
+            next: None,
+            next_merged: 0,
+        });
+    }
 }
 
 pub struct mbedtls_pk_rsassa_pss_options
 {
     pub mgf1_hash_id: md_header::mbedtls_md_type_t,
     pub expected_salt_len: i32,
+}
 
+pub struct mbedtls_md_info_t
+{
+    pub name: p,    //Name of the message digest
+
+    pub type_t : md_header::mbedtls_md_type_t,    //Digest identifier
+
+    pub size: u8,       //Output length of the digest function in bytes
+
+    pub block_size: u8, //Block length of the digest function in bytes
+}
+
+pub struct tm
+{
+  pub tm_sec: i32,			/* Seconds.	[0-60] (1 leap second) */
+  pub tm_min: i32,			/* Minutes.	[0-59] */
+  pub tm_hour: i32,			/* Hours.	[0-23] */
+  pub tm_mday: i32,			/* Day.		[1-31] */
+  pub tm_mon: i32,			/* Month.	[0-11] */
+  pub tm_year: i32,			/* Year	- 1900.  */
+  pub tm_wday: i32,			/* Day of week.	[0-6] */
+  pub tm_yday: i32,			/* Days in year.[0-365]	*/
+  pub tm_isdst: i32,			/* DST.		[-1/0/1]*/
+
+//# ifdef	__USE_MISC
+  pub tm_gmtoff: i32,		/* Seconds east of UTC.  */
+  pub tm_zone: p,       /* Timezone abbreviation.  */
+//# else
+  pub __tm_gmtoff: i32,		/* Seconds east of UTC.  */
+  pub __tm_zone: p,	/* Timezone abbreviation.  */
+//# endif
+}
+
+pub struct mbedtls_x509_time
+{
+    pub year: i32, pub mon: i32, pub day: i32,          /**< Date. */
+    pub hour: i32, pub min: i32, pub sec: i32,          //**< Time. */
 }
 
 //========================================================================================================================================
+pub fn print(){
+    println!("In x509/x509.rs"); }
 
+//external fucntions
+pub fn mbedtls_asn1_get_len(x: &mut p, end: &mut usize, y: &mut usize ) -> i32 {
+    return 0 }
 
-pub fn mbedtls_x509_get_serial(p: &mut char, end: &mut char, serial: &mut mbedtls_x509_buf) -> i32 {
+pub fn mbedtls_asn1_get_alg_null( x: &mut p, end: &mut  usize, y: &mut mbedtls_x509_buf ) -> i32 {
+    return 0 }
+
+pub fn mbedtls_asn1_get_alg( x: &mut p, end: &mut usize, y: &mut mbedtls_x509_buf, z: &mut mbedtls_x509_buf ) -> i32 {
+    return 0 }
+
+pub fn mbedtls_asn1_get_tag( x: &mut p, end: &mut usize, y: &mut usize, z: u8) -> i32 {
+    return 0 }
+
+pub fn mbedtls_oid_get_md_alg( x: &mut mbedtls_x509_buf, y: &mut md_header::mbedtls_md_type_t ) -> i32 {
+    return 0 }
+
+pub fn mbedtls_asn1_get_int( x: &mut p, end: &mut usize, y: &mut i32 ) -> i32 {
+    return 0 }
+
+pub fn  mbedtls_asn1_get_bitstring_null(x: &mut p, end: &mut usize, z: &mut usize ) -> i32 {
+    return 0 }
     
-    let mut ret = x509_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+pub fn  mbedtls_oid_get_sig_alg(sig_oid: &mut mbedtls_x509_buf, md_alg: &mut md_header::mbedtls_md_type_t, pk_alg: &mut pk_header::mbedtls_pk_type_t ) -> i32 {
+    return 0 }
 
-    if (end - p) < 1 {
+pub fn  mbedtls_oid_get_sig_alg_desc(sig_oid: &mut mbedtls_x509_buf, desc: &mut p) -> i32 {
+    return 0 }
+
+pub fn  mbedtls_md_info_from_type(md_alg: &mut md_header::mbedtls_md_type_t) -> mbedtls_md_info_t {
+    let a = mbedtls_md_info_t{name: p{ptr: Vec::new(), iptr: 0}, type_t: md_header::mbedtls_md_type_t::MBEDTLS_MD_MD2, size: 0, block_size: 0};
+    a }
+
+pub fn mbedtls_oid_get_attr_short_name( x: &mut mbedtls_x509_buf, y: &mut p ) -> i32 {
+    return 0 }    
+
+
+//1========================================================================================================================================
+
+pub fn mbedtls_x509_get_serial(p: &mut p, end: &mut usize, serial: &mut mbedtls_x509_buf) -> i32 {
+    
+    let ret: i32; 
+
+    if (*end - p.iptr) < 1 {
         return x509_header::MBEDTLS_ERR_X509_INVALID_SERIAL + x509_header::MBEDTLS_ERR_ASN1_OUT_OF_DATA
     }
 
-    if p != ( x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_PRIMITIVE | 2 ) && p !=   x509_header::MBEDTLS_ASN1_INTEGER {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_SERIAL + x509_header::MBEDTLS_ERR_X509_INVALID_SERIAL +
+    if p.ptr[p.iptr] != ( x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_PRIMITIVE | 2 ) && p.ptr[p.iptr] !=   x509_header::MBEDTLS_ASN1_INTEGER {
+        return x509_header::MBEDTLS_ERR_X509_INVALID_SERIAL + x509_header::MBEDTLS_ERR_X509_INVALID_SERIAL
     }
 
-    serial.tag = p;
-    p = p + 1;                                                                                            //???????????/
+    serial.tag = p.ptr[p.iptr];
+    p.iptr = p.iptr + 1;
 
-    if mbedtls_asn1_get_len( p, end, serial->len ) != 0 {                                              //yet to implement
-        return mbedtls_asn1_get_len( p, end, serial->len ) + x509_header::MBEDTLS_ERR_X509_INVALID_SERIAL     
+    ret = mbedtls_asn1_get_len( p, end, &mut serial.len );                                                      
+    if ret != 0 {                                              
+        return ret + x509_header::MBEDTLS_ERR_X509_INVALID_SERIAL     
     }
 
-    serial.p = p;
-     
-    p = p + serial.len;
+    serial.p.ptr = p.ptr[p.iptr..(p.iptr+serial.len)].iter().cloned().collect(); 
+    serial.p.iptr = 0;
+
+    p.iptr = p.iptr + serial.len;
 
     return 0;
 }
 
-pub fn mbedtls_x509_get_alg_null(p: &mut char, end: &mut char, serial: &mut mbedtls_x509_buf) -> i32 {
+//2========================================================================================================================================
 
-    let mut ret = x509_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+pub fn mbedtls_x509_get_alg_null(p: &mut p, end: &mut usize, serial: &mut mbedtls_x509_buf) -> i32 {
 
-    if mbedtls_asn1_get_alg_null( p, end, serial ) != 0 {                                               //yet to implement
-        return mbedtls_asn1_get_alg_null( p, end, serial ) + x509_header::MBEDTLS_ERR_X509_INVALID_ALG        
-    }
+    let ret: i32;
 
-    return 0;
-}
-
-pub fn mbedtls_x509_get_alg(p: &mut char, end: &mut char, alg: &mut mbedtls_x509_buf, params: &mut mbedtls_x509_buf) -> i32 {
-
-    let mut ret = x509_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-
-    if mbedtls_asn1_get_alg( p, end, alg, params ) != 0 {                                               //yet to implement
-        return mbedtls_asn1_get_alg( p, end, alg, params ) + x509_header::MBEDTLS_ERR_X509_INVALID_ALG        
+    ret = mbedtls_asn1_get_alg_null( p, end, serial );
+    if ret != 0 {                                               
+        return ret + x509_header::MBEDTLS_ERR_X509_INVALID_ALG        
     }
 
     return 0;
 }
 
-pub fn x509_get_hash_alg(alg: &mut mbedtls_x509_buf, md_alg: &mut mbedtls_md_type_t) -> i32{                //defined in md.h
+//3========================================================================================================================================
+
+pub fn mbedtls_x509_get_alg(p: &mut p, end: &mut usize, alg: &mut mbedtls_x509_buf, params: &mut mbedtls_x509_buf) -> i32 {
+
+    let ret: i32;
+
+    ret = mbedtls_asn1_get_alg( p, end, alg, params );
+    if ret != 0 {                                              
+        return ret + x509_header::MBEDTLS_ERR_X509_INVALID_ALG        
+    }
+
+    return 0;
+}
+
+//4========================================================================================================================================
+
+pub fn x509_get_hash_alg(alg: &mut mbedtls_x509_buf, md_alg: &mut md_header::mbedtls_md_type_t) -> i32{               
     
-    let mut ret = x509_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    let mut p = 'A';
-    let mut end = 'A';
-    let mut md_oid = mbedtls_x509_buf{tag: 0, len: 0, p: 'A'};
-    let mut len = 0i32;
+    let mut ret: i32;
+    let mut p = p{ptr: Vec::new(), iptr: 0};
+    let mut end: usize;
+    let mut md_oid = mbedtls_x509_buf{tag: 0, len: 0, p: p{ptr: Vec::new(), iptr: 0}};
+    let mut len: usize = 0;
 
     if alg.tag != ( x509_header::MBEDTLS_ASN1_CONSTRUCTED | x509_header::MBEDTLS_ASN1_SEQUENCE ) {
         return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + x509_header::MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
     }
 
-    p = alg.p;
+    p.ptr = alg.p.ptr[alg.p.iptr..].iter().cloned().collect();
+    p.iptr = 0;
 
-    end = p + alg.len;
+    end = p.iptr + alg.len;
 
-    if p >= end {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + x509_header::MBEDTLS_ERR_ASN1_OUT_OF_DATA
-    }
+    if p.iptr >= end {
+        return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + x509_header::MBEDTLS_ERR_ASN1_OUT_OF_DATA }
 
-    md_oid.tag = p;
+    md_oid.tag = p.ptr[p.iptr];
 
-    if mbedtls_asn1_get_tag(p, end, md_oid.len, x509_header::MBEDTLS_ASN1_OID) !=0 {                                        //yet to implement
-        return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + mbedtls_asn1_get_tag(p, end, md_oid.len, x509_header::MBEDTLS_ASN1_OID)
-    }
+    ret = mbedtls_asn1_get_tag(&mut p, &mut end, &mut md_oid.len, x509_header::MBEDTLS_ASN1_OID);
+    if ret !=0 {                                
+        return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + ret }
 
-    md_oid.p = p;
-    p = p + md_oid.len;
+    md_oid.p.ptr = p.ptr[p.iptr..(p.iptr+md_oid.len)].iter().cloned().collect();
+    md_oid.p.iptr = 0;
 
-    if mbedtls_oid_get_md_alg(md_oid, md_alg) !=0 {                                                                         //yet to implement
-        return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + mbedtls_oid_get_md_alg(md_oid, md_alg)
+    p.iptr = p.iptr + md_oid.len;
+
+    ret = mbedtls_oid_get_md_alg(&mut md_oid, md_alg);
+    if ret !=0 {                                                                        
+        return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + ret
     } 
 
-    if p==end {
-        return 0;
+    if p.iptr == end {return 0 }
+
+    ret = mbedtls_asn1_get_tag( &mut p, &mut end, &mut len, x509_header::MBEDTLS_ASN1_NULL );
+    if ret != 0 || len != 0 {                              
+        return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + ret
     }
 
-    if mbedtls_asn1_get_tag( &p, &end, &len, x509_header::MBEDTLS_ASN1_NULL ) != 0 || len != 0 {                               //yet to implement
-        return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + mbedtls_asn1_get_tag( &p, &end, &len, x509_header::MBEDTLS_ASN1_NULL )
-    }
-
-    if p!=end {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + x509_header::MBEDTLS_ERR_ASN1_LENGTH_MISMATCH
-    }
+    if p.iptr != end { return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + x509_header::MBEDTLS_ERR_ASN1_LENGTH_MISMATCH }
 
     return 0;
 
 }
 
-pub fn mbedtls_x509_get_rsassa_pss_params(params: &mbedtls_x509_buf, md_alg: &mut mbedtls_md_type_t, 
-    mgf_md: &mut mbedtls_md_type_t, salt_len: &mut i32) -> i32 {
+//5========================================================================================================================================
 
-    let mut ret = x509_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    let mut p = 'A';
-    let mut end = 'A';
-    let mut end2 = 'A';
-    let mut len = 0i32;
-    let mut alg_id = mbedtls_x509_buf{tag: 0, len: 0, p: 'A'};
-    let mut alg_params = mbedtls_x509_buf{tag: 0, len: 0, p: 'A'};
+pub fn mbedtls_x509_get_rsassa_pss_params(params: &mbedtls_x509_buf, md_alg: &mut md_header::mbedtls_md_type_t, 
+    mgf_md: &mut md_header::mbedtls_md_type_t, salt_len: &mut i32) -> i32 {
 
-    *md_alg = md_header::MBEDTLS_MD_SHA1;
-    *mgf_md = md_header::MBEDTLS_MD_SHA1;
+    let mut ret: i32;
+    let mut p = p{ptr: Vec::new(), iptr: 0};
+    let mut end: usize; let mut end2: usize;
+    let mut len: usize = 0;
+    let mut alg_id = mbedtls_x509_buf{tag: 0, len: 0, p: p{ptr: Vec::new(), iptr: 0}};
+    let mut alg_params = mbedtls_x509_buf{tag: 0, len: 0, p: p{ptr: Vec::new(), iptr: 0}};
+
+    *md_alg = md_header::mbedtls_md_type_t::MBEDTLS_MD_SHA1;
+    *mgf_md = md_header::mbedtls_md_type_t::MBEDTLS_MD_SHA1;
     *salt_len = 20;
 
     if params.tag != (x509_header::MBEDTLS_ASN1_CONSTRUCTED | x509_header::MBEDTLS_ASN1_SEQUENCE) {
         return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + x509_header::MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
     }
 
-    p = params.p;
-    end = p + params.len;
+    p.ptr = params.p.ptr[params.p.iptr..].iter().cloned().collect();
+    p.iptr = 0;
+    end = p.iptr + params.len;
 
-    if p==end {
-        return 0;
-    }
-
-    /*
-     * HashAlgorithm
-     */
-    ret = mbedtls_asn1_get_tag( p, end, &mut len, x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_CONSTRUCTED | 0 );
+    if p.iptr == end { return 0; }
+    
+    ret = mbedtls_asn1_get_tag( &mut p, &mut end, &mut len, x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_CONSTRUCTED | 0 );
     if ret == 0 {
-        end2 = p + len;
+        end2 = p.iptr + len;
 
-        ret = mbedtls_x509_get_alg_null( p, end2, alg_id );
+        ret = mbedtls_x509_get_alg_null( &mut p, &mut end, &mut alg_id );
         if  ret != 0 {
-            return ret
-        }
+            return ret }
 
-        ret = mbedtls_oid_get_md_alg( alg_id, md_alg );
+        ret = mbedtls_oid_get_md_alg( &mut alg_id, md_alg );
         if ret != 0 {
-            return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + ret
-        }
+            return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + ret }
 
-        if p != end2 {
-            return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + x509_header::MBEDTLS_ERR_ASN1_LENGTH_MISMATCH 
-        }
+        if p.iptr != end2 { return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + x509_header::MBEDTLS_ERR_ASN1_LENGTH_MISMATCH }
     }
 
     else if ret != x509_header::MBEDTLS_ERR_ASN1_UNEXPECTED_TAG {
         return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + ret
     }
 
-    if p == end {
-        return 0;
-    }
+    if p.iptr == end { return 0; }
 
-    /*
-     * MaskGenAlgorithm
-     */
-    ret = mbedtls_asn1_get_tag( p, end, &mut len, x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_CONSTRUCTED | 1 );
+    
+    ret = mbedtls_asn1_get_tag( &mut p, &mut end, &mut len, x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_CONSTRUCTED | 1 );
     if ret == 0 {
-        end2 = p + len;
+        end2 = p.iptr + len;
 
-        ret mbedtls_x509_get_alg( p, end2, alg_id, alg_params );
+        ret = mbedtls_x509_get_alg( &mut p, &mut end, &mut alg_id, &mut alg_params );
         if ret  != 0 {
-            return ret
-        }
+            return ret }
 
-        if MBEDTLS_OID_CMP( MBEDTLS_OID_MGF1, &alg_id ) != 0 {                                   //not defined
-            return x509_header::MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE + x509_header::MBEDTLS_ERR_OID_NOT_FOUND
-        }                                    
+//        if MBEDTLS_OID_CMP ( MBEDTLS_OID_MGF1, &alg_id ) != 0 {                                                           //not defined
+//            return x509_header::MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE + 1 } //MBEDTLS_ERR_OID_NOT_FOUND                                    
 
-        ret = x509_get_hash_alg( alg_params, mgf_md );
-        if ret !=0 {    
-            return ret
-        }
+        ret = x509_get_hash_alg( &mut alg_params, mgf_md );
+        if ret !=0 { return ret }
 
-        if p != end2 {
-            return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + x509_header::MBEDTLS_ERR_ASN1_LENGTH_MISMATCH 
+        if p.iptr != end2 { return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + x509_header::MBEDTLS_ERR_ASN1_LENGTH_MISMATCH }
+    }
+
+    else if ret != x509_header::MBEDTLS_ERR_ASN1_UNEXPECTED_TAG {
+        return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + ret
+    }
+    if p.iptr == end { return 0; }
+
+    
+    ret = mbedtls_asn1_get_tag( &mut p, &mut end, &mut len, x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_CONSTRUCTED | 2 );
+    if ret == 0 {
+        end2 = p.iptr + len;
+
+        ret = mbedtls_asn1_get_int( &mut p,&mut end, salt_len );
+        if ret != 0 {
+            return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + ret
         }
+        if p.iptr != end2 { return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + x509_header::MBEDTLS_ERR_ASN1_LENGTH_MISMATCH  }
     }
 
     else if ret != x509_header::MBEDTLS_ERR_ASN1_UNEXPECTED_TAG {
         return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + ret
     }
 
-    if p == end {
-        return 0;
-    }
+    if p.iptr == end { return 0; }
 
-    /*
-     * salt_len
-    */
-    ret = mbedtls_asn1_get_tag( p, end, &mut len, x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_CONSTRUCTED | 2 );
+
+    ret = mbedtls_asn1_get_tag( &mut p, &mut end, &mut len, x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_CONSTRUCTED | 3 );
     if ret == 0 {
-        end2 = p + len;
+        let mut trailer_field: i32 = 0;
+        end2 = p.iptr + len;
 
-        ret = mbedtls_x509_get_int( p, end2, &mut salt_len );
+        ret = mbedtls_asn1_get_int( &mut p, &mut end, &mut trailer_field );
         if ret != 0 {
-            return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + ret
-        }
+            return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + ret }
 
-        if p != end2 {
-            return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + x509_header::MBEDTLS_ERR_ASN1_LENGTH_MISMATCH 
-        }
-    }
-
-    else if ret != x509_header::MBEDTLS_ERR_ASN1_UNEXPECTED_TAG {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + ret
-    }
-
-    if p == end {
-        return 0;
-    }
-
-
-    /*
-     * trailer_field (if present, must be 1)
-     */
-
-    ret = mbedtls_asn1_get_tag( p, end, &mut len, x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_CONSTRUCTED | 3 );
-    if ret == 0 {
-        let trailer_field: i32;
-
-        end2 = p + len;
-
-        ret = mbedtls_asn1_get_int( &p, &end2, &mut trailer_field );
-        if ret != 0 {
-            return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + ret
-        }
-
-        if p != end2 {
-            return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + x509_header::MBEDTLS_ERR_ASN1_LENGTH_MISMATCH 
-        }
+        if p.iptr != end2 { return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + x509_header::MBEDTLS_ERR_ASN1_LENGTH_MISMATCH }
 
         if trailer_field != 1 {
-            return x509_header::MBEDTLS_ERR_X509_INVALID_ALG;
-        }
+            return x509_header::MBEDTLS_ERR_X509_INVALID_ALG }
     }
 
     else if ret != x509_header::MBEDTLS_ERR_ASN1_UNEXPECTED_TAG {
         return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + ret
     }
 
-    if p != end {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + x509_header::MBEDTLS_ERR_ASN1_LENGTH_MISMATCH
-    }
+    if p.iptr != end { return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + x509_header::MBEDTLS_ERR_ASN1_LENGTH_MISMATCH }
 
     return 0;
 
 }
 
-pub fn x509_get_attr_type_value(p: &mut char, end: &mut char, cur: &mut mbedtls_x509_name) -> i32 {
+//6========================================================================================================================================
 
-    let mut ret = x509_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    let mut len: i32;
-    let mut oid = mbedtls_x509_buf{tag: 0, len: 0, p: 'A'};
-    let mut val = mbedtls_x509_buf{tag: 0, len: 0, p: 'A'};
+pub fn x509_get_attr_type_value(p: &mut p, end: &mut usize, cur: &mut mbedtls_x509_name) -> i32 {
+
+    let mut ret:i32; 
+    let mut len: usize = 0;
+    let mut oid: mbedtls_x509_buf;
+    let mut val: mbedtls_x509_buf;
     
-    ret = mbedtls_asn1_get_tag( &p, &end, &len, x509_header::MBEDTLS_ASN1_CONSTRUCTED | x509_header::MBEDTLS_ASN1_SEQUENCE )
+    ret = mbedtls_asn1_get_tag( p, end, &mut len, x509_header::MBEDTLS_ASN1_CONSTRUCTED | x509_header::MBEDTLS_ASN1_SEQUENCE );
     if ret != 0 {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_NAME + ret
-    }
+        return x509_header::MBEDTLS_ERR_X509_INVALID_NAME + ret }
 
-    end = p + len;                                                                              //???
+    *end = p.iptr + len;
     
-    if (end - p) < 1 {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_NAME + x509_header::MBEDTLS_ERR_ASN1_OUT_OF_DATA
-    }
+    if (*end - p.iptr) < 1 { return x509_header::MBEDTLS_ERR_X509_INVALID_NAME + x509_header::MBEDTLS_ERR_ASN1_OUT_OF_DATA }
 
-    oid = cur.oid;
-    oid.tag = p;
+//    oid = mbedtls_x509_buf{tag: (cur.oid).tag, len: (cur.oid).len, p: p{ptr: (cur.oid).p.ptr[(cur.oid).p.iptr..].iter().cloned().collect(), iptr: 0 }};
+    oid = cur.oid.copy();
+    oid.tag = p.ptr[p.iptr];
 
-    ret = mbedtls_asn1_get_tag( p, end, &mut oid.len, x509_header::MBEDTLS_ASN1_OID )
+    ret = mbedtls_asn1_get_tag( p, end, &mut oid.len, x509_header::MBEDTLS_ASN1_OID );
     if ret != 0 {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_NAME + ret
-    }
+        return x509_header::MBEDTLS_ERR_X509_INVALID_NAME + ret }
 
-    oid.p = p;
-    p = p + lid.len;
+    oid.p.ptr = p.ptr[p.iptr..(p.iptr+oid.len)].iter().cloned().collect();
+    oid.p.iptr = 0; 
+    p.iptr = p.iptr + oid.len;
 
-    if (end - p) < 1 {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_NAME + x509_header::MBEDTLS_ERR_ASN1_OUT_OF_DATA
-    }
+    if (*end - p.iptr) < 1 { return x509_header::MBEDTLS_ERR_X509_INVALID_NAME + x509_header::MBEDTLS_ERR_ASN1_OUT_OF_DATA }
 
-    if  p != x509_header::MBEDTLS_ASN1_BMP_STRING && p != x509_header::MBEDTLS_ASN1_UTF8_STRING         &&
-        p != x509_header::MBEDTLS_ASN1_T61_STRING && p != x509_header::MBEDTLS_ASN1_PRINTABLE_STRING    &&
-        p != x509_header::MBEDTLS_ASN1_IA5_STRING && p != x509_header::MBEDTLS_ASN1_UNIVERSAL_STRING    &&
-        p != x509_header::MBEDTLS_ASN1_BIT_STRING {
+    if  p.ptr[p.iptr] != x509_header::MBEDTLS_ASN1_BMP_STRING && p.ptr[p.iptr] != x509_header::MBEDTLS_ASN1_UTF8_STRING         &&
+        p.ptr[p.iptr] != x509_header::MBEDTLS_ASN1_T61_STRING && p.ptr[p.iptr] != x509_header::MBEDTLS_ASN1_PRINTABLE_STRING    &&
+        p.ptr[p.iptr] != x509_header::MBEDTLS_ASN1_IA5_STRING && p.ptr[p.iptr] != x509_header::MBEDTLS_ASN1_UNIVERSAL_STRING    &&
+        p.ptr[p.iptr] != x509_header::MBEDTLS_ASN1_BIT_STRING {
 
             return x509_header::MBEDTLS_ERR_X509_INVALID_NAME + x509_header::MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
     }
 
-    val = cur.val;
-    val.tag = p;
-    p = p + 1;                                                                                            //??????
+//    val = mbedtls_x509_buf{tag: (cur.val).tag, len: (cur.val).len, p: p{ptr: (cur.val).p.ptr[(cur.val).p.iptr..].iter().cloned().collect(), iptr: 0 }};
+    val = cur.val.copy();
+    val.tag = p.ptr[p.iptr];
+    p.iptr = p.iptr + 1;
 
-    ret = mbedtls_asn1_get_len( p, end, &mut val.len )
+    ret = mbedtls_asn1_get_len( p, end, &mut val.len );
     if ret != 0 {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_NAME + ret
-    }
+        return x509_header::MBEDTLS_ERR_X509_INVALID_NAME + ret }
 
-    val.p = p;
-    p = p + val.len;
+    val.p.ptr = p.ptr[p.iptr..(p.iptr+val.len)].iter().cloned().collect(); 
+    val.p.iptr = 0;
 
-    if end != p {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_NAME + x509_header::MBEDTLS_ERR_ASN1_LENGTH_MISMATCH
-    }
+    p.iptr = p.iptr + val.len;
+
+    if *end != p.iptr { return x509_header::MBEDTLS_ERR_X509_INVALID_NAME + x509_header::MBEDTLS_ERR_ASN1_LENGTH_MISMATCH }
 
 
-    cur.next = NULL;                                                                                        //????????
-
+    cur.next = None;
     return 0;
 }
 
-pub fn mbedtls_x509_get_name(p: &mut char, end: &mut char, cur: &mut mbedtls_x509_name) -> i32 {
+//7========================================================================================================================================
 
-    let mut ret = x509_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    let mut set_len = 0i32;
-    let mut end_set = 'A';
+pub fn mbedtls_x509_get_name(p: &mut p, end: &mut usize, mut cur: &mut mbedtls_x509_name) -> i32 {
 
-    while 1 {
+    let mut ret: i32;
+    let mut set_len: usize = 0;
+    let mut end_set: usize;
 
-        ret = mbedtls_asn1_get_tag( &p, &end, &set_len, x509_header::MBEDTLS_ASN1_CONSTRUCTED | x509_header::MBEDTLS_ASN1_SET )
+    loop {
+
+        ret = mbedtls_asn1_get_tag( p, end, &mut set_len, x509_header::MBEDTLS_ASN1_CONSTRUCTED | x509_header::MBEDTLS_ASN1_SET );
         if ret != 0 {
-            return x509_header::MBEDTLS_ERR_X509_INVALID_NAME + ret
-        }
+            return x509_header::MBEDTLS_ERR_X509_INVALID_NAME + ret }
 
-        end_set = p + set_len;                                                                              //????????????????
+        end_set = p.iptr + set_len;
 
-        while 1 {
-            ret = x509_get_attr_type_value( p, end_set, cur )
+        loop {
+            ret = x509_get_attr_type_value( p, &mut end_set, cur );
             if ret != 0 {
-                return ret
-            }
+                return ret }
 
-            if p == end_set {
-                break;
-            }
+            if p.iptr == end_set {
+                break }
         
-            cur.next_merged = 1;                                                                           //???
-        
-//            cur.next = calloc( 1, sizeof(mbedtls_x509_name));
-//
-//           if cur.next == NULL {
-//                x509_header::MBEDTLS_ERR_X509_ALLOC_FAILED;
-//            }
+            cur.next_merged = 1;  
             
-            cur = cur.next                                                                                 //??????
+            cur.next = Some(mbedtls_x509_name::new());
+            match &mut cur.next{
+                None => return x509_header::MBEDTLS_ERR_X509_ALLOC_FAILED,
+                Some(x) => cur = x,
+           };
         }
 
-        if p == end {
-            return 0;
+        if p.iptr == *end {
+            return 0 }
+
+
+        cur.next = Some(mbedtls_x509_name::new());
+        match &mut cur.next{
+            None => return x509_header::MBEDTLS_ERR_X509_ALLOC_FAILED,
+            Some(x) => cur = x,
         }
 
- //       cur.next = calloc( 1, sizeof(mbedtls_x509_name));                                               //?????????
-
-        if cur.next == NULL {
-            return x509_header::MBEDTLS_ERR_X509_ALLOC_FAILED;
-        }
-        
-        cur = cur.next
     }
-    return 0;                                                                                             //?
+//    return 0;
 }
 
-pub fn x509_parse_int(p: &mut char, mut n: i32, res: &mut i32) -> i32 {
+//8========================================================================================================================================
+
+pub fn x509_parse_int(p: &mut p, n: usize, res: &mut i32) -> i32 {
 
     *res = 0;
 
     while n > 0 {
-        if p < '0' || p > '9' {
+        if p.ptr[p.iptr] < 48 || p.ptr[p.iptr] > 57 {
             return x509_header::MBEDTLS_ERR_X509_INVALID_DATE
         }
 
-        *res = *res*10;
-        p = p - 1;
-        *res = *res + p - '0';
+        *res = *res * 10;
+        *res = *res + (p.ptr[p.iptr] as i32) - 48;
+        p.iptr = p.iptr + 1;
     }
 
     return 0;
 }
 
+//9========================================================================================================================================
+
 pub fn x509_date_is_valid(t: &mbedtls_x509_time) -> i32 {
 
-    let mut ret = x509_header::MBEDTLS_ERR_X509_INVALID_DATE;
-    let mut month_len: i32;
+    let ret = x509_header::MBEDTLS_ERR_X509_INVALID_DATE;
+    let month_len: i32;
 
-    if *t.year < 0 || *t.year > 9999 { return ret };
+    if t.year < 0 || t.year > 9999 { return ret };
     
-    if *t.hour < 0 || *t.hour > 23 { return ret };
+    if t.hour < 0 || t.hour > 23 { return ret };
     
-    if *t.min < 0 || *t.min > 59 { return ret };
+    if t.min < 0 || t.min > 59 { return ret };
     
-    if *t.sec < 0 || *t.sec > 59 { return ret };
+    if t.sec < 0 || t.sec > 59 { return ret };
 
-    match *t.mon {
+    match t.mon {
 
         1 | 3 | 5 | 7 | 8 | 10 | 12 => month_len = 31,
 
         4 | 6 |  9 | 11 => month_len = 30,
 
         2 => {
-            if ( ( *t.year % 4 ==0 ) && (*t.year % 100 != 0 )) || ( *t.year % 400 == 0)  {
+            if ( ( t.year % 4 ==0 ) && (t.year % 100 != 0 )) || ( t.year % 400 == 0)  {
                 month_len = 29;
             }
                 
@@ -450,55 +559,55 @@ pub fn x509_date_is_valid(t: &mbedtls_x509_time) -> i32 {
 
     };
 
-    if *t.dat < 1 || *t.sec > month_len { return ret };
+    if t.day < 1 || t.day > month_len { return ret };
 
     return 0;
 }
 
-pub fn x509_parse_time(p: &mut char, mut len: i32, mut yearlen: i32, tm: &mut mbedtls_x509_time) -> i32 {
+//10========================================================================================================================================
 
 
-    let mut ret = x509_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+pub fn x509_parse_time(p: &mut p, mut len: usize, yearlen: usize, tm: &mut mbedtls_x509_time) -> i32 {
+
+
+    let mut ret: i32;
 
     if len < (yearlen + 8) {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_DATE
-    }
+        return x509_header::MBEDTLS_ERR_X509_INVALID_DATE }
     len = len - yearlen + 8;
 
-    ret = x509_parse_int( p, yearlen, &tm->year );
+    ret = x509_parse_int( p, yearlen, &mut tm.year );
     if ret != 0 { return ret};
 
     if yearlen == 2 {
         if tm.year < 50 {
-            tm.year  = tm.year + 100;
-        }
+            tm.year  = tm.year + 100; }
         tm.year  = tm.year + 1900;
     }
 
-    ret = x509_parse_int( &mut p, 2, &mut *tm.mon );
+    ret = x509_parse_int( p, 2, &mut tm.mon );
     if ret != 0 { return ret};
 
-    ret = x509_parse_int( &mut p, 2, &mut *tm.day );
+    ret = x509_parse_int( p, 2, &mut tm.day );
     if ret != 0 { return ret};
 
-    ret = x509_parse_int( &mut p, 2, &mut *tm.hour );
+    ret = x509_parse_int( p, 2, &mut tm.hour );
     if ret != 0 { return ret};
 
-    ret = x509_parse_int( &mut p, 2, &mut *tm.min );
+    ret = x509_parse_int( p, 2, &mut tm.min );
     if ret != 0 { return ret};
 
     if len >=2 {
-        ret = x509_parse_int( &mut p, 2, &mut *tm.sec );
+        ret = x509_parse_int( p, 2, &mut tm.sec );
         if ret != 0 { return ret};
 
         len = len-2;
     }
     else {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_DATE
-    }
+        return x509_header::MBEDTLS_ERR_X509_INVALID_DATE }
 
-    if (1 == len) && ( p == 'Z') {
-        p = p + 1;
+    if (1 == len) && ( p.ptr[p.iptr] == 90) {
+        p.iptr = p.iptr + 1;
         len = len-1;
     }
 
@@ -510,73 +619,73 @@ pub fn x509_parse_time(p: &mut char, mut len: i32, mut yearlen: i32, tm: &mut mb
     return 0;
 }
 
-pub fn mbedtls_x509_get_time(p: &mut char, end: &mut char, tm: &mut mbedtls_x509_time) -> i32 {
+//11========================================================================================================================================
 
-    let mut ret = x509_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    let mut len : i32;
-    let mut year_len : i32;
-    let mut tag : char;
+pub fn mbedtls_x509_get_time(p: &mut p, end: &mut usize, tm: &mut mbedtls_x509_time) -> i32 {
 
-    if (end - *p) < 1 {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_DATE + x509_header::MBEDTLS_ERR_ASN1_OUT_OF_DATA
-    }
+    let ret: i32;
+    let mut len : usize = 0;
+    let year_len : usize;
+    let tag : u8;
 
-    tag = **p;
+    if (*end - p.iptr) < 1 {
+        return x509_header::MBEDTLS_ERR_X509_INVALID_DATE + x509_header::MBEDTLS_ERR_ASN1_OUT_OF_DATA }
+
+    tag = p.ptr[p.iptr];
 
     if tag == x509_header::MBEDTLS_ASN1_UTC_TIME { year_len = 2;}
 
     else if tag == x509_header::MBEDTLS_ASN1_GENERALIZED_TIME { year_len = 4;}
 
     else {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_DATE + x509_header::MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
-    }
+        return x509_header::MBEDTLS_ERR_X509_INVALID_DATE + x509_header::MBEDTLS_ERR_ASN1_UNEXPECTED_TAG }
 
-    (*p) = *p + 1;
+    p.iptr = p.iptr + 1;
 
     ret = mbedtls_asn1_get_len( p, end, &mut len );
 
     if ret != 0 {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_DATE + ret
-    }
+        return x509_header::MBEDTLS_ERR_X509_INVALID_DATE + ret }
 
     return x509_parse_time( p, len, year_len, tm )
 
 }
 
-pub fn mbedtls_x509_get_sig(p: &mut char, end: &mut char, sig: &mut mbedtls_x509_buf) -> i32 {
+//12========================================================================================================================================
 
-    let mut ret = x509_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    let mut len : i32;
-    let mut tag_type: i32;
+pub fn mbedtls_x509_get_sig(p: &mut p, end: &mut usize, sig: &mut mbedtls_x509_buf) -> i32 {
 
-    if ( end - *p ) < 1 {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_SIGNATURE + x509_header::MBEDTLS_ERR_ASN1_OUT_OF_DATA 
-    }
+    let ret: i32;
+    let mut len : usize = 0;
+    let tag_type: u8;
 
-    tag_type = **p;
+    if ( *end - p.iptr ) < 1 {
+        return x509_header::MBEDTLS_ERR_X509_INVALID_SIGNATURE + x509_header::MBEDTLS_ERR_ASN1_OUT_OF_DATA }
+
+    tag_type = p.ptr[p.iptr];
 
     ret = mbedtls_asn1_get_bitstring_null( p, end, &mut len );
     if ret != 0 {
         return x509_header::MBEDTLS_ERR_X509_INVALID_SIGNATURE + ret
     }
 
-    sig.type = tag_type;
+    sig.tag = tag_type;
     sig.len = len;
-    sig.p = *p;
+    sig.p.ptr = p.ptr[p.iptr..(p.iptr + len)].iter().cloned().collect();
 
-    *p = *p + len;
+    p.iptr = p.iptr + len;
 
     return 0;
 }
 
-pub fn mbedtls_x509_get_sig_alg( sig_oid: &mut mbedtls_x509_buf, sig_params: &mut md_header::mbedtls_md_type_t, 
-    md_alg: &mut md_header::mbedtls_md_type_t, pk_alg: &mut pk_header::mbedtls_pk_type_t, void **sig_opts) -> i32 {
+//13========================================================================================================================================
 
-    let mut ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+pub fn mbedtls_x509_get_sig_alg( sig_oid: &mut mbedtls_x509_buf, sig_params: &mut mbedtls_x509_buf,
+    md_alg: &mut md_header::mbedtls_md_type_t, pk_alg: &mut pk_header::mbedtls_pk_type_t, sig_opts: &mut mbedtls_pk_rsassa_pss_options) -> i32 { //, void **sig_opts) -> i32 {
 
-    if *sig_opts != NULL {
-        x509_header::MBEDTLS_ERR_X509_BAD_INPUT_DATA
-    }
+    let mut ret: i32;
+
+//    if *sig_opts != NULL { return x509_header::MBEDTLS_ERR_X509_BAD_INPUT_DATA }
 
     ret = mbedtls_oid_get_sig_alg( sig_oid, md_alg, pk_alg );
     if ret != 0 {
@@ -591,71 +700,417 @@ pub fn mbedtls_x509_get_sig_alg( sig_oid: &mut mbedtls_x509_buf, sig_params: &mu
 
             ret = mbedtls_x509_get_rsassa_pss_params( sig_params,
                 md_alg,
-                &mut pss_opts->mgf1_hash_id,
-                &mut pss_opts->expected_salt_len );
+                &mut pss_opts.mgf1_hash_id,
+                &mut pss_opts.expected_salt_len );
             
             if ret != 0 { return ret;}
 
-            *sig_opts = (void *) pss_opts;                                                      //???????????????
+            *sig_opts = mbedtls_pk_rsassa_pss_options{mgf1_hash_id: pss_opts.mgf1_hash_id, expected_salt_len: pss_opts.expected_salt_len};                                                      //???????????????
         },
 		_ => {
 //#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */            
-            if (*sig_params.tag != x509_header::MBEDTLS_ASN1_NULL  && *sig_params.tag !=0 ) || *sig_params.len != 0 ) {
-                return x509_header::MBEDTLS_ERR_X509_INVALID_ALG ;
-            }
+            if ( sig_params.tag != x509_header::MBEDTLS_ASN1_NULL  && sig_params.tag !=0 ) || sig_params.len != 0  {
+                return x509_header::MBEDTLS_ERR_X509_INVALID_ALG }
         },
     };
     
     return 0;
 }
 
-pub fn mbedtls_x509_get_ext(p: &mut char, end: &mut char, ext: &mut mbedtls_x509_buf, mut tag: i32) -> i32 {
+//14========================================================================================================================================
 
-    let mut ret = x509_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
-    let mut len : i32;
+pub fn mbedtls_x509_get_ext(p: &mut p, end: &mut usize, ext: &mut mbedtls_x509_buf, tag: u8) -> i32 {
 
-    ret = mbedtls_asn1_get_tag( p, end, &mut ext->len,
+    let mut ret: i32;
+    let mut len : usize = 0;
+
+    ret = mbedtls_asn1_get_tag( p, end, &mut ext.len,
         x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_CONSTRUCTED | tag );
 
     if ret != 0 {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret
-    }
+        return x509_header::MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret }
 
     ext.tag = x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_CONSTRUCTED | tag;
-    ext.p = *p;
-    end  = *p + ext.len;
+    ext.p.ptr = p.ptr[p.iptr..(p.iptr+ext.len)].iter().cloned().collect(); 
+    *end  = p.iptr + ext.len;
 
     ret = mbedtls_asn1_get_tag( p, end, &mut len, x509_header::MBEDTLS_ASN1_CONSTRUCTED | x509_header::MBEDTLS_ASN1_SEQUENCE );
     if ret != 0 {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret
-    }
+        return x509_header::MBEDTLS_ERR_X509_INVALID_EXTENSIONS + ret }
 
-    if end != (*p + len) {
-        return x509_header::MBEDTLS_ERR_X509_INVALID_EXTENSIONS + x509_header::MBEDTLS_ERR_ASN1_LENGTH_MISMATCH
-    }
+    if *end != (p.iptr + len) {
+        return x509_header::MBEDTLS_ERR_X509_INVALID_EXTENSIONS + x509_header::MBEDTLS_ERR_ASN1_LENGTH_MISMATCH }
 
     return 0
 }
 
-pub fn mbedtls_x509_dn_gets(buf : &mut char, mut size: i32, dn: &mbedtls_x509_name) -> i32 {
+//15========================================================================================================================================
+
+pub fn mbedtls_x509_dn_gets(buf : &mut p, mut size: usize, dn: &mut mbedtls_x509_name) -> i32 {
 
     let mut ret = x509_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     let mut i: i32;
-    let mut n: i32;
+    let mut n: usize;
 
-    let mut c: char;
-    let mut merge: char;
+    let mut c: u8;
+    let mut merge: u8;
 
-    let mut name = mbedtls_x509_name{..*dn);
+    let mut name = dn;
+//    let mut name = mbedtls_x509_name{oid: dn.oid.copy(), val: dn.val.copy(), next: &mut dn.next, next_merged: dn.next_merged};
+//    let mut name = &mut name;
+    let mut short_name = buf.copy();
 
-    let mut short_name : char;
+    let mut s: [u8; x509_header::MBEDTLS_X509_MAX_DN_NAME_SIZE as usize] = ['0' as u8; x509_header::MBEDTLS_X509_MAX_DN_NAME_SIZE as usize];
 
-    let mut s: [char; x509_header:MBEDTLS_X509_MAX_DN_NAME_SIZE] = ['0'; x509_header:MBEDTLS_X509_MAX_DN_NAME_SIZE];
-    let mut p: char;
 
-    p = *buf;
+    let mut p = buf.copy();
+    let mut temp: usize = 0;
+    n = size;
+    let mut flag = false;
+    loop {
+        if name.oid.len == 0{
+            flag = true;
+            match &mut name.next{
+                None => break,
+                Some(x) => {
+                    name = x; 
+                    continue
+                },
+            }
+        }
+        if flag {
+//            ret = mbedtls_snprintf( p, n, merge ? " + " : ", " );
+            if (ret < 0) || ((ret as usize) >= n ) {
+                return x509_header::MBEDTLS_ERR_X509_BUFFER_TOO_SMALL }
+            n = n - (ret as usize);
+            p.iptr = p.iptr + (ret as usize);
+        }
+        ret = mbedtls_oid_get_attr_short_name( &mut name.oid, &mut short_name );
+
+        if ret == 0 {
+//            ret = mbedtls_snprintf( p, n, "%s=", short_name );
+            nop();
+        }
+        else {
+//            ret = mbedtls_snprintf( p, n, "\?\?=" );
+            nop();
+        }
+
+        if (ret < 0) || ((ret as usize) >= n ) {
+                return x509_header::MBEDTLS_ERR_X509_BUFFER_TOO_SMALL }
+        n = n - (ret as usize);
+        p.iptr = p.iptr + (ret as usize);
+
+        for i in 0..name.val.len {
+            if i >= (size_of::<[u8; x509_header::MBEDTLS_X509_MAX_DN_NAME_SIZE as usize]>() - 1) {
+                break } 
+                    
+            c = name.val.p.ptr[i];
+            s[i] = if c < 32 || c > 127 { '?' as u8 } else {c};
+            temp = i + 1;
+        }
+        
+        s[temp] = '\0' as u8;
+//        ret = mbedtls_snprintf( p, n, "%s", s );
+        if (ret < 0) || ((ret as usize) >= n ) {
+            return x509_header::MBEDTLS_ERR_X509_BUFFER_TOO_SMALL }
+
+        n = n - (ret as usize);
+        p.iptr = p.iptr + (ret as usize);
+
+        merge = name.next_merged;
+        match &mut name.next{
+            None => break,
+            Some(x) => {
+                name = x;
+            },
+        }
+        flag = true;
+
+        
+    }
+                                                                   
+
+    return (size - n) as i32
+}
+
+
+//16========================================================================================================================================
+
+pub fn mbedtls_x509_serial_gets(buf: &mut p, mut size: usize, serial: &mut mbedtls_x509_buf) -> i32 {
+
+    let ret = x509_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    let mut n: usize;
+    let nr: usize;
+
+//    let mut p = p{ptr: buf.ptr[buf.iptr..].iter().cloned().collect(), iptr: buf.iptr};
+    let mut p = buf.copy();
     n = size;
 
+    nr = if serial.len <= 32 { serial.len } else { 28 };
 
+    for i in 0..nr {
+        if (i == 0) && (nr > 1) && (serial.p.ptr[i as usize] == 0x0) { continue;}
+
+//        ret = mbedtls_snprintf( p, n, "%02X%s", serial->p[i], ( i < nr - 1 ) ? ":" : "" );
+
+        if (ret < 0) || ((ret as usize) >= n ) {
+            return x509_header::MBEDTLS_ERR_X509_BUFFER_TOO_SMALL }
+
+        n = n - (ret as usize);
+        p.iptr = p.iptr + (ret as usize);
+    }
+
+    if nr != serial.len {
+
+//        ret = mbedtls_snprintf( p, n, "...." );
+        if (ret < 0) || ((ret as usize) >= n ) {
+            return x509_header::MBEDTLS_ERR_X509_BUFFER_TOO_SMALL }
+
+        n = n - (ret as usize);
+        p.iptr = p.iptr + (ret as usize);
+    }
+
+
+    return (size - n) as i32
+}
+
+//17==========================================================================================================================================
+
+pub fn mbedtls_x509_sig_alg_gets(buf: &mut p, mut size: usize, sig_oid: &mut mbedtls_x509_buf, 
+    pk_alg: &mut pk_header::mbedtls_pk_type_t, md_alg: &mut md_header::mbedtls_md_type_t, sig_opts: &mbedtls_pk_rsassa_pss_options) -> i32 { //const void *sig_opts
+
+    let ret: i32; // = x509_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+//    let mut p = p{ptr: buf.ptr[buf.iptr..].iter().cloned().collect(), iptr: buf.iptr};
+    let mut p = buf.copy();
+    let mut n = size;
+    let mut desc: p = p.copy();
+
+    ret = mbedtls_oid_get_sig_alg_desc( sig_oid, &mut desc ); 
+
+    if ret != 0 {
+ //       ret = mbedtls_snprintf( p, n, "???"  ); 
+    }
+
+    else {
+//        ret = mbedtls_snprintf( p, n, "%s", desc );
+    }
+    if (ret < 0) || ((ret as usize) >= n ) {
+        return x509_header::MBEDTLS_ERR_X509_BUFFER_TOO_SMALL }
+
+    n = n - (ret as usize);
+    p.iptr = p.iptr + (ret as usize);
+
+//    #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
+    match *pk_alg {
+        pk_header::mbedtls_pk_type_t::MBEDTLS_PK_RSASSA_PSS => {
+            
+            let mut pss_opts = mbedtls_pk_rsassa_pss_options{mgf1_hash_id: sig_opts.mgf1_hash_id.copy(), expected_salt_len: sig_opts.expected_salt_len};
+            let mut md_info : mbedtls_md_info_t;
+            let mut mgf_md_info : mbedtls_md_info_t;
+
+            md_info = mbedtls_md_info_from_type( md_alg );
+
+            mgf_md_info = mbedtls_md_info_from_type( &mut pss_opts.mgf1_hash_id );
+
+//        ret = mbedtls_snprintf( p, n, " (%s, MGF1-%s, 0x%02X)",
+//                              md_info ? mbedtls_md_get_name( md_info ) : "???",
+//                              mgf_md_info ? mbedtls_md_get_name( mgf_md_info ) : "???",
+//                              (unsigned int) pss_opts->expected_salt_len );
+            if (ret < 0) || ((ret as usize) >= n ) {
+                return x509_header::MBEDTLS_ERR_X509_BUFFER_TOO_SMALL }
+
+            n = n - (ret as usize);
+            p.iptr = p.iptr + (ret as usize);
+        },
+
+        _ => { nop() },
+    };
+//#else
+//    ((void) pk_alg);
+//    ((void) md_alg);
+//    ((void) sig_opts);
+//    #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
+
+    return (size - n) as i32
+}
+
+//18==========================================================================================================================================
+
+pub fn mbedtls_x509_key_size_helper(buf: &mut p, buf_size: usize, name: &mut p) -> i32 {
+
+//    let mut p = p{ptr: buf.ptr[buf.iptr..].iter().cloned().collect(), iptr: buf.iptr};
+    let mut p = buf.copy();
+    let mut n = buf_size;
+
+    let mut ret: i32 = 0;
+
+//    ret = mbedtls_snprintf( p, n, "%s key size", name );
+    if (ret < 0) || ((ret as usize) >= n ) {
+        return x509_header::MBEDTLS_ERR_X509_BUFFER_TOO_SMALL }
+
+    n = n - (ret as usize);
+    p.iptr = p.iptr + (ret as usize);
+
+    return 0
+}
+
+//#if defined(MBEDTLS_HAVE_TIME_DATE)
+//19==========================================================================================================================================
+
+pub fn x509_get_current_time(now: &mut mbedtls_x509_time) -> i32 {
+
+/*    let lt: tm;
+    let tm_buf: tm;
+    let tt: mbedtls_x509_time;
+
+    let mut ret = 0;
+
+    tt = mbedtls_time( NULL );
+    lt = mbedtls_platform_gmtime_r( &tt, &tm_buf );
+    */
+
+    let now_t = Utc::now();                                                                     //time in UTC
+    let (is_pm, hour) = now_t.hour12();
+    let ( is_common_era , year) = now_t.year_ce();
+
+    now.year = year as i32;
+    now.mon = now_t.month() as i32;
+    now.day = now_t.day() as i32;
+    now.hour = if is_pm { (hour as i32) + 12 } else { hour as i32 };
+    now.min = now_t.minute() as i32;
+    now.sec = now_t.second() as i32;
+    return 0
 
 }
+
+//20==========================================================================================================================================
+
+pub fn x509_check_time( before: &mbedtls_x509_time , after: &mbedtls_x509_time ) -> i32 {
+
+    if before.year  > after.year  {
+        return 1 }
+
+    if before.year == after.year &&
+        before.mon   > after.mon {
+        return 1 }
+
+    if before.year == after.year &&
+        before.mon  == after.mon  &&
+        before.day   > after.day {
+        return 1 }
+
+    if before.year == after.year &&
+        before.mon  == after.mon  &&
+        before.day  == after.day  &&
+        before.hour  > after.hour {
+        return 1 }
+
+    if before.year == after.year &&
+        before.mon  == after.mon  &&
+        before.day  == after.day  &&
+        before.hour == after.hour &&
+        before.min   > after.min  {
+        return 1 }
+
+    if before.year == after.year &&
+        before.mon  == after.mon  &&
+        before.day  == after.day  &&
+        before.hour == after.hour &&
+        before.min  == after.min  &&
+        before.sec   > after.sec  {
+        return 1 }
+
+    return 0 
+}
+
+//21==========================================================================================================================================
+
+pub fn mbedtls_x509_time_is_past( to: &mbedtls_x509_time ) -> i32 {
+
+    let mut now = mbedtls_x509_time{..*to};
+
+    if x509_get_current_time( &mut now ) != 0  {
+        return 1 }
+
+    return x509_check_time( &now, to ) ;
+}
+
+//22==========================================================================================================================================
+
+pub fn mbedtls_x509_time_is_future( from: &mbedtls_x509_time ) -> i32 {
+
+    let mut now = mbedtls_x509_time{..*from};
+
+    if x509_get_current_time( &mut now ) != 0  {
+        return 1 }
+
+    return x509_check_time( from, &now ) ;
+}
+
+//test==========================================================================================================================================
+/*
+int mbedtls_x509_self_test( int verbose )
+{
+    int ret = 0;
+#if defined(MBEDTLS_CERTS_C) && defined(MBEDTLS_SHA256_C)
+    uint32_t flags;
+    mbedtls_x509_crt cacert;
+    mbedtls_x509_crt clicert;
+
+    if( verbose != 0 )
+        mbedtls_printf( "  X.509 certificate load: " );
+
+    mbedtls_x509_crt_init( &cacert );
+    mbedtls_x509_crt_init( &clicert );
+
+    ret = mbedtls_x509_crt_parse( &clicert, (const unsigned char *) mbedtls_test_cli_crt,
+                           mbedtls_test_cli_crt_len );
+    if( ret != 0 )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "failed\n" );
+
+        goto cleanup;
+    }
+
+    ret = mbedtls_x509_crt_parse( &cacert, (const unsigned char *) mbedtls_test_ca_crt,
+                          mbedtls_test_ca_crt_len );
+    if( ret != 0 )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "failed\n" );
+
+        goto cleanup;
+    }
+
+    if( verbose != 0 )
+        mbedtls_printf( "passed\n  X.509 signature verify: ");
+
+    ret = mbedtls_x509_crt_verify( &clicert, &cacert, NULL, NULL, &flags, NULL, NULL );
+    if( ret != 0 )
+    {
+        if( verbose != 0 )
+            mbedtls_printf( "failed\n" );
+
+        goto cleanup;
+    }
+
+    if( verbose != 0 )
+        mbedtls_printf( "passed\n\n");
+
+cleanup:
+    mbedtls_x509_crt_free( &cacert  );
+    mbedtls_x509_crt_free( &clicert );
+#else
+    ((void) verbose);
+#endif /* MBEDTLS_CERTS_C && MBEDTLS_SHA256_C */
+    return( ret );
+}
+
+#endif /* MBEDTLS_SELF_TEST */
+
+#endif /* MBEDTLS_X509_USE_C */
+
+*/

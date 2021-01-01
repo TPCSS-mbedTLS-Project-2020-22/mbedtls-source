@@ -116,30 +116,30 @@ pub const MBEDTLS_ERR_ASN1_INVALID_DATA                     : i32 = -0x0068;  /*
 pub const MBEDTLS_ERR_ASN1_ALLOC_FAILED                     : i32 = -0x006A;  /**< Memory allocation failed */
 pub const MBEDTLS_ERR_ASN1_BUF_TOO_SMALL                    : i32 = -0x006C;  /**< Buffer too small when writing ASN.1 data structure. */
 
-pub const MBEDTLS_ASN1_BOOLEAN                 : i32 = 0x01;
-pub const MBEDTLS_ASN1_INTEGER                 : i32 = 0x02;
-pub const MBEDTLS_ASN1_BIT_STRING              : i32 = 0x03;
-pub const MBEDTLS_ASN1_OCTET_STRING            : i32 = 0x04;
-pub const MBEDTLS_ASN1_NULL                    : i32 = 0x05;
-pub const MBEDTLS_ASN1_OID                     : i32 = 0x06;
-pub const MBEDTLS_ASN1_ENUMERATED              : i32 = 0x0A;
-pub const MBEDTLS_ASN1_UTF8_STRING             : i32 = 0x0C;
-pub const MBEDTLS_ASN1_SEQUENCE                : i32 = 0x10;
-pub const MBEDTLS_ASN1_SET                     : i32 = 0x11;
-pub const MBEDTLS_ASN1_PRINTABLE_STRING        : i32 = 0x13;
-pub const MBEDTLS_ASN1_T61_STRING              : i32 = 0x14;
-pub const MBEDTLS_ASN1_IA5_STRING              : i32 = 0x16;
-pub const MBEDTLS_ASN1_UTC_TIME                : i32 = 0x17;
-pub const MBEDTLS_ASN1_GENERALIZED_TIME        : i32 = 0x18;
-pub const MBEDTLS_ASN1_UNIVERSAL_STRING        : i32 = 0x1C;
-pub const MBEDTLS_ASN1_BMP_STRING              : i32 = 0x1E;
-pub const MBEDTLS_ASN1_PRIMITIVE               : i32 = 0x00;
-pub const MBEDTLS_ASN1_CONSTRUCTED             : i32 = 0x20;
-pub const MBEDTLS_ASN1_CONTEXT_SPECIFIC        : i32 = 0x80;
+pub const MBEDTLS_ASN1_BOOLEAN                 : u8 = 0x01;
+pub const MBEDTLS_ASN1_INTEGER                 : u8 = 0x02;
+pub const MBEDTLS_ASN1_BIT_STRING              : u8 = 0x03;
+pub const MBEDTLS_ASN1_OCTET_STRING            : u8 = 0x04;
+pub const MBEDTLS_ASN1_NULL                    : u8 = 0x05;
+pub const MBEDTLS_ASN1_OID                     : u8 = 0x06;
+pub const MBEDTLS_ASN1_ENUMERATED              : u8 = 0x0A;
+pub const MBEDTLS_ASN1_UTF8_STRING             : u8 = 0x0C;
+pub const MBEDTLS_ASN1_SEQUENCE                : u8 = 0x10;
+pub const MBEDTLS_ASN1_SET                     : u8 = 0x11;
+pub const MBEDTLS_ASN1_PRINTABLE_STRING        : u8 = 0x13;
+pub const MBEDTLS_ASN1_T61_STRING              : u8 = 0x14;
+pub const MBEDTLS_ASN1_IA5_STRING              : u8 = 0x16;
+pub const MBEDTLS_ASN1_UTC_TIME                : u8 = 0x17;
+pub const MBEDTLS_ASN1_GENERALIZED_TIME        : u8 = 0x18;
+pub const MBEDTLS_ASN1_UNIVERSAL_STRING        : u8 = 0x1C;
+pub const MBEDTLS_ASN1_BMP_STRING              : u8 = 0x1E;
+pub const MBEDTLS_ASN1_PRIMITIVE               : u8 = 0x00;
+pub const MBEDTLS_ASN1_CONSTRUCTED             : u8 = 0x20;
+pub const MBEDTLS_ASN1_CONTEXT_SPECIFIC        : u8 = 0x80;
 
-pub const MBEDTLS_ASN1_TAG_CLASS_MASK          : i32 = 0xC0;
-pub const MBEDTLS_ASN1_TAG_PC_MASK             : i32 = 0x20;
-pub const MBEDTLS_ASN1_TAG_VALUE_MASK          : i32 = 0x1F;
+pub const MBEDTLS_ASN1_TAG_CLASS_MASK          : u8 = 0xC0;
+pub const MBEDTLS_ASN1_TAG_PC_MASK             : u8 = 0x20;
+pub const MBEDTLS_ASN1_TAG_VALUE_MASK          : u8 = 0x1F;
 
 //#define MBEDTLS_OID_SIZE(x) (sizeof(x) - 1)
 
@@ -151,5 +151,5 @@ pub const MBEDTLS_ERR_ERROR_GENERIC_ERROR       : i32 = -0x0001;  /**< Generic e
 pub const MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED : i32 = -0x006E;  /**< This is a bug in the library */
 
 pub fn print(){
-    println!("Done!!");
+    println!("In x509/x509_header.rs");
 }
