@@ -140,7 +140,7 @@ struct SkipBuffer{
 ///              would end beyond \p end.
 /// \return      #MBEDTLS_ERR_ASN1_INVALID_LENGTH if the length is unparseable.
 /// 
-fn get_len(p: &mut SkipBuffer, end: &Vec<u8>, len: &mut usize) -> i32 {
+fn get_len(p: &mut SkipBuffer, end: usize, len: &mut usize) -> i32 {
     0
 }
 
@@ -166,7 +166,7 @@ fn get_len(p: &mut SkipBuffer, end: &Vec<u8>, len: &mut usize) -> i32 {
 ///              would end beyond \p end.
 /// \return      #MBEDTLS_ERR_ASN1_INVALID_LENGTH if the length is unparseable.
 /// 
-fn get_tag(p: &mut SkipBuffer, end: &Vec<u8>, len: &mut usize, tag: i32) -> i32 {
+fn get_tag(p: &mut SkipBuffer, end: usize, len: &mut usize, tag: i32) -> i32 {
     0
 }
 
@@ -185,7 +185,7 @@ fn get_tag(p: &mut SkipBuffer, end: &Vec<u8>, len: &mut usize, tag: i32) -> i32 
 /// \return      An ASN.1 error code if the input does not start with
 ///              a valid ASN.1 BOOLEAN.
 /// 
-fn get_bool(p: &mut SkipBuffer, end: &Vec<u8>, val: &mut i32) -> i32 {
+fn get_bool(p: &mut SkipBuffer, end: usize, val: &mut i32) -> i32 {
     0
 }
 
@@ -207,7 +207,7 @@ fn get_bool(p: &mut SkipBuffer, end: &Vec<u8>, val: &mut i32) -> i32 {
 /// \return      #MBEDTLS_ERR_ASN1_INVALID_LENGTH if the parsed value does
 ///              not fit in an \c int.
 /// 
-fn get_int(p: &mut SkipBuffer, end: &Vec<u8>, val: &mut i32) -> i32 {
+fn get_int(p: &mut SkipBuffer, end: usize, val: &mut i32) -> i32 {
     0
 }
 
@@ -229,7 +229,7 @@ fn get_int(p: &mut SkipBuffer, end: &Vec<u8>, val: &mut i32) -> i32 {
 /// \return      #MBEDTLS_ERR_ASN1_INVALID_LENGTH if the parsed value does
 ///              not fit in an \c int.
 /// 
-fn get_enum(p: &mut SkipBuffer, end: &Vec<u8>, val: &mut i32) -> i32 {
+fn get_enum(p: &mut SkipBuffer, end: usize, val: &mut i32) -> i32 {
     0
 }
 
@@ -251,7 +251,7 @@ fn get_enum(p: &mut SkipBuffer, end: &Vec<u8>, val: &mut i32) -> i32 {
 /// \return      An ASN.1 error code if the input does not start with
 ///              a valid ASN.1 BIT STRING.
 /// 
-fn get_bitstring(p: &mut SkipBuffer, end: &Vec<u8>, bs: &mut BitString) -> i32 {
+fn get_bitstring(p: &mut SkipBuffer, end: usize, bs: &mut BitString) -> i32 {
     0
 }
 
@@ -273,7 +273,7 @@ fn get_bitstring(p: &mut SkipBuffer, end: &Vec<u8>, bs: &mut BitString) -> i32 {
 /// \return      An ASN.1 error code if the input does not start with
 ///              a valid ASN.1 BIT STRING.
 /// 
-fn get_bitstring_null(p: &mut SkipBuffer, end: &Vec<u8>, len: &mut usize) -> i32 {
+fn get_bitstring_null(p: &mut SkipBuffer, end: usize, len: &mut usize) -> i32 {
     0
 }
 
@@ -324,7 +324,7 @@ fn get_bitstring_null(p: &mut SkipBuffer, end: &Vec<u8>, len: &mut usize) -> i32
 /// \return      An ASN.1 error code if the input does not start with
 ///              a valid ASN.1 SEQUENCE.
 /// 
-fn get_sequence_of(p: &mut SkipBuffer, end: &Vec<u8>, cur: &mut Sequence, tag: i32) -> i32 {
+fn get_sequence_of(p: &mut SkipBuffer, end: usize, cur: &mut Sequence, tag: i32) -> i32 {
     0
 }
 
@@ -441,7 +441,7 @@ fn sequence_free(seq: &mut Sequence) -> i32 {
 /// 
 fn traverse_sequence_of(
     p: &mut SkipBuffer, 
-    end: &Vec<u8>, 
+    end: usize, 
     tag_must_mask: u8,
     tag_must_val: u8,
     tag_may_mask: u8,
@@ -479,7 +479,7 @@ fn traverse_sequence_of(
 ///              not fit in an \c int.
 /// \return      An MPI error code if the parsed value is too large.
 /// 
-fn get_mpi(p: &mut SkipBuffer, end: &Vec<u8>, x: &mut bignum::mpi) -> i32 {
+fn get_mpi(p: &mut SkipBuffer, end: usize, x: &mut bignum::mpi) -> i32 {
     0
 }
 
@@ -500,7 +500,7 @@ fn get_mpi(p: &mut SkipBuffer, end: &Vec<u8>, x: &mut bignum::mpi) -> i32 {
 /// 
 /// \return      0 if successful or a specific ASN.1 or MPI error code.
 /// 
-fn get_alg(p: &mut Vec<u8>, end: &Vec<u8>, alg: &mut Buf, params: &mut Buf) -> i32{
+fn get_alg(p: &mut SkipBuffer, end: usize, alg: &mut Buf, params: &mut Buf) -> i32{
     0
 }
 
@@ -520,7 +520,7 @@ fn get_alg(p: &mut Vec<u8>, end: &Vec<u8>, alg: &mut Buf, params: &mut Buf) -> i
 /// 
 /// \return      0 if successful or a specific ASN.1 or MPI error code.
 /// 
-fn get_alg_null(p: &mut Vec<u8>, end: &Vec<u8>, alg: &mut Buf) -> i32 {
+fn get_alg_null(p: &mut SkipBuffer, end: usize, alg: &mut Buf) -> i32 {
     0
 }
 
