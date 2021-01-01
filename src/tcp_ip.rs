@@ -231,9 +231,6 @@ pub fn mbedtls_net_accept(
                             //Clone listen socket
                             let listen_socket = listener_ctx.udp_socket.as_ref().unwrap();
                             client_ctx.udp_socket = Some(listen_socket.try_clone().unwrap());
-
-                            let client_socket = client_ctx.udp_socket.as_ref().unwrap();
-                            // client_socket.connect(addr).expect("Could not connect to client");
                             client_ctx.udp_socket_remote_addr = Some(addr);
 
                             ret_value = MBEDTLS_NET_OPER_SUCCESS;
@@ -313,6 +310,7 @@ pub fn mbedtls_net_recv(
         TLProtocol::UDP => {
             let udp_socket = ctx.udp_socket.as_ref().unwrap();
 
+            //TODO: check remote address as well, before receiving.
             udp_socket.recv(recv_buf).expect("Failed to write to server");
 
             ret_value = MBEDTLS_NET_OPER_SUCCESS;
@@ -325,3 +323,5 @@ pub fn mbedtls_net_recv(
 pub fn print() {
     println!("Hey, inside tcp_ip library..!");
 }
+
+//sudo lsof -i -P -n | grep UDP
