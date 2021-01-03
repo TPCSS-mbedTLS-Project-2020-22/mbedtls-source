@@ -274,7 +274,7 @@ pub struct MdInfoT{
  * type given.
  * 
  * Note that inner vectors of md_ctx have 0 size.
- * You should still call init() fuction before you 
+ * You should still call setup() fuction before you 
  * call any other methods.
  */
 
@@ -321,8 +321,9 @@ fn create_context() -> Box<Context> {
  * \return          #ERR_MD_BAD_INPUT_DATA on parameter-verification
  *                  failure.
  */
-fn setup(ctx: &mut Context, md_type: &MdTypeT, hmac: bool) -> i32{
-    match md_type{
+fn setup(ctx: &mut Context, md_info: &'static MdInfoT, hmac: bool) -> i32{
+    ctx.md_info = md_info;
+    match md_info.md_type{
         
         #[cfg(feature = "MD2")]
         MdTypeT::MD2 => {
@@ -486,8 +487,9 @@ pub fn clone(dst: &mut Context , src: &Context) -> i32{
         
         #[cfg(feature = "RIPEMD160")]
         MdTypeT::RIPEMD160 => ripemd160::clone(&mut dst.md_ctx, &src.md_ctx),
+        
         _ => return ERR_MD_BAD_INPUT_DATA,
-    }
+    };
     return 0;
 }
 
@@ -832,11 +834,11 @@ pub fn hmac_reset(ctx: &mut Context) -> i32{
     return update(ctx, &ipad, ctx.md_info.block_size as usize);
 }
 
-pub fn hmac(md_info: &MdInfoT, key: &Vec<u8>, keylen: usize, input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> i32{
+pub fn hmac(md_info: &'static MdInfoT, key: &Vec<u8>, keylen: usize, input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> i32{
     let mut ctx = create_context();
     let mut ret = error::ERR_ERROR_CORRUPTION_DETECTED;
     
-    ret = setup(ctx.as_mut(), &md_info.md_type, true);
+    ret = setup(ctx.as_mut(), &md_info, true);
     if ret!=0{
         free(ctx.as_mut());
         return ret;
