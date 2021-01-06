@@ -48,7 +48,7 @@ fn main() {
     let mut k= String::from("ijklmnopijklmnop");
     //out="hmm";
 
-    mbedtls_blowfish_crypt_cbc(&mut ctx,MBEDTLS_BLOWFISH_ENCRYPT,16,&mut iv,String::from("abcdefghpqrstuvw"),&mut k);
+    mbedtls_blowfish_crypt_cbc(&mut ctx,MBEDTLS_BLOWFISH_ENCRYPT,16,&mut iv,String::from("abcdefgh[]||tuvw"),&mut k);
     println!("{:?}",k);
     let mut k1= String::from("ijklmnopijklmnop");
     iv=['1','2','3','4','5','6','7','8'];
@@ -56,7 +56,7 @@ fn main() {
     println!("{:?}",k1);
     let mut ivoff:usize=0;
     iv=['1','2','3','4','5','6','7','8'];
-    mbedtls_blowfish_crypt_cfb64(&mut ctx,MBEDTLS_BLOWFISH_ENCRYPT,16,&mut iv,&mut ivoff,String::from("abcdefghpqrstuvw"),&mut k1);
+    mbedtls_blowfish_crypt_cfb64(&mut ctx,MBEDTLS_BLOWFISH_ENCRYPT,16,&mut iv,&mut ivoff,String::from("abc\ne,%7pqrstuvw"),&mut k1);
     println!("{:?} {:?}",k1,iv);
     let mut k2= String::from("ijklmnopijklmnop");
     iv=['1','2','3','4','5','6','7','8'];
@@ -64,14 +64,14 @@ fn main() {
     println!("{:?} {:?}",k2,iv);
     let mut nonc:  [char;MBEDTLS_BLOWFISH_BLOCKSIZE]=['0','2','3','8','5','6','7','8'];
     iv=['1','2','3','4','5','6','7','8'];
-    let mut k3= String::from("ijklmnopijklmnop");
+    let mut k3= String::from("ijklmnopijklmnopabcdefgh[]||tuvw");
     let mut noff:usize=0;
-    mbedtls_blowfish_crypt_ctr(&mut ctx,16,&mut noff,&mut nonc,&mut iv,String::from("abcdefghpqrstuvw"),&mut k3);
+    mbedtls_blowfish_crypt_ctr(&mut ctx,32,&mut noff,&mut nonc,&mut iv,String::from("abcdefg@*&rstuvwabcdefgh[]||tuvw"),&mut k3);
     println!("{:?} {:?}",k3,nonc);
-    let mut k4= String::from("ijklmnopijklmnop");
+    let mut k4= String::from("ijklmnopijklmnopabcdefgh[]||tuvw");
     noff=0;
     nonc=['0','2','3','8','5','6','7','8'];
-    mbedtls_blowfish_crypt_ctr(&mut ctx,16,&mut noff,&mut nonc,&mut iv,k3,&mut k4);
+    mbedtls_blowfish_crypt_ctr(&mut ctx,32,&mut noff,&mut nonc,&mut iv,k3,&mut k4);
     println!("{:?} {:?}",k4,nonc);
     cipher::chacha20::run();
 }
