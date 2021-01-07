@@ -1,2 +1,2 @@
-mod ssl_tls;
 pub mod cipher;
+mod ssl_tls;
