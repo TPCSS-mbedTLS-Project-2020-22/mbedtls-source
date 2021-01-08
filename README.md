@@ -1,11 +1,14 @@
 README
+## TCP/IP (net_sockets) Module Specific Documentation
 
-* [Link](https://github.com/TPCSS-mbedTLS-Project-2020-22/source/wiki) to wiki page.
+### Contributors
+* Aman Choudhary - amanc@iisc.ac.in
+* Shashank Singh - shashanksing@iisc.ac.in
+
+### Module Intro
+This module provides Network Sockets Abstraction Layer to integrate Mbed TLS into a BSD-style sockets API. Provides a context based interface for quickly setting up underlying Transport Layer protocol (TCP or UDP) for application layer use. To be consumed by SSL/TLS module.
 
 
-# Project Strucuture
-All mbed-tls modules will have their respective rust module in this single library crate. If the mbed-tls module has several files within, we will use folders to group such submodules within a single module (as in the case of ssl-tls module).
-
-# Contributors
+### Trying it out
 
 TODO : Add the list of all the contributors over here
