@@ -7,7 +7,7 @@ fn main() {
    
    //Test1
    let mut n:u32=0;
-    let mut b:[u8;8]=[1,2,3,4,5,6,7,8];
+   let mut b:[u8;8]=[1,2,3,4,5,6,7,8];
     let i:usize=0;
     get_uint32_be(&mut n,&mut b,i);
     println!("{:b}",n);
@@ -30,7 +30,27 @@ fn main() {
     const  des3_test_keys: [u8; 8] =
     [ 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF
     ];
+    mbedtls_des_setkey_enc( &mut cipher, des3_test_keys );
+    println!("{:?}",cipher.sk);
+    //Encryption
+    b=[49, 50, 51, 52, 53, 54, 55, 56];
+    let mut c:[u8;8]=[0,0,0,0,0,0,0,0];
+    println!("{:?}",b);
+    mbedtls_des_crypt_ecb(&mut cipher,b,&mut c);
+    println!("{:?}",c);
+
+    //Decryption
     mbedtls_des_setkey_dec( &mut cipher, des3_test_keys );
+    println!("{:?}",cipher.sk);
+    let mut d:[u8;8]=[0,0,0,0,0,0,0,0];
+    println!("Before Decryption{:?}",d);
+    println!("{:?}",c);
+    mbedtls_des_crypt_ecb(&mut cipher,c,&mut d);
+    println!("{:?}",d);
+
+
+   
+   
     
 
     
