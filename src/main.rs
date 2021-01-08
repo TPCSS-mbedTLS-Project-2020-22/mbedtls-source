@@ -1,4 +1,4 @@
-use mbed::tcp_ip;
+use mbed::net_sockets;
 use std::env;
 
 fn main() {
