@@ -11,7 +11,7 @@
 // 1. To check the function call parameters : I am not sure what datatypes to use for ports, ips, protocols
 
 use std::io::{self, BufRead, Write};
-use std::net::{IpAddr, SocketAddr, TcpListener, TcpStream, UdpSocket};
+use std::net::{IpAddr, SocketAddr, TcpListener, TcpStream, UdpSocket, Shutdown};
 use std::str::FromStr;
 
 // Listing any Global macros needed
@@ -56,7 +56,7 @@ pub enum TLProtocol {
 /// structures for hand-made UDP demultiplexing)
 /// Rust : SS : Replaced fd by a tcpListener object in context
 pub struct MbedtlsNetContext {
-    pub protocol: Option<TLProtocol>, //do i really need this
+    pub protocol: Option<TLProtocol>, 
     tcp_listener: Option<TcpListener>,
     tcp_stream: Option<TcpStream>,
     tcp_stream_remote_addr: Option<SocketAddr>,
@@ -290,6 +290,7 @@ pub fn mbedtls_net_recv(
         TLProtocol::TCP => {
             let mut tcp_stream = ctx.tcp_stream.as_ref().unwrap();
 
+
             // Read current current data in the TcpStream
             let mut reader = io::BufReader::new(&mut tcp_stream);
             let received_bytes_buffer: &[u8] = reader.fill_buf().unwrap();
@@ -318,6 +319,41 @@ pub fn mbedtls_net_recv(
     };
 
     ret_value
+}
+
+
+/// Gracefully close the connection i.e. stop read or write or both operations. 
+/// Rust doesn't implement close.
+/// Don't know the use of this function, implemented just to maintain interface compatibility
+pub fn mbedtls_net_free(
+    ctx: &mut MbedtlsNetContext
+) -> i16{
+    let mut ret_value = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+
+    match ctx.protocol.as_ref().unwrap()  {
+        TLProtocol::TCP => {
+            if !ctx.tcp_stream.is_none() {
+                let tcp_stream = ctx.tcp_stream.as_ref().unwrap();
+                tcp_stream.shutdown(Shutdown::Both).expect("shutdown call failed");
+                ret_value = MBEDTLS_NET_OPER_SUCCESS;
+            }
+        }
+
+        TLProtocol::UDP => {
+            // there is nothing to close in UDP
+            ret_value = MBEDTLS_NET_OPER_SUCCESS;
+        }
+    }
+
+ret_value
+}
+
+/// Don't know the use of this function, implemented just to maintain interface compatibility
+/// Simply calls the mbedtls_net_free function
+pub fn mbedtls_net_close(
+    ctx: &mut MbedtlsNetContext
+)-> i16{
+mbedtls_net_free(ctx)
 }
 
 pub fn print() {
