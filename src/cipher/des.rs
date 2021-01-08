@@ -16,6 +16,12 @@ pub const WEAK_KEY_COUNT                 :usize  = 16;
 pub struct mbedtls_des_context {
    pub sk: [u32; 32],
 }
+impl mbedtls_des_context {
+   pub fn init() -> mbedtls_des_context {
+       let sk = [0; 32];      
+       mbedtls_des_context {sk}
+   }
+}
 //Tripple DES context structure
 pub struct mbedtls_des3_context {
    pub sk: [u32; 96],
@@ -298,8 +304,8 @@ pub fn SWAP1(a: &mut u32, b: &mut u32)
 }
 pub fn mbedtls_des_init(ctx : &mut mbedtls_des_context){
    unsafe{
-   write_bytes(ctx,0,1);
-   }
+      write_bytes(ctx,0,1);
+      }
 }
 pub fn mbedtls_des_free(ctx : &mut mbedtls_des_context){
    unsafe{
@@ -402,7 +408,7 @@ pub fn mbedtls_des_setkey(SK:&mut [u32;32], mut key: [u8;MBEDTLS_DES_KEY_SIZE])
  * DES key schedule (56-bit, decryption)
  */
  pub fn mbedtls_des_setkey_dec(ctx:&mut mbedtls_des_context ,key:[u8;MBEDTLS_DES_KEY_SIZE])->i32
- {  let mut i:usize=0;
+ { let mut i:usize=0;
    let mut temp1:u32;
    let mut temp2:u32;
     mbedtls_des_setkey( &mut (*ctx).sk, key );
@@ -420,33 +426,15 @@ let temp2 = (*ctx).sk[i+1];
 (*ctx).sk[31-i] = temp2;
       i+=2;
     }
+    println!(
+      "Set keys done for Decryption"
+  );
    return 0;
  }
 
 fn main (){
-   let mut a :u32 = 2;
-   let mut b :u32 = 3;
-   println!("a={} and b={}",a,b);
-   //SWAP1(&mut a,&mut b);
-   //ptr::swap(&mut a,&mut b);
-   println!("After swapping , a={} and b={}",a,b);
-
-   //Test--
-   let mut n:u32=0;
-    let mut b:[u8;8]=[1,2,3,4,5,6,7,8];
-    let i:usize=0;
-    get_uint32_be(&mut n,&mut b,i);
-    println!("{:b}",n);
-    b=[0,0,0,0,0,0,0,0];
-    put_uint32_be(n,&mut b,i);
-    println!("{:?}",b);
-    let mut xl:u32=0x3AC372E6;
-    let mut xr:u32=0xCE77E25B;
-    println!("Before DES initial Permutation working{:x} {:x}",xl,xr);
-    DES_IP(&mut xl,&mut xr);
-    println!("DES initial Permutation working{:x} {:x}",xl,xr);
-    DES_FP(&mut xl,&mut xr);
-    println!("DES Final Permutation working{:x} {:x}",xl,xr);
+   
+   
 }
    
     
