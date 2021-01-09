@@ -5,8 +5,8 @@ use std::convert::TryInto;
 use std::convert::TryFrom;
 use std::ptr::write_bytes;
 use std::ptr;
-pub const MBEDTLS_DES_ENCRYPT                  :i32 = 1;
-pub const MBEDTLS_DES_DECRYPT                  :i32 = 0;
+pub const MBEDTLS_DES_ENCRYPT                  :usize = 1;
+pub const MBEDTLS_DES_DECRYPT                  :usize = 0;
 pub const MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH :i32 =-0x0032;
 pub const MBEDTLS_ERR_DES_HW_ACCEL_FAILED      :i32  = 0x0033;  
 pub const MBEDTLS_DES_KEY_SIZE                 :usize  = 8;
@@ -298,17 +298,6 @@ pub fn SWAP1(a: &mut u32, b: &mut u32)
       t = 0;           
    
 }
-pub fn mbedtls_des_init(ctx : &mut mbedtls_des_context){
-   unsafe{
-      write_bytes(ctx,0,1);
-      }
-}
-pub fn mbedtls_des_free(ctx : &mut mbedtls_des_context){
-   unsafe{
-       write_bytes(ctx,0,1);
-       }
-}
-
 
 pub fn mbedtls_des_key_set_parity( mut key: [u8;MBEDTLS_DES_KEY_SIZE] ){
   let mut i:usize;
@@ -394,7 +383,7 @@ pub fn mbedtls_des_setkey(SK:&mut [u32;32], mut key: [u8;MBEDTLS_DES_KEY_SIZE])
   }
 }
 /*
- * DES key schedule (56-bit, encryption)
+ * DES key schedule for (56-bit, encryption) 
  */
  pub fn mbedtls_des_setkey_enc(ctx:&mut mbedtls_des_context ,key:[u8;MBEDTLS_DES_KEY_SIZE])->i32
  {   mbedtls_des_setkey( &mut (*ctx).sk, key );
@@ -404,7 +393,7 @@ pub fn mbedtls_des_setkey(SK:&mut [u32;32], mut key: [u8;MBEDTLS_DES_KEY_SIZE])
    return 0;
  }
  /*
- * DES key schedule (56-bit, decryption)
+ * DES key schedule for  (56-bit, decryption)
  */
  pub fn mbedtls_des_setkey_dec(ctx:&mut mbedtls_des_context ,key:[u8;MBEDTLS_DES_KEY_SIZE])->i32
  { let mut i:usize=0;
@@ -479,7 +468,7 @@ let temp2 = (*ctx).sk[i+1];
       i+=1;
    } 
 
-   
+
    DES_FP(&mut Y, &mut X );
    put_uint32_be( Y,&mut output,0);
    put_uint32_be( X,&mut output,4);
@@ -487,6 +476,82 @@ let temp2 = (*ctx).sk[i+1];
    return 0;
 }
 
+/*
+ * DES-CBC buffer encryption/decryption
+ */
+
+pub fn mbedtls_des_crypt_cbc(mut ctx : &mut mbedtls_des_context,
+   mode:usize,
+   mut length :usize,
+   iv:&mut [char;8],
+   mut input: String, 
+   mut output :&mut String)->i32{
+      let mut i:i32;
+      let mut temp:[u8;8]=[0,0,0,0,0,0,0,0];
+      let mut inputbytes:[u8;8]=[0,0,0,0,0,0,0,0];
+      let mut outputbytes:[u8;8]=[0,0,0,0,0,0,0,0];
+      let mut result:String=String::from("").to_owned();
+      if length % 8!=0 {
+         return MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH;
+     }
+     let mut k:usize=0;
+    if mode == MBEDTLS_DES_ENCRYPT {
+      while length>0 {
+            for i in 0..8{
+                inputbytes[i]=input.chars().nth(i+k).unwrap() as u8 ;
+                outputbytes[i]=output.chars().nth(i+k).unwrap() as u8;
+            }
+            
+            for i in 0..8{
+                let temp1:u8=iv[i] as u8;
+                outputbytes[i]=inputbytes[i]^temp1;
+            }
+            
+            mbedtls_des_crypt_ecb(&mut ctx,outputbytes,&mut outputbytes);
+            for i in 0..8{
+                iv[i]=outputbytes[i] as char;
+            }
+            k+=8;
+            length-=8;
+            let mut out:[char;8]=['0','0','0','0','0','0','0','0'];
+            for i in 0..8{
+                out[i]=outputbytes[i] as char;
+                result.push(out[i]);
+            }
+         }
+}
+else
+{
+   while length>0 {
+      for i in 0..8{
+          inputbytes[i]=input.chars().nth(i+k).unwrap() as u8 ;
+          temp[i]=inputbytes[i];
+          outputbytes[i]=output.chars().nth(i+k).unwrap() as u8;
+      }
+      mbedtls_des_crypt_ecb(&mut ctx,inputbytes,&mut outputbytes);
+      for i in 0..8{
+          let temp1:u8=iv[i] as u8;
+          outputbytes[i]=outputbytes[i]^temp1;
+      }
+      for i in 0..8{
+          iv[i]=temp[i] as char;
+      }
+      
+  
+      k+=8;
+      length-=8;
+      let mut out:[char;8]=['0','0','0','0','0','0','0','0'];
+      for i in 0..8{
+          out[i]=outputbytes[i] as char;
+          result.push(out[i]);
+      }
+}
+   
+}
+*output=result;
+   return 0;
+
+}
 fn main (){
    
    
