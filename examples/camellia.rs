@@ -2,20 +2,42 @@ use mbed::cipher::camellia::*;
 fn main() {
     test();
     let keybits: u32 = 128;
-    let key = [4u8; 16];
 
-    let cipher = CamelliaContext::init(key, keybits);
+    let key: [u8; 32] = [
+        0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32,
+        0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00,
+    ];
 
-    println!(
-        "Cipher Initialized with no_of_rounds: {} and round keys:{} ",
-        cipher.nr, cipher.rk[0]
-    );
+    //128 Bit
+    let mut cipher = CamelliaContext::init(key, keybits);
 
-    let encrypted_value: i32 = cipher.encrypt(key);
+    let plain_text: [u8; 16] = [
+        0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32,
+        0x10,
+    ];
+    println!("Plain text: {:?}", plain_text);
 
-    println!("Encrypted Value of the text: {}", encrypted_value);
+    cipher.set_mode(ENCRYPT);
 
-    let decrypted_value: i32 = cipher.decrypt(key);
+    let encrypted_value = cipher.mbedtls_camellia_crypt_ecb(plain_text);
 
-    println!("Decrypted Value of the ciphertext: {}", decrypted_value);
+    println!("Encrypted Value of the text: {:?}", encrypted_value);
+
+    cipher.set_mode(DECRYPT);
+
+    let decrypted_value = cipher.mbedtls_camellia_crypt_ecb(encrypted_value);
+
+    println!("Decrypted Value of the ciphertext: {:?}", decrypted_value);
+
+    // 192 Bit
+
+    // let key: [u8; 32] = [
+    //     0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32,
+    //     0x10, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    //     0x00, 0x00,
+    // ];
+    // let mut cipher = CamelliaContext::init(key, 192);
+
+    // cipher.set_mode(ENCRYPT);
 }
