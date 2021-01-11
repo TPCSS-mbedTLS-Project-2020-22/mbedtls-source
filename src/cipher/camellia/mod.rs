@@ -465,6 +465,85 @@ impl CamelliaContext {
         }
         out_array
     }
+
+    pub fn mbedtls_camellia_crypt_cbc(
+        &self,
+        mut iv: [u8; 16],
+        mut length: u32,
+        _text: Vec<u8>,
+    ) -> Vec<u8> {
+        if length % 16 != 0 {
+            //Error
+        }
+        let mut inputIndex: usize = 0;
+        let mut output: Vec<u8> = Vec::new();
+
+        if self.active_mode == DECRYPT {
+            while length > 0 {
+                //Prepare Input
+                let mut block_input: [u8; 16] = [0; 16];
+                for i in 0..16 {
+                    block_input[i] = _text[inputIndex + i];
+                }
+
+                let block_out = self.mbedtls_camellia_crypt_ecb(block_input);
+                //Push to Output
+                for i in 0..16 {
+                    output.push(block_out[i] ^ iv[i]);
+                }
+                println!("iv :{:?}", iv);
+
+                iv = block_input;
+
+                println!("block_out :{:?}", block_out);
+
+                inputIndex += 16;
+                //outputIndex += 16;
+                length -= 16;
+            }
+        } else {
+            while length > 0 {
+                //Prepare Input
+                inputIndex = 0;
+                let mut block_input: [u8; 16] = [0; 16];
+                println!("iv");
+                for i in 0..16 {
+                    print!("{} ", format!("{:x}", iv[i]));
+                }
+                println!("\ninp");
+                for i in 0..16 {
+                    print!("{} ", format!("{:x}", _text[i]));
+                }
+                println!("\n in ^ vec");
+                for i in 0..16 {
+                    block_input[i] = _text[inputIndex + i] ^ iv[i];
+                    print!("{} ", format!("{:x}", block_input[i]));
+                }
+
+                let block_out = self.mbedtls_camellia_crypt_ecb(block_input);
+                println!("\n block out");
+                for i in 0..16 {
+                    print!("{} ", format!("{:x}", block_out[i]));
+                }
+                //Push to Output
+                for i in 0..16 {
+                    output.push(block_out[i]);
+                    // println!("block_out:{} ", format!("{:x}", block_out[i]));
+                    // println!("output :{}", output[i]);
+                }
+
+                inputIndex += 16;
+                // outputIndex += 16;
+                length -= 16;
+            }
+        }
+        println!("\n output");
+        for i in 0..16 {
+            print!("{} ", format!("{:x}", output[i]));
+        }
+
+        output
+    }
     //Component of Camellia
     pub fn f(f_in: u64, ke: u64) -> u64 {
         let x = f_in ^ ke;
