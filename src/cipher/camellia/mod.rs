@@ -52,7 +52,7 @@ impl CamelliaContext {
         }
     }
 
-    pub fn GET_UINT32_BE(t: &[u8], i: usize) -> u32 {
+    pub fn get_uint32_be(t: &[u8], i: usize) -> u32 {
         (t[i] as u32) << 24 | (t[i + 1] as u32) << 16 | (t[i + 2] as u32) << 8 | (t[i + 3] as u32)
     }
 
@@ -70,9 +70,9 @@ impl CamelliaContext {
     // Key Scheduler and key generating internal function
     fn mbedtls_camellia_setkey_enc(rk: &mut [u32], key: &[u8], nr: &i32, key_bits: u32) {
         let mut t: [u8; 64] = [0; 64];
-        let mut SIGMA: [[u32; 2]; 6] = Default::default();
-        let mut KC: [u32; 16] = Default::default();
-        let mut TK: [u32; 20] = Default::default();
+        let mut sigma: [[u32; 2]; 6] = Default::default();
+        let mut kc: [u32; 16] = Default::default();
+        let mut tk: [u32; 20] = Default::default();
         // let mut i32: i = 0;
         let idx: i32 = if *nr == ROUND_128 { 0 } else { 1 };
 
@@ -89,85 +89,85 @@ impl CamelliaContext {
 
         /* Prepare Sigma */
         for i in 0..6 {
-            SIGMA[i as usize][0] = Self::GET_UINT32_BE(&SIGMA_CHARS[i], 0);
-            SIGMA[i as usize][1] = Self::GET_UINT32_BE(&SIGMA_CHARS[i], 4);
+            sigma[i as usize][0] = Self::get_uint32_be(&SIGMA_CHARS[i], 0);
+            sigma[i as usize][1] = Self::get_uint32_be(&SIGMA_CHARS[i], 4);
         }
 
         /* Store KL, KR */
         for i in 0..8 {
-            KC[i] = Self::GET_UINT32_BE(&t, i * 4);
+            kc[i] = Self::get_uint32_be(&t, i * 4);
         }
 
         /* Generate KA */
         for i in 0..4 {
-            KC[8 + i] = KC[i] ^ KC[4 + i];
+            kc[8 + i] = kc[i] ^ kc[4 + i];
         }
 
-        let result = Self::camellia_feistel(&[KC[8], KC[9]], &SIGMA[0], &[KC[10], KC[11]]);
-        KC[10] = result[0];
-        KC[11] = result[1];
+        let result = Self::camellia_feistel(&[kc[8], kc[9]], &sigma[0], &[kc[10], kc[11]]);
+        kc[10] = result[0];
+        kc[11] = result[1];
 
-        let result = Self::camellia_feistel(&[KC[10], KC[11]], &SIGMA[1], &[KC[8], KC[9]]);
+        let result = Self::camellia_feistel(&[kc[10], kc[11]], &sigma[1], &[kc[8], kc[9]]);
 
-        KC[8] = result[0];
-        KC[9] = result[1];
+        kc[8] = result[0];
+        kc[9] = result[1];
         //? Verified
-        // println!("KC :{:?}", KC);
+        // println!("kc :{:?}", kc);
 
         for i in 0..4 {
-            KC[8 + i] ^= KC[i];
+            kc[8 + i] ^= kc[i];
         }
         //? Verified
-        //  println!("KC :{:?}", KC);
+        //  println!("kc :{:?}", kc);
 
-        let result = Self::camellia_feistel(&[KC[8], KC[9]], &SIGMA[2], &[KC[10], KC[11]]);
-        KC[10] = result[0];
-        KC[11] = result[1];
+        let result = Self::camellia_feistel(&[kc[8], kc[9]], &sigma[2], &[kc[10], kc[11]]);
+        kc[10] = result[0];
+        kc[11] = result[1];
 
-        let result = Self::camellia_feistel(&[KC[10], KC[11]], &SIGMA[3], &[KC[8], KC[9]]);
+        let result = Self::camellia_feistel(&[kc[10], kc[11]], &sigma[3], &[kc[8], kc[9]]);
 
-        KC[8] = result[0];
-        KC[9] = result[1];
+        kc[8] = result[0];
+        kc[9] = result[1];
 
         if key_bits > _128_BIT {
             /* Generate KB */
             for i in 0..4 {
-                KC[12 + i] = KC[4 + i] ^ KC[8 + i];
+                kc[12 + i] = kc[4 + i] ^ kc[8 + i];
             }
-            let result = Self::camellia_feistel(&[KC[12], KC[13]], &SIGMA[4], &[KC[14], KC[15]]);
-            KC[14] = result[0];
-            KC[15] = result[1];
+            let result = Self::camellia_feistel(&[kc[12], kc[13]], &sigma[4], &[kc[14], kc[15]]);
+            kc[14] = result[0];
+            kc[15] = result[1];
 
-            let result = Self::camellia_feistel(&[KC[14], KC[15]], &SIGMA[5], &[KC[12], KC[13]]);
+            let result = Self::camellia_feistel(&[kc[14], kc[15]], &sigma[5], &[kc[12], kc[13]]);
 
-            KC[12] = result[0];
-            KC[13] = result[1];
+            kc[12] = result[0];
+            kc[13] = result[1];
 
-            // camellia_feistel(KC + 12, SIGMA[4], KC + 14);
-            // camellia_feistel(KC + 14, SIGMA[5], KC + 12);
+            // camellia_feistel(kc + 12, sigma[4], kc + 14);
+            // camellia_feistel(kc + 14, sigma[5], kc + 12);
         }
 
         /* Manipulating KL */
         let mut offset: usize = 0;
 
-        TK[0] = KC[offset * 4 + 0];
-        TK[1] = KC[offset * 4 + 1];
-        TK[2] = KC[offset * 4 + 2];
-        TK[3] = KC[offset * 4 + 3];
+        tk[0] = kc[offset * 4 + 0];
+        tk[1] = kc[offset * 4 + 1];
+        tk[2] = kc[offset * 4 + 2];
+        tk[3] = kc[offset * 4 + 3];
 
         for i in 1..5 {
             // println!("i: {}", i);
-            if shifts[idx as usize][offset][i - 1] != 0 {
-                let response = Self::rotl(&TK, (15 * (i as i32)) % 32);
-                TK[i * 4] = response[0];
-                TK[i * 4 + 1] = response[1];
-                TK[i * 4 + 2] = response[2];
-                TK[i * 4 + 3] = response[3];
+            if SHIFTS[idx as usize][offset][i - 1] != 0 {
+                let response = Self::rotl(&tk, (15 * (i as i32)) % 32);
+                tk[i * 4] = response[0];
+                tk[i * 4 + 1] = response[1];
+                tk[i * 4 + 2] = response[2];
+                tk[i * 4 + 3] = response[3];
             }
         }
         for i in 0..20 {
-            if indexes[idx as usize][offset][i] != -1 {
-                rk[indexes[idx as usize][offset][i] as usize] = TK[i];
+            if INDEXES[idx as usize][offset][i] != -1 {
+                rk[INDEXES[idx as usize][offset][i] as usize] = tk[i];
             }
         }
 
@@ -175,24 +175,24 @@ impl CamelliaContext {
         if key_bits > _128_BIT {
             offset = 1;
 
-            TK[0] = KC[4 * offset];
-            TK[1] = KC[4 * offset + 1];
-            TK[2] = KC[4 * offset + 2];
-            TK[3] = KC[4 * offset + 3];
+            tk[0] = kc[4 * offset];
+            tk[1] = kc[4 * offset + 1];
+            tk[2] = kc[4 * offset + 2];
+            tk[3] = kc[4 * offset + 3];
 
             for i in 1..5 {
-                if shifts[idx as usize][offset][i - 1] != 0 {
-                    let response = Self::rotl(&TK, ((15 * i) % 32) as i32);
-                    TK[i * 4] = response[0];
-                    TK[i * 4 + 1] = response[1];
-                    TK[i * 4 + 2] = response[2];
-                    TK[i * 4 + 3] = response[3];
+                if SHIFTS[idx as usize][offset][i - 1] != 0 {
+                    let response = Self::rotl(&tk, ((15 * i) % 32) as i32);
+                    tk[i * 4] = response[0];
+                    tk[i * 4 + 1] = response[1];
+                    tk[i * 4 + 2] = response[2];
+                    tk[i * 4 + 3] = response[3];
                 }
             }
 
             for i in 0..20 {
-                if indexes[idx as usize][offset][i] != -1 {
-                    rk[indexes[idx as usize][offset][i] as usize] = TK[i];
+                if INDEXES[idx as usize][offset][i] != -1 {
+                    rk[INDEXES[idx as usize][offset][i] as usize] = tk[i];
                 }
             }
         }
@@ -201,24 +201,24 @@ impl CamelliaContext {
 
         offset = 2;
 
-        TK[0] = KC[4 * offset];
-        TK[1] = KC[4 * offset + 1];
-        TK[2] = KC[4 * offset + 2];
-        TK[3] = KC[4 * offset + 3];
+        tk[0] = kc[4 * offset];
+        tk[1] = kc[4 * offset + 1];
+        tk[2] = kc[4 * offset + 2];
+        tk[3] = kc[4 * offset + 3];
 
         for i in 1..5 {
-            if shifts[idx as usize][offset][i - 1] != 0 {
-                let response = Self::rotl(&TK, ((15 * i) % 32) as i32);
-                TK[i * 4] = response[0];
-                TK[i * 4 + 1] = response[1];
-                TK[i * 4 + 2] = response[2];
-                TK[i * 4 + 3] = response[3];
+            if SHIFTS[idx as usize][offset][i - 1] != 0 {
+                let response = Self::rotl(&tk, ((15 * i) % 32) as i32);
+                tk[i * 4] = response[0];
+                tk[i * 4 + 1] = response[1];
+                tk[i * 4 + 2] = response[2];
+                tk[i * 4 + 3] = response[3];
             }
         }
 
         for i in 0..20 {
-            if indexes[idx as usize][offset][i] != -1 {
-                rk[indexes[idx as usize][offset][i] as usize] = TK[i];
+            if INDEXES[idx as usize][offset][i] != -1 {
+                rk[INDEXES[idx as usize][offset][i] as usize] = tk[i];
             }
         }
 
@@ -226,32 +226,32 @@ impl CamelliaContext {
         if key_bits > _128_BIT {
             offset = 3;
 
-            TK[0] = KC[4 * offset];
-            TK[1] = KC[4 * offset + 1];
-            TK[2] = KC[4 * offset + 2];
-            TK[3] = KC[4 * offset + 3];
+            tk[0] = kc[4 * offset];
+            tk[1] = kc[4 * offset + 1];
+            tk[2] = kc[4 * offset + 2];
+            tk[3] = kc[4 * offset + 3];
 
             for i in 1..5 {
-                if shifts[idx as usize][offset][i - 1] != 0 {
-                    let response = Self::rotl(&TK, ((15 * i) % 32) as i32);
-                    TK[i * 4] = response[0];
-                    TK[i * 4 + 1] = response[1];
-                    TK[i * 4 + 2] = response[2];
-                    TK[i * 4 + 3] = response[3];
+                if SHIFTS[idx as usize][offset][i - 1] != 0 {
+                    let response = Self::rotl(&tk, ((15 * i) % 32) as i32);
+                    tk[i * 4] = response[0];
+                    tk[i * 4 + 1] = response[1];
+                    tk[i * 4 + 2] = response[2];
+                    tk[i * 4 + 3] = response[3];
                 }
             }
 
             for i in 0..20 {
-                if indexes[idx as usize][offset][i] != -1 {
-                    rk[indexes[idx as usize][offset][i] as usize] = TK[i];
+                if INDEXES[idx as usize][offset][i] != -1 {
+                    rk[INDEXES[idx as usize][offset][i] as usize] = tk[i];
                 }
             }
         }
         //* Transpose *//
 
         for i in 0..20 {
-            if transposes[idx as usize][i] != -1 {
-                rk[(32 + 12 * idx + i as i32) as usize] = rk[transposes[idx as usize][i] as usize];
+            if TRANSPOSES[idx as usize][i] != -1 {
+                rk[(32 + 12 * idx + i as i32) as usize] = rk[TRANSPOSES[idx as usize][i] as usize];
             }
         }
     }
@@ -311,8 +311,6 @@ impl CamelliaContext {
         rindex += 1;
         sindex += 1;
         dec_rk[rindex] = rk[sindex];
-        rindex += 1;
-        sindex += 1;
 
         for i in 0..68 {
             rk[i] = dec_rk[i];
@@ -327,30 +325,30 @@ impl CamelliaContext {
         dest
     }
 
-    pub fn camellia_feistel(x: &[u32], k: &[u32], Z: &[u32]) -> [u32; 2] {
-        let mut I0: u32;
-        let mut I1: u32;
-        let mut z: [u32; 2] = [Z[0], Z[1]];
-        I0 = x[0] ^ k[0];
-        I1 = x[1] ^ k[1];
+    pub fn camellia_feistel(x: &[u32], k: &[u32], z: &[u32]) -> [u32; 2] {
+        let mut i0: u32;
+        let mut i1: u32;
+        let mut z: [u32; 2] = [z[0], z[1]];
+        i0 = x[0] ^ k[0];
+        i1 = x[1] ^ k[1];
 
-        I0 = ((S_BOX[0][((I0 >> 24) & 0xFF) as usize] as u32) << 24)
-            | ((S_BOX[1][((I0 >> 16) & 0xFF) as usize] as u32) << 16)
-            | ((S_BOX[2][((I0 >> 8) & 0xFF) as usize] as u32) << 8)
-            | (S_BOX[3][((I0) & 0xFF) as usize] as u32);
+        i0 = ((S_BOX[0][((i0 >> 24) & 0xFF) as usize] as u32) << 24)
+            | ((S_BOX[1][((i0 >> 16) & 0xFF) as usize] as u32) << 16)
+            | ((S_BOX[2][((i0 >> 8) & 0xFF) as usize] as u32) << 8)
+            | (S_BOX[3][((i0) & 0xFF) as usize] as u32);
 
-        I1 = ((S_BOX[1][((I1 >> 24) & 0xFF) as usize] as u32) << 24)
-            | ((S_BOX[2][((I1 >> 16) & 0xFF) as usize] as u32) << 16)
-            | ((S_BOX[3][((I1 >> 8) & 0xFF) as usize] as u32) << 8)
-            | (S_BOX[0][((I1) & 0xFF) as usize] as u32);
+        i1 = ((S_BOX[1][((i1 >> 24) & 0xFF) as usize] as u32) << 24)
+            | ((S_BOX[2][((i1 >> 16) & 0xFF) as usize] as u32) << 16)
+            | ((S_BOX[3][((i1 >> 8) & 0xFF) as usize] as u32) << 8)
+            | (S_BOX[0][((i1) & 0xFF) as usize] as u32);
 
-        I0 ^= (I1 << 8) | (I1 >> 24);
-        I1 ^= (I0 << 16) | (I0 >> 16);
-        I0 ^= (I1 >> 8) | (I1 << 24);
-        I1 ^= (I0 >> 8) | (I0 << 24);
+        i0 ^= (i1 << 8) | (i1 >> 24);
+        i1 ^= (i0 << 16) | (i0 >> 16);
+        i0 ^= (i1 >> 8) | (i1 << 24);
+        i1 ^= (i0 >> 8) | (i0 << 24);
 
-        z[0] ^= I1;
-        z[1] ^= I0;
+        z[0] ^= i1;
+        z[1] ^= i0;
 
         z
     }
@@ -362,73 +360,73 @@ impl CamelliaContext {
         let mut x: [u32; 4] = [0; 4];
 
         // Round keys pointer
-        let RK: &[u32; 68] = &self.rk;
+        let rk: &[u32; 68] = &self.rk;
 
         let text = u128::from_ne_bytes(_text).to_ne_bytes();
 
-        x[0] = Self::GET_UINT32_BE(&text, 0);
-        x[1] = Self::GET_UINT32_BE(&text, 4);
-        x[2] = Self::GET_UINT32_BE(&text, 8);
-        x[3] = Self::GET_UINT32_BE(&text, 12);
+        x[0] = Self::get_uint32_be(&text, 0);
+        x[1] = Self::get_uint32_be(&text, 4);
+        x[2] = Self::get_uint32_be(&text, 8);
+        x[3] = Self::get_uint32_be(&text, 12);
 
         //? Indexing Round Keys
         let mut rindex = 0;
 
-        x[0] ^= RK[rindex];
+        x[0] ^= rk[rindex];
         rindex += 1;
-        x[1] ^= RK[rindex];
+        x[1] ^= rk[rindex];
         rindex += 1;
-        x[2] ^= RK[rindex];
+        x[2] ^= rk[rindex];
         rindex += 1;
-        x[3] ^= RK[rindex];
+        x[3] ^= rk[rindex];
         rindex += 1;
 
-        let mut NR = self.nr;
-        while NR > 0 {
-            NR -= 1;
+        let mut nr = self.nr;
+        while nr > 0 {
+            nr -= 1;
             let response =
-                Self::camellia_feistel(&[x[0], x[1]], &[RK[rindex], RK[rindex + 1]], &[x[2], x[3]]);
+                Self::camellia_feistel(&[x[0], x[1]], &[rk[rindex], rk[rindex + 1]], &[x[2], x[3]]);
             x[2] = response[0];
             x[3] = response[1];
             rindex += 2;
 
             let response =
-                Self::camellia_feistel(&[x[2], x[3]], &[RK[rindex], RK[rindex + 1]], &[x[0], x[1]]);
+                Self::camellia_feistel(&[x[2], x[3]], &[rk[rindex], rk[rindex + 1]], &[x[0], x[1]]);
             x[0] = response[0];
             x[1] = response[1];
             rindex += 2;
 
             let response =
-                Self::camellia_feistel(&[x[0], x[1]], &[RK[rindex], RK[rindex + 1]], &[x[2], x[3]]);
+                Self::camellia_feistel(&[x[0], x[1]], &[rk[rindex], rk[rindex + 1]], &[x[2], x[3]]);
             x[2] = response[0];
             x[3] = response[1];
             rindex += 2;
 
             let response =
-                Self::camellia_feistel(&[x[2], x[3]], &[RK[rindex], RK[rindex + 1]], &[x[0], x[1]]);
+                Self::camellia_feistel(&[x[2], x[3]], &[rk[rindex], rk[rindex + 1]], &[x[0], x[1]]);
             x[0] = response[0];
             x[1] = response[1];
             rindex += 2;
             let response =
-                Self::camellia_feistel(&[x[0], x[1]], &[RK[rindex], RK[rindex + 1]], &[x[2], x[3]]);
+                Self::camellia_feistel(&[x[0], x[1]], &[rk[rindex], rk[rindex + 1]], &[x[2], x[3]]);
             x[2] = response[0];
             x[3] = response[1];
             rindex += 2;
 
             let response =
-                Self::camellia_feistel(&[x[2], x[3]], &[RK[rindex], RK[rindex + 1]], &[x[0], x[1]]);
+                Self::camellia_feistel(&[x[2], x[3]], &[rk[rindex], rk[rindex + 1]], &[x[0], x[1]]);
             x[0] = response[0];
             x[1] = response[1];
             rindex += 2;
 
-            if NR > 0 {
-                let fl_out = Self::fl([x[0], x[1]], &[RK[rindex], RK[rindex + 1]]);
+            if nr > 0 {
+                let fl_out = Self::fl([x[0], x[1]], &[rk[rindex], rk[rindex + 1]]);
                 x[1] = fl_out[1];
                 x[0] = fl_out[0];
 
                 rindex += 2;
 
-                let fl_out = Self::fl_inv([x[2], x[3]], &[RK[rindex], RK[rindex + 1]]);
+                let fl_out = Self::fl_inv([x[2], x[3]], &[rk[rindex], rk[rindex + 1]]);
 
                 x[2] = fl_out[0];
                 x[3] = fl_out[1];
@@ -437,14 +435,13 @@ impl CamelliaContext {
             }
         }
 
-        x[2] ^= RK[rindex];
+        x[2] ^= rk[rindex];
         rindex += 1;
-        x[3] ^= RK[rindex];
+        x[3] ^= rk[rindex];
         rindex += 1;
-        x[0] ^= RK[rindex];
+        x[0] ^= rk[rindex];
         rindex += 1;
-        x[1] ^= RK[rindex];
-        rindex += 1;
+        x[1] ^= rk[rindex];
 
         x[2] = u32::to_be(x[2]);
         x[1] = u32::to_be(x[1]);
@@ -475,7 +472,7 @@ impl CamelliaContext {
         if length % 16 != 0 {
             //Error
         }
-        let mut inputIndex: usize = 0;
+        let mut input_index: usize = 0;
         let mut output: Vec<u8> = Vec::new();
 
         if self.active_mode == DECRYPT {
@@ -483,7 +480,7 @@ impl CamelliaContext {
                 //Prepare Input
                 let mut block_input: [u8; 16] = [0; 16];
                 for i in 0..16 {
-                    block_input[i] = _text[inputIndex + i];
+                    block_input[i] = _text[input_index + i];
                 }
 
                 let block_out = self.mbedtls_camellia_crypt_ecb(block_input);
@@ -491,57 +488,110 @@ impl CamelliaContext {
                 for i in 0..16 {
                     output.push(block_out[i] ^ iv[i]);
                 }
-                println!("iv :{:?}", iv);
-
                 iv = block_input;
 
-                println!("block_out :{:?}", block_out);
-
-                inputIndex += 16;
+                input_index += 16;
                 //outputIndex += 16;
                 length -= 16;
             }
         } else {
             while length > 0 {
                 //Prepare Input
-                inputIndex = 0;
                 let mut block_input: [u8; 16] = [0; 16];
-                println!("iv");
+
                 for i in 0..16 {
-                    print!("{} ", format!("{:x}", iv[i]));
-                }
-                println!("\ninp");
-                for i in 0..16 {
-                    print!("{} ", format!("{:x}", _text[i]));
-                }
-                println!("\n in ^ vec");
-                for i in 0..16 {
-                    block_input[i] = _text[inputIndex + i] ^ iv[i];
-                    print!("{} ", format!("{:x}", block_input[i]));
+                    block_input[i] = _text[input_index + i] ^ iv[i];
                 }
 
                 let block_out = self.mbedtls_camellia_crypt_ecb(block_input);
-                println!("\n block out");
-                for i in 0..16 {
-                    print!("{} ", format!("{:x}", block_out[i]));
-                }
+
                 //Push to Output
                 for i in 0..16 {
                     output.push(block_out[i]);
-                    // println!("block_out:{} ", format!("{:x}", block_out[i]));
-                    // println!("output :{}", output[i]);
                 }
+                iv = block_out;
 
-                inputIndex += 16;
+                input_index += 16;
                 // outputIndex += 16;
                 length -= 16;
             }
         }
-        println!("\n output");
-        for i in 0..16 {
-            print!("{} ", format!("{:x}", output[i]));
+
+        output
+    }
+
+    pub fn mbedtls_camellia_crypt_cfb128(
+        &self,
+        mut iv: [u8; 16],
+        iv_off: u32,
+        mut length: u32,
+        _text: Vec<u8>,
+    ) -> Vec<u8> {
+        let mut n = iv_off;
+        if n >= 16 {
+            //Error
         }
 
+        let mut output: Vec<u8> = Vec::new();
+
+        if self.active_mode == DECRYPT {
+            let mut input_index: usize = 0;
+
+            while length > 0 {
+                if n == 0 {
+                    iv = self.mbedtls_camellia_crypt_ecb(iv);
+                }
+                let c = _text[input_index];
+                input_index += 1;
+                output.push(c ^ iv[n as usize]);
+                iv[n as usize] = c;
+
+                n = (n + 1) & 0x0F;
+
+                length -= 1;
+            }
+        } else {
+        }
+
+        output
+    }
+    pub fn mbedtls_camellia_crypt_ctr(
+        &self,
+        mut length: u32,
+        nc_off: &mut u32,
+        mut nonce_counter: [u8; 16],
+        _text: Vec<u8>,
+    ) -> Vec<u8> {
+        let mut n = *nc_off;
+
+        if n >= 16 {
+            //Error
+        }
+        let mut output: Vec<u8> = Vec::new();
+        let mut input_index: usize = 0;
+
+        let mut stream_block: [u8; 16] = Default::default();
+
+        while length > 0 {
+            if n == 0 {
+                stream_block = self.mbedtls_camellia_crypt_ecb(nonce_counter);
+
+                for i in 0..16 {
+                    nonce_counter[16 - (i + 1)] += 1;
+                    if nonce_counter[16 - (i + 1)] != 0 {
+                        break;
+                    }
+                }
+            }
+            let c = _text[input_index];
+            input_index += 1;
+            output.push(c ^ stream_block[n as usize]);
+
+            n = (n + 1) & 0x0F;
+
+            length -= 1;
+        }
+        *nc_off = n;
         output
     }
     //Component of Camellia
@@ -593,13 +643,6 @@ impl CamelliaContext {
         fl_out[1] ^= ((fl_out[0] & keys[0]) << 1) | ((fl_out[0] & keys[0]) >> 31);
 
         fl_out
-    }
-
-    pub fn encrypt(&self, text: [u8; 16]) -> i32 {
-        0
-    }
-    pub fn decrypt(&self, cipher_text: [u8; 16]) -> i32 {
-        0
     }
 }
 
@@ -677,43 +720,43 @@ pub const S_BOX: [[u8; 256]; 4] = [
     ],
 ];
 
-pub const shifts: [[[usize; 4]; 4]; 2] = [
+pub const SHIFTS: [[[usize; 4]; 4]; 2] = [
     [[1, 1, 1, 1], [0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0]],
     [[1, 0, 1, 1], [1, 1, 0, 1], [1, 1, 1, 0], [1, 1, 0, 1]],
 ];
 
-pub const indexes: [[[i32; 20]; 4]; 2] = [
+pub const INDEXES: [[[i32; 20]; 4]; 2] = [
     [
         [
             0, 1, 2, 3, 8, 9, 10, 11, 38, 39, 36, 37, 23, 20, 21, 22, 27, -1, -1, 26,
-        ], /* KL -> RK */
+        ], /* KL -> rk */
         [
             -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        ], /* KR -> RK */
+        ], /* KR -> rk */
         [
             4, 5, 6, 7, 12, 13, 14, 15, 16, 17, 18, 19, -1, 24, 25, -1, 31, 28, 29, 30,
-        ], /* KA -> RK */
+        ], /* KA -> rk */
         [
             -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        ], /* KB -> RK */
+        ], /* KB -> rk */
     ],
     [
         [
             0, 1, 2, 3, 61, 62, 63, 60, -1, -1, -1, -1, 27, 24, 25, 26, 35, 32, 33, 34,
-        ], /* KL -> RK */
+        ], /* KL -> rk */
         [
             -1, -1, -1, -1, 8, 9, 10, 11, 16, 17, 18, 19, -1, -1, -1, -1, 39, 36, 37, 38,
-        ], /* KR -> RK */
+        ], /* KR -> rk */
         [
             -1, -1, -1, -1, 12, 13, 14, 15, 58, 59, 56, 57, 31, 28, 29, 30, -1, -1, -1, -1,
-        ], /* KA -> RK */
+        ], /* KA -> rk */
         [
             4, 5, 6, 7, 65, 66, 67, 64, 20, 21, 22, 23, -1, -1, -1, -1, 43, 40, 41, 42,
-        ], /* KB -> RK */
+        ], /* KB -> rk */
     ],
 ];
 
-pub const transposes: [[i32; 20]; 2] = [
+pub const TRANSPOSES: [[i32; 20]; 2] = [
     [
         21, 22, 23, 20, -1, -1, -1, -1, 18, 19, 16, 17, 11, 8, 9, 10, 15, 12, 13, 14,
     ],
@@ -723,5 +766,5 @@ pub const transposes: [[i32; 20]; 2] = [
 ];
 
 pub fn test() {
-    //println!("====|| Camellia Cipher Algorithm ||====");
+    println!("====|| Camellia Cipher Algorithm ||====");
 }
