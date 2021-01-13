@@ -5,12 +5,15 @@
 use chrono::{Datelike, Timelike, Utc};
 use std::mem::size_of;
 
+//#[path = "../x509.rs"]  mod x509;
 
 #[path = "../x509/x509_header.rs"]  mod x509_header;
 
 #[path = "../x509/pk_header.rs"] mod pk_header;
 
 #[path = "../x509/md_header.rs"] mod md_header;
+
+#[path = "../x509/asn1parse.rs"] mod asn1parse;
 
 fn nop() {}
 
@@ -22,10 +25,21 @@ pub struct p
 }
 
 impl p{
-    fn copy(&self) -> p {
+    pub fn copy(&self) -> p {
         let x = p{ptr: self.ptr[..].iter().cloned().collect(), iptr: self.iptr};
         return x
     }
+}
+
+pub struct mbedtls_md_info_t
+{
+    pub name: String,    //Name of the message digest
+
+    pub type_t : md_header::mbedtls_md_type_t,    //Digest identifier
+
+    pub size: u8,       //Output length of the digest function in bytes
+
+    pub block_size: u8, //Block length of the digest function in bytes
 }
 
 impl md_header::mbedtls_md_type_t {
@@ -44,7 +58,6 @@ impl md_header::mbedtls_md_type_t {
         };
     }
 }
-//========================================================================================================================================
 
 pub struct mbedtls_x509_buf
 {
@@ -54,7 +67,7 @@ pub struct mbedtls_x509_buf
 }
 
 impl mbedtls_x509_buf{
-    fn copy(&self) -> mbedtls_x509_buf {
+    pub fn copy(&self) -> mbedtls_x509_buf {
         let x = mbedtls_x509_buf{len: self.len, tag: self.tag, p: self.p.copy()};
         return x
     }
@@ -97,16 +110,6 @@ pub struct mbedtls_pk_rsassa_pss_options
     pub expected_salt_len: i32,
 }
 
-pub struct mbedtls_md_info_t
-{
-    pub name: p,    //Name of the message digest
-
-    pub type_t : md_header::mbedtls_md_type_t,    //Digest identifier
-
-    pub size: u8,       //Output length of the digest function in bytes
-
-    pub block_size: u8, //Block length of the digest function in bytes
-}
 
 pub struct tm
 {
@@ -136,44 +139,134 @@ pub struct mbedtls_x509_time
 }
 
 //========================================================================================================================================
-pub fn print(){
-    println!("In x509/x509.rs"); }
+//========================================================================================================================================
+
+pub fn prnt(){
+    println!("In x509/x509.rs");
+}
+
 
 //external fucntions
-pub fn mbedtls_asn1_get_len(x: &mut p, end: &mut usize, y: &mut usize ) -> i32 {
-    return 0 }
+pub fn mbedtls_asn1_get_len(p: &mut p, end: &mut usize, y: &mut usize ) -> i32 {
+    return asn1parse::mbedtls_asn1_get_len(p, end, y) }
 
-pub fn mbedtls_asn1_get_alg_null( x: &mut p, end: &mut  usize, y: &mut mbedtls_x509_buf ) -> i32 {
-    return 0 }
 
-pub fn mbedtls_asn1_get_alg( x: &mut p, end: &mut usize, y: &mut mbedtls_x509_buf, z: &mut mbedtls_x509_buf ) -> i32 {
-    return 0 }
+pub fn mbedtls_asn1_get_tag( p: &mut p, end: &mut usize, y: &mut usize, z: u8) -> i32 {
+    return asn1parse::mbedtls_asn1_get_tag( p, end, y, z) }
 
-pub fn mbedtls_asn1_get_tag( x: &mut p, end: &mut usize, y: &mut usize, z: u8) -> i32 {
-    return 0 }
+
+pub fn mbedtls_asn1_get_int( p: &mut p, end: &mut usize, y: &mut i32 ) -> i32 {
+    return mbedtls_asn1_get_int( p, end, y ) }
+
+
+pub fn  mbedtls_asn1_get_bitstring_null(p: &mut p, end: &mut usize, z: &mut usize ) -> i32 {
+    return mbedtls_asn1_get_bitstring_null( p, end, z ) }
+
+pub fn mbedtls_asn1_get_alg( p: &mut p, end: &mut usize, y: &mut mbedtls_x509_buf, z: &mut mbedtls_x509_buf ) -> i32 {
+    return mbedtls_asn1_get_alg( p, end, y, z ) }
+
+
+pub fn mbedtls_asn1_get_alg_null( p: &mut p, end: &mut  usize, y: &mut mbedtls_x509_buf ) -> i32 {
+    return asn1parse::mbedtls_asn1_get_alg_null( p, end, y ) }
+
+
+
+
+
+
+
 
 pub fn mbedtls_oid_get_md_alg( x: &mut mbedtls_x509_buf, y: &mut md_header::mbedtls_md_type_t ) -> i32 {
     return 0 }
-
-pub fn mbedtls_asn1_get_int( x: &mut p, end: &mut usize, y: &mut i32 ) -> i32 {
-    return 0 }
-
-pub fn  mbedtls_asn1_get_bitstring_null(x: &mut p, end: &mut usize, z: &mut usize ) -> i32 {
-    return 0 }
     
+
 pub fn  mbedtls_oid_get_sig_alg(sig_oid: &mut mbedtls_x509_buf, md_alg: &mut md_header::mbedtls_md_type_t, pk_alg: &mut pk_header::mbedtls_pk_type_t ) -> i32 {
     return 0 }
 
 pub fn  mbedtls_oid_get_sig_alg_desc(sig_oid: &mut mbedtls_x509_buf, desc: &mut p) -> i32 {
     return 0 }
 
-pub fn  mbedtls_md_info_from_type(md_alg: &mut md_header::mbedtls_md_type_t) -> mbedtls_md_info_t {
-    let a = mbedtls_md_info_t{name: p{ptr: Vec::new(), iptr: 0}, type_t: md_header::mbedtls_md_type_t::MBEDTLS_MD_MD2, size: 0, block_size: 0};
-    a }
-
 pub fn mbedtls_oid_get_attr_short_name( x: &mut mbedtls_x509_buf, y: &mut p ) -> i32 {
     return 0 }    
 
+/*
+pub fn  mbedtls_md_info_from_type(md_alg: &mut md_header::mbedtls_md_type_t) -> mbedtls_md_info_t {
+    md_header:: }*/
+
+pub fn mbedtls_md_info_from_type( md_type : md_header::mbedtls_md_type_t ) -> mbedtls_md_info_t {
+    match md_type {
+        MBEDTLS_MD_NONE => return mbedtls_md_info_t{
+            name        : String::from("NONE"),
+            type_t      : md_header::mbedtls_md_type_t::MBEDTLS_MD_NONE,
+            size        : 0,
+            block_size  : 0,
+        },
+
+        MBEDTLS_MD_MD2 => return mbedtls_md_info_t{
+            name        : String::from("MD2"),
+            type_t      : md_header::mbedtls_md_type_t::MBEDTLS_MD_MD2,
+            size        : 16,
+            block_size  : 16,
+        },
+
+        MBEDTLS_MD_MD4 => return mbedtls_md_info_t{
+            name        : String::from("MD4"),
+            type_t      : md_header::mbedtls_md_type_t::MBEDTLS_MD_MD4,
+            size        : 16,
+            block_size  : 64,
+        },
+
+        MBEDTLS_MD_MD5 => return mbedtls_md_info_t{
+            name        : String::from("MD5"),
+            type_t      : md_header::mbedtls_md_type_t::MBEDTLS_MD_MD5,
+            size        : 16,
+            block_size  : 64,
+        },
+
+        MBEDTLS_MD_SHA1 => return mbedtls_md_info_t{
+            name        : String::from("SHA1"),
+            type_t      : md_header::mbedtls_md_type_t::MBEDTLS_MD_SHA1,
+            size        : 20,
+            block_size  : 64,
+        },
+
+        MBEDTLS_MD_SHA224 => return mbedtls_md_info_t{
+            name        : String::from("SHA224"),
+            type_t      : md_header::mbedtls_md_type_t::MBEDTLS_MD_SHA224,
+            size        : 28,
+            block_size  : 64,
+        },
+
+        MBEDTLS_MD_SHA256 => return mbedtls_md_info_t{
+            name        : String::from("SHA256"),
+            type_t      : md_header::mbedtls_md_type_t::MBEDTLS_MD_SHA256,
+            size        : 32,
+            block_size  : 64,
+        },
+
+        MBEDTLS_MD_SHA384 => return mbedtls_md_info_t{
+            name        : String::from("SHA384"),
+            type_t      : md_header::mbedtls_md_type_t::MBEDTLS_MD_SHA384,
+            size        : 48,
+            block_size  : 128,
+        },
+
+        MBEDTLS_MD_SHA512 => return mbedtls_md_info_t{
+            name        : String::from("SHA512"),
+            type_t      : md_header::mbedtls_md_type_t::MBEDTLS_MD_SHA512,
+            size        : 64,
+            block_size  : 128,
+        },
+
+        MBEDTLS_MD_RIPEMD160 => return mbedtls_md_info_t{
+            name        : String::from("RIPEMD160"),
+            type_t      : md_header::mbedtls_md_type_t::MBEDTLS_MD_RIPEMD160,
+            size        : 20,
+            block_size  : 64,
+        },
+
+    };      
+}
 
 //1========================================================================================================================================
 
@@ -910,9 +1003,9 @@ pub fn mbedtls_x509_sig_alg_gets(buf: &mut p, mut size: usize, sig_oid: &mut mbe
             let mut md_info : mbedtls_md_info_t;
             let mut mgf_md_info : mbedtls_md_info_t;
 
-            md_info = mbedtls_md_info_from_type( md_alg );
+            md_info = mbedtls_md_info_from_type( md_alg.copy() );
 
-            mgf_md_info = mbedtls_md_info_from_type( &mut pss_opts.mgf1_hash_id );
+            mgf_md_info = mbedtls_md_info_from_type( pss_opts.mgf1_hash_id );
 
 //        ret = mbedtls_snprintf( p, n, " (%s, MGF1-%s, 0x%02X)",
 //                              md_info ? mbedtls_md_get_name( md_info ) : "???",

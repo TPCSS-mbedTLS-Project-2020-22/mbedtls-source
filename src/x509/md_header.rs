@@ -1,4 +1,7 @@
 
+pub fn print(){
+    println!("In x509/md_header.rs");
+}
 
 pub enum mbedtls_md_type_t {
     MBEDTLS_MD_NONE=0,    /**< None. */
@@ -11,8 +14,4 @@ pub enum mbedtls_md_type_t {
     MBEDTLS_MD_SHA384,    /**< The SHA-384 message digest. */
     MBEDTLS_MD_SHA512,    /**< The SHA-512 message digest. */
     MBEDTLS_MD_RIPEMD160, // The RIPEMD-160 message digest.
-}
-
-pub fn print(){
-    println!("In x509/md_header.rs");
 }
