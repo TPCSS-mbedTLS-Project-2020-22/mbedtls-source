@@ -18,7 +18,7 @@ use std::str::FromStr;
 // SS: These will have to be moved to a single common global errors file
 // const MBEDTLS_ERR_ERROR_GENERIC_ERROR: i16 = -0x0001; // Denotes a generic error
 const MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED: i16 = -0x006E; // Denotes a bug in library
-const MBEDTLS_NET_OPER_SUCCESS: i16 = 0; // Denotes a successful operation
+pub const MBEDTLS_NET_OPER_SUCCESS: i16 = 0; // Denotes a successful operation
 
 // Listing macros/constants
 
@@ -58,7 +58,7 @@ pub enum TLProtocol {
 pub struct MbedtlsNetContext {
     pub protocol: Option<TLProtocol>, 
     tcp_listener: Option<TcpListener>,
-    tcp_stream: Option<TcpStream>,
+    pub tcp_stream: Option<TcpStream>,
     tcp_stream_remote_addr: Option<SocketAddr>,
     udp_socket: Option<UdpSocket>,
     udp_socket_remote_addr: Option<SocketAddr>,
@@ -255,7 +255,7 @@ pub fn mbedtls_net_send(ctx: &MbedtlsNetContext, msg: &[u8]) -> i16 {
 
             let _bytes_sent = match tcp_stream.write_all(msg) {
                 Ok(_bytes) => _bytes,
-                Err(e) => panic!(e),
+                Err(e) => {}, //panic!(e),
             };
 
             tcp_stream.flush();
@@ -295,18 +295,22 @@ pub fn mbedtls_net_recv(
             let mut reader = io::BufReader::new(&mut tcp_stream);
             let received_bytes_buffer: &[u8] = reader.fill_buf().unwrap();
 
-            // Read at most 'read_bytes_len' bytes from the buffer
-            let mut bytes_to_consume = max_read_bytes_len;
-            if received_bytes_buffer.len() < max_read_bytes_len as usize {
-                bytes_to_consume = received_bytes_buffer.len() as u32;
-            }
-            for i in 0..bytes_to_consume {
-                recv_buf[i as usize] = received_bytes_buffer[i as usize];
-            }
+            if(received_bytes_buffer.len() > 0){
 
-            // Mark the bytes read as consumed so the buffer will not return them in a subsequent read
-            reader.consume(bytes_to_consume as usize);
-            ret_value = MBEDTLS_NET_OPER_SUCCESS;
+                // Read at most 'read_bytes_len' bytes from the buffer
+                let mut bytes_to_consume = max_read_bytes_len;
+                if received_bytes_buffer.len() < max_read_bytes_len as usize {
+                    bytes_to_consume = received_bytes_buffer.len() as u32;
+                }
+                for i in 0..bytes_to_consume {
+                    recv_buf[i as usize] = received_bytes_buffer[i as usize];
+                }
+
+                // Mark the bytes read as consumed so the buffer will not return them in a subsequent read
+                reader.consume(bytes_to_consume as usize);
+                
+                ret_value = MBEDTLS_NET_OPER_SUCCESS;
+            }
         }
         TLProtocol::UDP => {
             let udp_socket = ctx.udp_socket.as_ref().unwrap();
