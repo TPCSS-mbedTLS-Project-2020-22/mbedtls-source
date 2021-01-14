@@ -1,1 +1,4 @@
 /target
+/client/target
+/server/target
+/mbed/target

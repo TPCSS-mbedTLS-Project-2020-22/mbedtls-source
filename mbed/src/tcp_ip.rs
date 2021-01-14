@@ -104,11 +104,14 @@ pub fn mbedtls_net_connect(
         TLProtocol::TCP => {
             ctx.tcp_stream = match TcpStream::connect(sock_addr) {
                 Ok(tcp_stream) => {
-                    println!("Connected to server at {}", sock_addr);
+                    println!("Connected to server.\n");
                     ret_value = MBEDTLS_NET_OPER_SUCCESS;
                     Some(tcp_stream)
                 }
-                Err(e) => panic!(e),
+                Err(e) =>{
+                    println!("Could not connect to server. \n");
+                    panic!("{:}",e)
+                },
             };
         },
         TLProtocol::UDP => {
@@ -125,7 +128,7 @@ pub fn mbedtls_net_connect(
                 };
 
                 if found == true {
-                    println!("UDP Client bound to 127.0.0.1:{}", p);                    
+                    println!("UDP Client bound to 127.0.0.1:{}.\n", p);                    
                     break;
                 }
             }
@@ -134,7 +137,7 @@ pub fn mbedtls_net_connect(
             let udp_socket = ctx.udp_socket.as_ref().unwrap();
             match udp_socket.connect(sock_addr) {
                 Ok(()) => {
-                    println!("Connected to server at {}", sock_addr);
+                    println!("Connected to server.\n");
                     ctx.udp_socket_remote_addr = Some(sock_addr);
                     ret_value = MBEDTLS_NET_OPER_SUCCESS
                 },
@@ -167,7 +170,7 @@ pub fn mbedtls_net_bind(
         TLProtocol::TCP => {
             ctx.tcp_listener = match TcpListener::bind(sock_addr) {
                 Ok(tcp_listener) => {
-                    println!("TCP Server listening at {}", sock_addr);
+                    println!("TCP Server listening at {}.\n", sock_addr);
                     ret_value = MBEDTLS_NET_OPER_SUCCESS;
                     Some(tcp_listener)
                 }
@@ -177,7 +180,7 @@ pub fn mbedtls_net_bind(
         TLProtocol::UDP => {
             ctx.udp_socket = match UdpSocket::bind(sock_addr) {
                 Ok(udp_socket) => {
-                    println!("UDP Server listening at {}", sock_addr);
+                    println!("UDP Server listening at {}.\n", sock_addr);
                     ret_value = MBEDTLS_NET_OPER_SUCCESS;
                     Some(udp_socket)
                 }
@@ -198,16 +201,16 @@ pub fn mbedtls_net_accept(
 
     match listener_ctx.protocol.as_ref().unwrap() {
         TLProtocol::TCP => {
-            println!("Waiting for a remote TCP client to connect ");
+            println!("Waiting for remote client to connect...");
 
             match &listener_ctx.tcp_listener {                       //Why & ?
                 Some(tcp_listener) => {
                     match tcp_listener.accept() {
                         Ok((stream, addr)) => {
-                            println!("Remote host connected {}", addr);
+                            println!("Remote host connected: {}\n", addr);
 
                             client_ctx.tcp_stream = Some(stream);
-                            client_ctx.tcp_stream_remote_addr = Some(addr);
+                            client_ctx.tcp_stream_remote_addr = Some(addr); //Incorrect?
 
                             ret_value = MBEDTLS_NET_OPER_SUCCESS;
                         }
@@ -226,7 +229,7 @@ pub fn mbedtls_net_accept(
 
                     match udp_socket.peek_from(&mut buf) {
                         Ok((_bytes, addr)) => {
-                            println!("Remote host connected {}", addr);
+                            println!("Remote host: {}", addr);
 
                             //Clone listen socket
                             let listen_socket = listener_ctx.udp_socket.as_ref().unwrap();

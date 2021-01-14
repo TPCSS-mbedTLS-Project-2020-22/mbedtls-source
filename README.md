@@ -37,4 +37,3 @@ The main.rs file contains an implementation of a test server and a test client t
 * mbedtls_net_recv - Read/Receive a message from the stream (TCP) or call recv on UDP socket
 * mbedtls_net_free - Gracefully give up read/write in the context (TCP) or do nothing (UDP)
 * mbedtls_net_close - Simply calls mbedtls_net_free within itself
-
