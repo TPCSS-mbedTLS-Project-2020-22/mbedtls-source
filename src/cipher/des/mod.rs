@@ -26,6 +26,12 @@ impl mbedtls_des_context {
 pub struct mbedtls_des3_context {
    pub sk: [u32; 96],
 }
+impl mbedtls_des3_context {
+  pub fn init() -> mbedtls_des3_context {
+      let sk = [0; 96];      
+      mbedtls_des3_context {sk}
+  }
+}
 pub const  SB1: [u32; 64] =
 [ 0x01010400, 0x00000000, 0x00010000, 0x01010404,
 0x01010004, 0x00010404, 0x00000004, 0x00010000,
@@ -552,10 +558,293 @@ else
    return 0;
 
 }
-fn main (){
-   
-   
+
+pub fn des3_set2key(esk:&mut [u32;96],dsk:&mut [u32;96], mut key: [u8;MBEDTLS_DES_KEY_SIZE*2])
+{
+  let mut i:usize=0;
+  let mut j:usize=0;
+  //Creating arrays 
+  let mut esk32:[u32;32];
+  let mut esk32 = [0; 32];
+  let mut dsk32:[u32;32];
+  let mut dsk32 = [0; 32];
+  let mut key8:[u8;8];
+  let mut key8 = [0; 8];
+  let mut key16:[u8;8];
+  let mut key16 = [0; 8];
+  for i in 0..32{
+    esk32[i]=esk[i] as u32;
+                }
+for i in 0..8{
+  key8[i]=key[i] as u8;
 }
+let mut j:usize=0;
+for i in 32..64{
+  dsk32[j]=dsk[i] as u32;
+  j+=1;
+}
+let mut j:usize=0;
+for i in 8..16{
+  key16[j]=key[i] as u8;
+  j+=1;
+}
+  mbedtls_des_setkey( &mut esk32, key8 );
+  mbedtls_des_setkey( &mut dsk32, key16 );
+  while j < 32
+  {
+    dsk[j] = esk[30 - j];
+    dsk[j +  1] = esk[31 - j];
+
+    esk[j + 32] = dsk[62 - j];
+    esk[j + 33] = dsk[63 - j];
+
+    esk[j + 64] = esk[j];
+    esk[j + 65] = esk[j + 1];
+
+    dsk[j + 64] = dsk[j];
+    dsk[j + 65] = dsk[j + 1];
+    j+=2;
+  }
+}
+
+/*
+ * Triple-DES key schedule (112-bit, encryption)
+ */
+pub fn mbedtls_des3_set2key_enc(ctx:&mut mbedtls_des3_context ,key:[u8;MBEDTLS_DES_KEY_SIZE *2 ])->i32
+ {   let mut sk96:[u32;96];
+     let mut sk96 = [0; 96];
+     des3_set2key( &mut (*ctx).sk,&mut sk96, key );
+   println!(
+      "Set keys done for Encryption-3DES"
+  );
+   return 0;
+ }
+
+/*
+* Triple-DES key schedule (112-bit, decryption)
+*/
+pub fn mbedtls_des3_set2key_dec(ctx:&mut mbedtls_des3_context ,key:[u8;MBEDTLS_DES_KEY_SIZE *2 ])->i32
+ {   let mut sk96:[u32;96];
+     let mut sk96 = [0; 96];
+     des3_set2key( &mut (*ctx).sk,&mut sk96, key );
+   println!(
+      "Set keys done for Decryption-3DES"
+  );
+   return 0;
+ }
+ pub fn des3_set3key(esk:&mut [u32;96],dsk:&mut [u32;96], mut key: [u8;MBEDTLS_DES_KEY_SIZE*3])
+ {
+   let mut i:usize=0;
+   let mut j:usize=0;
+   //Creating arrays 
+   let mut esk32:[u32;32];
+   let mut esk32 = [0; 32];
+   let mut key8:[u8;8];
+   let mut key8 = [0; 8];
+
+   let mut dsk32:[u32;32];
+   let mut dsk32 = [0; 32];   
+   let mut key16:[u8;8];
+   let mut key16 = [0; 8];
+
+   let mut esk64:[u32;32];
+   let mut esk64 = [0; 32];
+   let mut key64:[u8;8];
+   let mut key64 = [0; 8];
+
+   for i in 0..32{
+     esk32[i]=esk[i] as u32;
+                 }
+   for i in 0..8{
+   key8[i]=key[i] as u8;
+                }
+    
+  let mut j:usize=0;
+    for i in 32..64{
+   dsk32[j]=dsk[i] as u32;
+   j+=1;
+                   }
+                  
+   let mut j:usize=0;
+    for i in 8..16{
+   key16[i]=key[i] as u8;
+                }
+    for i in 64..96{
+  esk64[j]=esk[i] as u32;
+  j+=1;
+                  }
+  let mut j:usize=0;
+    for i in 16..24{
+  key64[j]=key[i] as u8;
+  j+=1;
+                  }
+   mbedtls_des_setkey( &mut esk32, key8 );
+   mbedtls_des_setkey( &mut dsk32, key16 );
+   mbedtls_des_setkey( &mut esk64, key64 );
+   let mut j:usize=0;
+   while j < 32
+   {
+         dsk[j] = esk[94 - j];
+        dsk[j +  1] = esk[95 - j];
+
+        esk[j + 32] = dsk[62 - j];
+        esk[j + 33] = dsk[63 - j];
+
+        dsk[j + 64] = esk[30 - j];
+        dsk[j + 65] = esk[31 - j];
+     j+=2;
+   }
+ }
+
+/*
+ * Triple-DES key schedule (168-bit, encryption)
+ */
+pub fn mbedtls_des3_set3key_enc(ctx:&mut mbedtls_des3_context ,key:[u8;MBEDTLS_DES_KEY_SIZE *3 ])->i32
+ {   let mut sk96:[u32;96];
+     let mut sk96 = [0; 96];
+     des3_set3key( &mut (*ctx).sk,&mut sk96, key );
+   println!(
+      "Set keys done for Encryption-3DES-168 Bit"
+  );
+   return 0;
+ }
+
+/*
+* Triple-DES key schedule (168-bit, decryption)
+*/
+pub fn mbedtls_des3_set3key_dec(ctx:&mut mbedtls_des3_context ,key:[u8;MBEDTLS_DES_KEY_SIZE *3 ])->i32
+ {   let mut sk96:[u32;96];
+     let mut sk96 = [0; 96];
+     des3_set3key( &mut (*ctx).sk,&mut sk96, key );
+   println!(
+      "Set keys done for Decryption-3DES-168 Bit"
+  );
+   return 0;
+ }
+
+ /*
+ * 3DES-ECB block encryption/decryption
+ */
+ pub fn mbedtls_des3_crypt_ecb(mut ctx : &mut mbedtls_des3_context, mut input: [u8;8], mut output : &mut [u8;8] )->i32{
+  let mut i:usize=0;
+  let mut count:usize=0;
+  let mut X:u32=0;
+  let mut Y:u32=0;
+  let mut T:u32=0;    
+  let SK:*mut u32=&mut (*ctx).sk[0];
+  
+  get_uint32_be(&mut X, &mut input,0);
+  get_uint32_be(&mut Y,&mut input,4);
+  DES_IP(&mut X, &mut Y);
+  while i<8
+  {  //DES_ROUND(Y,X);
+     T = (*ctx).sk[count] ^ ( Y);  
+     count+=1;                          
+     (X) ^= SB8[ ((T) & 0x3F)as usize ] ^            
+            SB6[ ((T >>  8) & 0x3F)as usize ] ^            
+            SB4[( (T >> 16) & 0x3F) as usize ] ^            
+            SB2[ ((T >> 24) & 0x3F)as usize ];             
+                                                 
+     T = (*ctx).sk[count] ^ (((Y) << 28) | ((Y) >> 4));  
+     count+=1;   
+     (X) ^= SB7[ ((T) & 0x3F ) as usize] ^            
+            SB5[ ((T >>  8) & 0x3F) as usize ] ^            
+            SB3[ ((T >> 16) & 0x3F) as usize ] ^            
+            SB1[ ((T >> 24) & 0x3F) as usize ];
+
+
+     //DES_ROUND(X,Y);
+     T = (*ctx).sk[count] ^ ( X);  
+     count+=1;                          
+     (Y) ^= SB8[ ((T) & 0x3F)as usize ] ^            
+            SB6[ ((T >>  8) & 0x3F)as usize ] ^            
+            SB4[( (T >> 16) & 0x3F) as usize ] ^            
+            SB2[ ((T >> 24) & 0x3F)as usize ];             
+                                                 
+     T = (*ctx).sk[count] ^ (((X) << 28) | ((X) >> 4));  
+     count+=1;   
+     (Y) ^= SB7[ ((T) & 0x3F ) as usize] ^            
+            SB5[ ((T >>  8) & 0x3F) as usize ] ^            
+            SB3[ ((T >> 16) & 0x3F) as usize ] ^            
+            SB1[ ((T >> 24) & 0x3F) as usize ];
+     i+=1;
+  } 
+  while i<8
+  {   //DES_ROUND(X,Y);
+    T = (*ctx).sk[count] ^ ( X);  
+    count+=1;                          
+    (Y) ^= SB8[ ((T) & 0x3F)as usize ] ^            
+           SB6[ ((T >>  8) & 0x3F)as usize ] ^            
+           SB4[( (T >> 16) & 0x3F) as usize ] ^            
+           SB2[ ((T >> 24) & 0x3F)as usize ];             
+                                                
+    T = (*ctx).sk[count] ^ (((X) << 28) | ((X) >> 4));  
+    count+=1;   
+    (Y) ^= SB7[ ((T) & 0x3F ) as usize] ^            
+           SB5[ ((T >>  8) & 0x3F) as usize ] ^            
+           SB3[ ((T >> 16) & 0x3F) as usize ] ^            
+           SB1[ ((T >> 24) & 0x3F) as usize ];
+    i+=1;
+    //DES_ROUND(Y,X);
+     T = (*ctx).sk[count] ^ ( Y);  
+     count+=1;                          
+     (X) ^= SB8[ ((T) & 0x3F)as usize ] ^            
+            SB6[ ((T >>  8) & 0x3F)as usize ] ^            
+            SB4[( (T >> 16) & 0x3F) as usize ] ^            
+            SB2[ ((T >> 24) & 0x3F)as usize ];             
+                                                 
+     T = (*ctx).sk[count] ^ (((Y) << 28) | ((Y) >> 4));  
+     count+=1;   
+     (X) ^= SB7[ ((T) & 0x3F ) as usize] ^            
+            SB5[ ((T >>  8) & 0x3F) as usize ] ^            
+            SB3[ ((T >> 16) & 0x3F) as usize ] ^            
+            SB1[ ((T >> 24) & 0x3F) as usize ];
+
+
+    
+  }
+  while i<8
+  {  //DES_ROUND(Y,X);
+     T = (*ctx).sk[count] ^ ( Y);  
+     count+=1;                          
+     (X) ^= SB8[ ((T) & 0x3F)as usize ] ^            
+            SB6[ ((T >>  8) & 0x3F)as usize ] ^            
+            SB4[( (T >> 16) & 0x3F) as usize ] ^            
+            SB2[ ((T >> 24) & 0x3F)as usize ];             
+                                                 
+     T = (*ctx).sk[count] ^ (((Y) << 28) | ((Y) >> 4));  
+     count+=1;   
+     (X) ^= SB7[ ((T) & 0x3F ) as usize] ^            
+            SB5[ ((T >>  8) & 0x3F) as usize ] ^            
+            SB3[ ((T >> 16) & 0x3F) as usize ] ^            
+            SB1[ ((T >> 24) & 0x3F) as usize ];
+
+
+     //DES_ROUND(X,Y);
+     T = (*ctx).sk[count] ^ ( X);  
+     count+=1;                          
+     (Y) ^= SB8[ ((T) & 0x3F)as usize ] ^            
+            SB6[ ((T >>  8) & 0x3F)as usize ] ^            
+            SB4[( (T >> 16) & 0x3F) as usize ] ^            
+            SB2[ ((T >> 24) & 0x3F)as usize ];             
+                                                 
+     T = (*ctx).sk[count] ^ (((X) << 28) | ((X) >> 4));  
+     count+=1;   
+     (Y) ^= SB7[ ((T) & 0x3F ) as usize] ^            
+            SB5[ ((T >>  8) & 0x3F) as usize ] ^            
+            SB3[ ((T >> 16) & 0x3F) as usize ] ^            
+            SB1[ ((T >> 24) & 0x3F) as usize ];
+     i+=1;
+  }
+
+
+  DES_FP(&mut Y, &mut X );
+  put_uint32_be( Y,&mut output,0);
+  put_uint32_be( X,&mut output,4);
+
+  return 0;
+}
+
    
     
     
