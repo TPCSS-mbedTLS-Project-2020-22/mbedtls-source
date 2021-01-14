@@ -608,20 +608,44 @@ fn mbedtls_aes_xts_setkey_dec(
  *                 It must be writeable and at least \c 16 Bytes long.
  * \return         \c 0 on success.
  */
-fn mbedtls_aes_crypt_ecb(
-    ctx: &mut mbedtls_aes_context,
+pub fn mbedtls_aes_crypt_ecb(
+    ctx: &mbedtls_aes_context,
     mode: isize,
-    input: &[u8; 16],
-    mut output: &mut [u8; 16],
+    input: &[u8],
+    mut output: &mut [u8],
 ) -> isize {
-    if mode == MBEDTLS_AES_ENCRYPT
+    let mut temp_input: [u8; 16] = [0; 16];
+    let mut temp_output: [u8; 16] = [0; 16];
+    let length = input.len();
+
+    if length % 16 != 0
     {
-        mbedtls_internal_aes_encrypt(&ctx, &input, &mut output);
+        return MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH;
     }
-    else
+
+    for i in (0..length).step_by(16)
     {
-        mbedtls_internal_aes_decrypt(&ctx, &input, &mut output);
+        for j in 0..16
+        {
+            temp_input[j] = input[i + j];
+        }
+
+        if mode == MBEDTLS_AES_ENCRYPT
+        {
+            mbedtls_internal_aes_encrypt(&ctx, &temp_input, &mut temp_output);
+        }
+        else
+        {
+            mbedtls_internal_aes_decrypt(&ctx, &temp_input, &mut temp_output);
+        }
+
+        for j in 0..16
+        {
+            output[i + j] = temp_output[j];
+        }
     }
+
+    
     0
 }
 
@@ -814,17 +838,23 @@ pub fn mbedtls_internal_aes_decrypt(
  * \return         #MBEDTLS_ERR_AES_INVALID_INPUT_LENGTH
  *                 on failure.
  */
-fn mbedtls_aes_crypt_cbc(
+pub fn mbedtls_aes_crypt_cbc(
     ctx: &mbedtls_aes_context,
     mode: isize,
     mut length: usize,
-    mut iv: &mut [u8; 16],
+    iv: &[u8; 16],
     input: &[u8],
     mut output: &mut [u8],
 ) -> isize {
     let mut temp_input: [u8; 16] = [0; 16];
-    let mut temp: [u8; 16] = [0; 16];
+    // let mut temp: [u8; 16] = [0; 16];
     let mut temp_output: [u8; 16] = [0; 16];
+    let mut temp_iv: [u8; 16] = [0; 16];
+
+    for i in 0..16
+    {
+        temp_iv[i] = iv[i];
+    }
 
     if length % 16 != 0
     {
@@ -837,16 +867,16 @@ fn mbedtls_aes_crypt_cbc(
         {
             for j in 0..16
             {
-                temp_input[j] = input[i + j];
-                temp[j] = input[i + j];
+                temp_input[j] = input[i + j] ^ temp_iv[j];
+                // temp[j] = input[i + j];
             }
             mbedtls_internal_aes_encrypt(&ctx, &temp_input, &mut temp_output);
 
             for j in 0..16
             {
                 output[i + j] = temp_output[j];
-                output[i + j] ^= iv[j];
-                iv[j] = temp_input[j];
+                // output[i + j] ^= iv[j];
+                temp_iv[j] = temp_output[j];
             }
         }
     }
@@ -858,15 +888,107 @@ fn mbedtls_aes_crypt_cbc(
             for j in 0..16
             {
                 // output[i + j] = input[i + j] ^ iv[j];
-                temp_input[j] = input[i + j] ^ iv[j];
+                temp_input[j] = input[i + j];
             }
 
             mbedtls_internal_aes_decrypt(&ctx, &temp_input, &mut temp_output);
             for j in 0..16
             {
-                output[i + j] = temp_output[j];
-                iv[j] = temp_output[j];
+                output[i + j] = temp_output[j] ^ temp_iv[j];
+                temp_iv[j] = temp_input[j];
             }
+        }
+    }
+    0
+}
+
+
+
+/* *
+ * \brief       This function performs an AES-OFB (Output Feedback Mode)
+ *              encryption or decryption operation.
+ *
+ *              For OFB, you must set up the context with
+ *              mbedtls_aes_setkey_enc(), regardless of whether you are
+ *              performing an encryption or decryption operation. This is
+ *              because OFB mode uses the same key schedule for encryption and
+ *              decryption.
+ *
+ *              The OFB operation is identical for encryption or decryption,
+ *              therefore no operation mode needs to be specified.
+ *
+ * \note        Upon exit, the content of iv, the Initialisation Vector, is
+ *              updated so that you can call the same function again on the next
+ *              block(s) of data and get the same result as if it was encrypted
+ *              in one call. This allows a "streaming" usage, by initialising
+ *              iv_off to 0 before the first call, and preserving its value
+ *              between calls.
+ *
+ *              For non-streaming use, the iv should be initialised on each call
+ *              to a unique value, and iv_off set to 0 on each call.
+ *
+ *              If you need to retain the contents of the initialisation vector,
+ *              you must either save it manually or use the cipher module
+ *              instead.
+ *
+ * \warning     For the OFB mode, the initialisation vector must be unique
+ *              every encryption operation. Reuse of an initialisation vector
+ *              will compromise security.
+ *
+ * \param ctx      The AES context to use for encryption or decryption.
+ *                 It must be initialized and bound to a key.
+ * \param length   The length of the input data.
+ * \param iv_off   The offset in IV (updated after use).
+ *                 It must point to a valid \c size_t.
+ * \param iv       The initialization vector (updated after use).
+ *                 It must be a readable and writeable buffer of \c 16 Bytes.
+ * \param input    The buffer holding the input data.
+ *                 It must be readable and of size \p length Bytes.
+ * \param output   The buffer holding the output data.
+ *                 It must be writeable and of size \p length Bytes.
+ *
+ * \return         \c 0 on success.
+ */
+pub fn mbedtls_aes_crypt_ofb(
+    ctx: &mbedtls_aes_context,
+    length: usize,
+    mut iv_off: &mut usize,
+    iv: &mut [u8; 16],
+    input: &[u8],
+    mut output: &mut [u8],
+) -> isize {
+
+    let mut temp_iv_input: [u8; 16] = [0; 16];
+    let mut temp_iv_output: [u8; 16] = [0; 16];
+
+    for i in 0..16
+    {
+        temp_iv_input[i] = iv[i];
+        temp_iv_output[i] = iv[i];
+    }
+
+
+    if *iv_off > 15 || length % 16 != 0
+    {
+        return MBEDTLS_ERR_AES_BAD_INPUT_DATA;
+    }
+
+    for i in (0..length).step_by(16)
+    {
+        if *iv_off == 0
+        {
+            let ret = mbedtls_aes_crypt_ecb(&ctx, MBEDTLS_AES_ENCRYPT, &temp_iv_input, &mut temp_iv_output);
+            if ret != 0
+            {
+                return ret;
+            }
+        }
+        for j in 0..16
+        {
+            output[i + j] = input[i + j] ^ temp_iv_output[*iv_off];
+            iv[j] = temp_iv_output[j];
+            temp_iv_input[j] = temp_iv_output[j];
+            *iv_off = (*iv_off + 1) & 0x0F;
         }
     }
     0
@@ -1019,61 +1141,7 @@ fn mbedtls_aes_crypt_cfb8(
     1
 }
 
-/**
- * \brief       This function performs an AES-OFB (Output Feedback Mode)
- *              encryption or decryption operation.
- *
- *              For OFB, you must set up the context with
- *              mbedtls_aes_setkey_enc(), regardless of whether you are
- *              performing an encryption or decryption operation. This is
- *              because OFB mode uses the same key schedule for encryption and
- *              decryption.
- *
- *              The OFB operation is identical for encryption or decryption,
- *              therefore no operation mode needs to be specified.
- *
- * \note        Upon exit, the content of iv, the Initialisation Vector, is
- *              updated so that you can call the same function again on the next
- *              block(s) of data and get the same result as if it was encrypted
- *              in one call. This allows a "streaming" usage, by initialising
- *              iv_off to 0 before the first call, and preserving its value
- *              between calls.
- *
- *              For non-streaming use, the iv should be initialised on each call
- *              to a unique value, and iv_off set to 0 on each call.
- *
- *              If you need to retain the contents of the initialisation vector,
- *              you must either save it manually or use the cipher module
- *              instead.
- *
- * \warning     For the OFB mode, the initialisation vector must be unique
- *              every encryption operation. Reuse of an initialisation vector
- *              will compromise security.
- *
- * \param ctx      The AES context to use for encryption or decryption.
- *                 It must be initialized and bound to a key.
- * \param length   The length of the input data.
- * \param iv_off   The offset in IV (updated after use).
- *                 It must point to a valid \c size_t.
- * \param iv       The initialization vector (updated after use).
- *                 It must be a readable and writeable buffer of \c 16 Bytes.
- * \param input    The buffer holding the input data.
- *                 It must be readable and of size \p length Bytes.
- * \param output   The buffer holding the output data.
- *                 It must be writeable and of size \p length Bytes.
- *
- * \return         \c 0 on success.
- */
-fn mbedtls_aes_crypt_ofb(
-    ctx: &mut mbedtls_aes_context,
-    length: usize,
-    iv_off: &usize,
-    iv: &[char; 16],
-    input: &char,
-    output: &char,
-) -> isize {
-    1
-}
+
 
 /**
  * \brief      This function performs an AES-CTR encryption or decryption
