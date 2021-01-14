@@ -1,5 +1,5 @@
 README
-## TCP/IP (net_sockets) Module Specific Documentation
+## TCP/IP Module (mbed::tcp_ip) Specific Documentation
 
 ### Contributors
 * Aman Choudhary - amanc@iisc.ac.in
@@ -12,13 +12,13 @@ This module provides Network Sockets Abstraction Layer to integrate Mbed TLS int
 ### Trying it out
 The main.rs file contains an implementation of a test server and a test client that can be used to check the sanity of the underlying library (tcp_ip.rs).
 
-* To run the test server - cargo run [TCP/UDP] SERVER <MESSAGE TO BE SENT IN RESPONSE WHEN A CLIENT CONNECTS TO SERVER> 
-  Example - cargo run TCP SERVER WELCOME
-  The server will run and wait for new connections. It will print the messages received from client and then send a response message to them.
+* To run the test server - cargo run [TCP/UDP]  
+  Example - cargo run TCP  
+  The server will run and wait for new connections. It will print the messages received from client and then echo the same message to them.
   
-* To run an instance of a test client - cargo run [TCP/UDP] CLIENT <MESSAGE TO BE SENT AS A GREETING TO SERVER> 
-  Example - cargo run TCP CLIENT HELLO
-  The client will send a HELLO message, wait for a response from server - prints the response and exits.
+* To run an instance of a test client - cargo run [TCP/UDP] 
+  Example - cargo run TCP  
+  The client will run in a loop, wait for message to be entered by user, send the message, wait for the response from server, print the recieved response, and repeat.
 
 
 ### List of macros and datatypes defined
