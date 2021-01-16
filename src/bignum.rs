@@ -722,17 +722,23 @@ fn mbedtls_int_div_int(u1: mbedtls_mpi_uint, u0: mbedtls_mpi_uint, d: mbedtls_mp
         }
         return  !0 ;
     }
-    dividend  = (u1 << biL) as mbedtls_mpi_uint;
+    dividend  = (u1 << sh(biL)) as mbedtls_mpi_uint;
     dividend |= u0 as mbedtls_mpi_uint;
     quotient = dividend / d;
-    if quotient > ( 1 << biL)  as mbedtls_mpi_uint  - 1 {
-        quotient = ( 1 << biL ) as  mbedtls_mpi_uint - 1;
+    if quotient > ( 1 << sh(biL) ) as mbedtls_mpi_uint  - 1 {
+        quotient = ( 1  << sh(biL) ) as  mbedtls_mpi_uint - 1;
     }
     match r{
         Some(x) => {*x = ( dividend - (quotient * d ) ) as mbedtls_mpi_uint;}
         None => {}
     }
     return quotient as mbedtls_mpi_uint;
+}
+fn sh(biLvar: usize) -> usize {
+	if biLvar == 64 {
+		return 0;
+	} 
+	else {return biLvar; }
 }
 fn mbedtls_mpi_cmp_int( X: &mbedtls_mpi, z: mbedtls_mpi_sint ) -> i32
 {
@@ -1121,7 +1127,7 @@ fn mbedtls_mpi_fill_random( mut X: &mut mbedtls_mpi, size: usize,
     mpi_bigendian_to_host( &mut X.p, limbs );
     return ret;
 }
-fn mbedtls_mpi_exp_mod( mut X: &mut mbedtls_mpi, A: &mbedtls_mpi,
+fn mbedtls_mpi_exp_mod( mut X: &mut mbedtls_mpi, mut A: &mut mbedtls_mpi,
                          E: &mbedtls_mpi, N: &mbedtls_mpi, mut _RR: Option<&mut mbedtls_mpi> ) -> i32
 {
     let ret: i32 = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
@@ -1182,7 +1188,8 @@ if MBEDTLS_MPI_WINDOW_SIZE < 6 {
     {
         mbedtls_mpi_copy( &mut Apos, &A );
         Apos.s = 1;
-        A = &mut Apos;
+        //A = &mut Apos;
+        mbedtls_mpi_copy(&mut A, &Apos);
     }
 
     match &mut _RR{
@@ -1640,7 +1647,7 @@ fn mpi_miller_rabin( X: &mbedtls_mpi, rounds: usize,
         }
         let mut tmp: mbedtls_mpi = mbedtls_mpi{s:0, n:0, p:vec![]};
 		mbedtls_mpi_copy(&mut tmp, &A);
-        mbedtls_mpi_exp_mod( &mut A, &tmp, &R, &X, Some(&mut RR) );
+        mbedtls_mpi_exp_mod( &mut A, &mut tmp, &R, &X, Some(&mut RR) );
 
         if mbedtls_mpi_cmp_mpi( &A, &W ) == 0 ||
             mbedtls_mpi_cmp_int( &A,  1 ) == 0 
@@ -1883,7 +1890,7 @@ fn mbedtls_mpi_self_test( verbose: i32 ) -> i32
         println!( "passed\n" );
     }
 
-    mbedtls_mpi_exp_mod( &mut X, &A, &E, &N, None ) ;   //todo
+    mbedtls_mpi_exp_mod( &mut X, &mut A, &E, &N, None ) ;   //todo
 
     let s7: &str =   "36E139AEA55215609D2816998ED020BBBD96C37890F65171D948E9BC7CBAA4D9325D24D6A3C12710F10A09FA08AB87";
     mbedtls_mpi_read_string( &mut U, 16, &s7 ) ;
