@@ -18,7 +18,7 @@ fn main() {
     };
     havege::initialise(&mut hs);
     for i in 1..768{
-        let mut buff = String::from("hello");
+        let mut buff = String::from("");
         havege::havege_random(&mut hs,&mut buff,len);
         
         match file.write_all(buff.as_bytes()) {

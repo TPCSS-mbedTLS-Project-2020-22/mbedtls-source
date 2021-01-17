@@ -16,6 +16,16 @@ impl mbedtls_havege_state{
     }
 }
 
+/*
+*CPU cycle counter. 
+Here in our implementation we are using this dummy funtion 
+to make our RNG/havege module independent module.
+*/
+ 
+fn mbedtls_timing_hardclock() -> i32{
+    let num:i32= 10;
+    num
+}
 
 /*
  * Entropy gathering function
@@ -98,7 +108,7 @@ pub fn havege_fill(hs:&mut mbedtls_havege_state){
         PTX = (hs.pt1 >> 18) & 7;
         hs.pt1 &= 0x1FFF;
         hs.pt2 &= 0x1FFF;
-        //CLK = (uint32_t) mbedtls_timing_hardclock();
+        CLK = mbedtls_timing_hardclock();
         i=0;
         res[i] ^= hs.walk[hs.pt1 as usize];
         i+=1;
@@ -127,7 +137,7 @@ pub fn havege_fill(hs:&mut mbedtls_havege_state){
             IN = (hs.walk[(hs.pt1 ^ 1) as usize] >> (5)) ^ (hs.walk[(hs.pt1 ^ 1) as usize] << (27)) ^ CLK;
             hs.walk[(hs.pt1 ^ 1) as usize] = (hs.walk[hs.pt2 as usize] >> (6)) ^ (hs.walk[hs.pt2 as usize] << (26)) ^ CLK;
             hs.walk[hs.pt2 as usize] = IN; 
-            //CLK = (uint32_t) mbedtls_timing_hardclock();
+            CLK = mbedtls_timing_hardclock();
             hs.walk[hs.pt1 as usize] = (hs.walk[hs.pt1 as usize] >> (7)) ^ (hs.walk[hs.pt1 as usize] << (25)) ^ CLK;
             hs.walk[(hs.pt1 ^ 4) as usize] = (hs.walk[(hs.pt1 ^ 4) as usize] >> (8)) ^ (hs.walk[(hs.pt1 ^ 4) as usize] << (24)) ^ CLK;
         }
@@ -135,7 +145,7 @@ pub fn havege_fill(hs:&mut mbedtls_havege_state){
             IN = (hs.walk[hs.pt1 as usize] >> (5)) ^ (hs.walk[hs.pt1 as usize] << (27)) ^ CLK;
             hs.walk[hs.pt1 as usize] = (hs.walk[hs.pt2 as usize] >> (6)) ^ (hs.walk[hs.pt2 as usize] << (26)) ^ CLK;
             hs.walk[hs.pt2 as usize] = IN; 
-            //CLK = (uint32_t) mbedtls_timing_hardclock();
+            CLK = mbedtls_timing_hardclock();
             hs.walk[(hs.pt1 ^ 1) as usize] = (hs.walk[(hs.pt1 ^ 1) as usize] >> (7)) ^ (hs.walk[(hs.pt1 ^ 1) as usize] << (25)) ^ CLK;
             hs.walk[(hs.pt1 ^ 4) as usize] = (hs.walk[(hs.pt1 ^ 4) as usize] >> (8)) ^ (hs.walk[(hs.pt1 ^ 4) as usize] << (24)) ^ CLK;
         }
@@ -307,7 +317,7 @@ pub fn havege_fill(hs:&mut mbedtls_havege_state){
         PTX = (hs.pt1 >> 18) & 7;
         hs.pt1 &= 0x1FFF;
         hs.pt2 &= 0x1FFF;
-        //CLK = (uint32_t) mbedtls_timing_hardclock();
+        CLK = mbedtls_timing_hardclock();
         i=0;
         res[i] ^= hs.walk[hs.pt1 as usize];
         i+=1;
@@ -336,7 +346,7 @@ pub fn havege_fill(hs:&mut mbedtls_havege_state){
             IN = (hs.walk[(hs.pt1 ^ 1) as usize] >> (5)) ^ (hs.walk[(hs.pt1 ^ 1) as usize] << (27)) ^ CLK;
             hs.walk[(hs.pt1 ^ 1) as usize] = (hs.walk[hs.pt2 as usize] >> (6)) ^ (hs.walk[hs.pt2 as usize] << (26)) ^ CLK;
             hs.walk[hs.pt2 as usize] = IN; 
-            //CLK = (uint32_t) mbedtls_timing_hardclock();
+            CLK = mbedtls_timing_hardclock();
             hs.walk[hs.pt1 as usize] = (hs.walk[hs.pt1 as usize] >> (7)) ^ (hs.walk[hs.pt1 as usize] << (25)) ^ CLK;
             hs.walk[(hs.pt1 ^ 4) as usize] = (hs.walk[(hs.pt1 ^ 4) as usize] >> (8)) ^ (hs.walk[(hs.pt1 ^ 4) as usize] << (24)) ^ CLK;
         }
@@ -344,7 +354,7 @@ pub fn havege_fill(hs:&mut mbedtls_havege_state){
             IN = (hs.walk[hs.pt1 as usize] >> (5)) ^ (hs.walk[hs.pt1 as usize] << (27)) ^ CLK;
             hs.walk[hs.pt1 as usize] = (hs.walk[hs.pt2 as usize] >> (6)) ^ (hs.walk[hs.pt2 as usize] << (26)) ^ CLK;
             hs.walk[hs.pt2 as usize] = IN; 
-            //CLK = (uint32_t) mbedtls_timing_hardclock();
+            CLK = mbedtls_timing_hardclock();
             hs.walk[(hs.pt1 ^ 1) as usize] = (hs.walk[(hs.pt1 ^ 1) as usize] >> (7)) ^ (hs.walk[(hs.pt1 ^ 1) as usize] << (25)) ^ CLK;
             hs.walk[(hs.pt1 ^ 4) as usize] = (hs.walk[(hs.pt1 ^ 4) as usize] >> (8)) ^ (hs.walk[(hs.pt1 ^ 4) as usize] << (24)) ^ CLK;
         }
@@ -516,7 +526,7 @@ pub fn havege_fill(hs:&mut mbedtls_havege_state){
         PTX = (hs.pt1 >> 18) & 7;
         hs.pt1 &= 0x1FFF;
         hs.pt2 &= 0x1FFF;
-        //CLK = (uint32_t) mbedtls_timing_hardclock();
+        CLK = mbedtls_timing_hardclock();
         i=0;
         res[i] ^= hs.walk[hs.pt1 as usize];
         i+=1;
@@ -545,7 +555,7 @@ pub fn havege_fill(hs:&mut mbedtls_havege_state){
             IN = (hs.walk[(hs.pt1 ^ 1) as usize] >> (5)) ^ (hs.walk[(hs.pt1 ^ 1) as usize] << (27)) ^ CLK;
             hs.walk[(hs.pt1 ^ 1) as usize] = (hs.walk[hs.pt2 as usize] >> (6)) ^ (hs.walk[hs.pt2 as usize] << (26)) ^ CLK;
             hs.walk[hs.pt2 as usize] = IN; 
-            //CLK = (uint32_t) mbedtls_timing_hardclock();
+            CLK = mbedtls_timing_hardclock();
             hs.walk[hs.pt1 as usize] = (hs.walk[hs.pt1 as usize] >> (7)) ^ (hs.walk[hs.pt1 as usize] << (25)) ^ CLK;
             hs.walk[(hs.pt1 ^ 4) as usize] = (hs.walk[(hs.pt1 ^ 4) as usize] >> (8)) ^ (hs.walk[(hs.pt1 ^ 4) as usize] << (24)) ^ CLK;
         }
@@ -553,7 +563,7 @@ pub fn havege_fill(hs:&mut mbedtls_havege_state){
             IN = (hs.walk[hs.pt1 as usize] >> (5)) ^ (hs.walk[hs.pt1 as usize] << (27)) ^ CLK;
             hs.walk[hs.pt1 as usize] = (hs.walk[hs.pt2 as usize] >> (6)) ^ (hs.walk[hs.pt2 as usize] << (26)) ^ CLK;
             hs.walk[hs.pt2 as usize] = IN; 
-            //CLK = (uint32_t) mbedtls_timing_hardclock();
+            CLK = mbedtls_timing_hardclock();
             hs.walk[(hs.pt1 ^ 1) as usize] = (hs.walk[(hs.pt1 ^ 1) as usize] >> (7)) ^ (hs.walk[(hs.pt1 ^ 1) as usize] << (25)) ^ CLK;
             hs.walk[(hs.pt1 ^ 4) as usize] = (hs.walk[(hs.pt1 ^ 4) as usize] >> (8)) ^ (hs.walk[(hs.pt1 ^ 4) as usize] << (24)) ^ CLK;
         }
@@ -725,7 +735,7 @@ pub fn havege_fill(hs:&mut mbedtls_havege_state){
         PTX = (hs.pt1 >> 18) & 7;
         hs.pt1 &= 0x1FFF;
         hs.pt2 &= 0x1FFF;
-        //CLK = (uint32_t) mbedtls_timing_hardclock();
+        CLK = mbedtls_timing_hardclock();
         i=0;
         res[i] ^= hs.walk[hs.pt1 as usize];
         i+=1;
@@ -754,7 +764,7 @@ pub fn havege_fill(hs:&mut mbedtls_havege_state){
             IN = (hs.walk[(hs.pt1 ^ 1) as usize] >> (5)) ^ (hs.walk[(hs.pt1 ^ 1) as usize] << (27)) ^ CLK;
             hs.walk[(hs.pt1 ^ 1) as usize] = (hs.walk[hs.pt2 as usize] >> (6)) ^ (hs.walk[hs.pt2 as usize] << (26)) ^ CLK;
             hs.walk[hs.pt2 as usize] = IN; 
-            //CLK = (uint32_t) mbedtls_timing_hardclock();
+            CLK = mbedtls_timing_hardclock();
             hs.walk[hs.pt1 as usize] = (hs.walk[hs.pt1 as usize] >> (7)) ^ (hs.walk[hs.pt1 as usize] << (25)) ^ CLK;
             hs.walk[(hs.pt1 ^ 4) as usize] = (hs.walk[(hs.pt1 ^ 4) as usize] >> (8)) ^ (hs.walk[(hs.pt1 ^ 4) as usize] << (24)) ^ CLK;
         }
@@ -762,7 +772,7 @@ pub fn havege_fill(hs:&mut mbedtls_havege_state){
             IN = (hs.walk[hs.pt1 as usize] >> (5)) ^ (hs.walk[hs.pt1 as usize] << (27)) ^ CLK;
             hs.walk[hs.pt1 as usize] = (hs.walk[hs.pt2 as usize] >> (6)) ^ (hs.walk[hs.pt2 as usize] << (26)) ^ CLK;
             hs.walk[hs.pt2 as usize] = IN; 
-            //CLK = (uint32_t) mbedtls_timing_hardclock();
+            CLK = mbedtls_timing_hardclock();
             hs.walk[(hs.pt1 ^ 1) as usize] = (hs.walk[(hs.pt1 ^ 1) as usize] >> (7)) ^ (hs.walk[(hs.pt1 ^ 1) as usize] << (25)) ^ CLK;
             hs.walk[(hs.pt1 ^ 4) as usize] = (hs.walk[(hs.pt1 ^ 4) as usize] >> (8)) ^ (hs.walk[(hs.pt1 ^ 4) as usize] << (24)) ^ CLK;
         }
