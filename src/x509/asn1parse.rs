@@ -30,7 +30,7 @@ pub struct mbedtls_asn1_sequence
 //========================================================================================================================================
 
 
-pub fn mbedtls_asn1_get_len(p: &mut p, end: &mut usize, len: &mut usize ) -> i32 {
+pub fn mbedtls_asn1_get_len(p: &mut p, end: &usize, len: &mut usize ) -> i32 {
 
     if (*end - p.iptr) < 1 {
         return x509_header::MBEDTLS_ERR_X509_INVALID_SERIAL + x509_header::MBEDTLS_ERR_ASN1_OUT_OF_DATA
@@ -90,7 +90,7 @@ pub fn mbedtls_asn1_get_len(p: &mut p, end: &mut usize, len: &mut usize ) -> i32
 
 //========================================================================================================================================
 
-pub fn mbedtls_asn1_get_tag( p: &mut p, end: &mut usize, len: &mut usize, tag: u8) -> i32 {
+pub fn mbedtls_asn1_get_tag( p: &mut p, end: &usize, len: &mut usize, tag: u8) -> i32 {
     
     if (*end - p.iptr) < 1 {
         return x509_header::MBEDTLS_ERR_ASN1_OUT_OF_DATA
@@ -106,7 +106,7 @@ pub fn mbedtls_asn1_get_tag( p: &mut p, end: &mut usize, len: &mut usize, tag: u
 
 //========================================================================================================================================
 
-pub fn mbedtls_asn1_get_bool( p: &mut p, end: &mut usize, val: &mut usize) -> i32 {
+pub fn mbedtls_asn1_get_bool( p: &mut p, end: &usize, val: &mut usize) -> i32 {
     
     let mut len : usize = 0;
     let ret : i32;
@@ -128,7 +128,7 @@ pub fn mbedtls_asn1_get_bool( p: &mut p, end: &mut usize, val: &mut usize) -> i3
 
 //========================================================================================================================================
 
-pub fn asn1_get_tagged_int( p: &mut p, end: &mut usize, tag: u8, val: &mut usize) -> i32 {
+pub fn asn1_get_tagged_int( p: &mut p, end: &usize, tag: u8, val: &mut i32) -> i32 {
 
     let mut len : usize = 0;
     let ret : i32;
@@ -153,7 +153,7 @@ pub fn asn1_get_tagged_int( p: &mut p, end: &mut usize, tag: u8, val: &mut usize
 
     *val = 0;
     while len > 0 {
-        *val = (*val << 8) | (p.ptr[p.iptr] as usize);
+        *val = (*val << 8) | (p.ptr[p.iptr] as i32);
         p.iptr = p.iptr + 1;
         len = len - 1;
     }
@@ -162,21 +162,21 @@ pub fn asn1_get_tagged_int( p: &mut p, end: &mut usize, tag: u8, val: &mut usize
 
 //========================================================================================================================================
 
-pub fn mbedtls_asn1_get_int( p: &mut p, end: &mut usize, val: &mut usize) -> i32 {
+pub fn mbedtls_asn1_get_int( p: &mut p, end: &usize, val: &mut i32) -> i32 {
 
     return asn1_get_tagged_int(p, end, x509_header::MBEDTLS_ASN1_INTEGER, val);
 }
 
 //========================================================================================================================================
 
-pub fn mbedtls_asn1_get_enum( p: &mut p, end: &mut usize, val: &mut usize) -> i32 {
+pub fn mbedtls_asn1_get_enum( p: &mut p, end: &usize, val: &mut i32) -> i32 {
 
     return asn1_get_tagged_int(p, end, x509_header::MBEDTLS_ASN1_ENUMERATED, val);
 }
 
 //========================================================================================================================================
 
-pub fn mbedtls_asn1_get_bitstring_null( p: &mut p, end: &mut usize, len : &mut usize ) -> i32 {
+pub fn mbedtls_asn1_get_bitstring_null( p: &mut p, end: &usize, len : &mut usize ) -> i32 {
     let ret : i32;
 
     ret = mbedtls_asn1_get_tag( p, end, len, x509_header::MBEDTLS_ASN1_BIT_STRING );
@@ -268,64 +268,3 @@ pub fn mbedtls_asn1_get_alg_null(  p: &mut p, end: &mut usize, alg: &mut mbedtls
 //========================================================================================================================================
 
 
-/*
-pub fn mbedtls_asn1_get_mpi( p: &mut p, end: &mut usize, Z: &mut mbedtls_mpi) -> i32 {
-
-    let mut ret : i32 = 0;
-    let mut len : usize = 0;
-
-    ret = mbedtls_asn1_get_tag( p, end, &mut len, x509_header::MBEDTLS_ASN1_INTEGER );
-    if ret != 0 {
-        return ret
-    }
-
-    ret = mbedtls_mpi_read_binary( X, &mut p.iptr, len );
-
-    p.iptr = p.iptr + len;
-
-    return( ret );
-}
-*/
-//========================================================================================================================================
-/*
-pub fn mbedtls_asn1_get_bitstring( p: &mut p, end: &mut usize, bs: &mut mbedtls_asn1_bitstring) -> i32 {
-
-    let mut ret : i32 = 0;
-
-    ret = mbedtls_asn1_get_tag( p, end, &mut bs.len, x509_header::MBEDTLS_ASN1_BIT_STRING ); 
-    if ret != 0 {
-        return ret
-    }
-
-    if bs.len < 1 {
-        return x509_header::MBEDTLS_ERR_ASN1_OUT_OF_DATA
-    }
-    bs.len = bs.len - 1;
-
-    bs.unused_bits = p.iptr;
-
-    if bs.unused_bits > 7 {
-        return x509_header::MBEDTLS_ERR_ASN1_INVALID_LENGTH
-    }
-
-    p.iptr = p.iptr + 1;
-
-    bs.p = p.copy();
-    p.iptr = p.iptr + bs.len;
-
-    if p.iptr != *end {
-        return x509_header::MBEDTLS_ERR_ASN1_LENGTH_MISMATCH;
-    }
-
-    return 0
-}
-*/
-
-//========================================================================================================================================
-/*
-pub fn mbedtls_asn1_traverse_sequence_of( p: &mut p, end: &mut usize, tag_must_mask: u8, tag_must_val: u8, tag_may_mask: u8, 
-    tag_may_val: u8) -> i32 {   //, int (*cb)( void *ctx, int tag, unsigned char *start, size_t len ), void *ctx )
-
-return 0
-}
-*/

@@ -1,11 +1,8 @@
-//TO DO:
 
-//sprintf
 
 use chrono::{Datelike, Timelike, Utc};
 use std::mem::size_of;
 
-//#[path = "../x509.rs"]  mod x509;
 
 #[path = "../x509/x509_header.rs"]  mod x509_header;
 
@@ -33,13 +30,13 @@ impl p{
 
 pub struct mbedtls_md_info_t
 {
-    pub name: String,    //Name of the message digest
+    pub name: String,
 
-    pub type_t : md_header::mbedtls_md_type_t,    //Digest identifier
+    pub type_t : md_header::mbedtls_md_type_t,
 
-    pub size: u8,       //Output length of the digest function in bytes
+    pub size: u8,
 
-    pub block_size: u8, //Block length of the digest function in bytes
+    pub block_size: u8,
 }
 
 impl md_header::mbedtls_md_type_t {
@@ -113,32 +110,28 @@ pub struct mbedtls_pk_rsassa_pss_options
 
 pub struct tm
 {
-  pub tm_sec: i32,			/* Seconds.	[0-60] (1 leap second) */
-  pub tm_min: i32,			/* Minutes.	[0-59] */
-  pub tm_hour: i32,			/* Hours.	[0-23] */
-  pub tm_mday: i32,			/* Day.		[1-31] */
-  pub tm_mon: i32,			/* Month.	[0-11] */
-  pub tm_year: i32,			/* Year	- 1900.  */
-  pub tm_wday: i32,			/* Day of week.	[0-6] */
-  pub tm_yday: i32,			/* Days in year.[0-365]	*/
-  pub tm_isdst: i32,			/* DST.		[-1/0/1]*/
+  pub tm_sec: i32,
+  pub tm_min: i32,
+  pub tm_hour: i32,
+  pub tm_mday: i32,	
+  pub tm_mon: i32,
+  pub tm_year: i32,	
+  pub tm_wday: i32,
+  pub tm_yday: i32,
+  pub tm_isdst: i32,
+  pub tm_gmtoff: i32,
+  pub tm_zone: p,
 
-//# ifdef	__USE_MISC
-  pub tm_gmtoff: i32,		/* Seconds east of UTC.  */
-  pub tm_zone: p,       /* Timezone abbreviation.  */
-//# else
-  pub __tm_gmtoff: i32,		/* Seconds east of UTC.  */
-  pub __tm_zone: p,	/* Timezone abbreviation.  */
-//# endif
+  pub __tm_gmtoff: i32,
+  pub __tm_zone: p,
 }
 
 pub struct mbedtls_x509_time
 {
-    pub year: i32, pub mon: i32, pub day: i32,          /**< Date. */
-    pub hour: i32, pub min: i32, pub sec: i32,          //**< Time. */
+    pub year: i32, pub mon: i32, pub day: i32,
+    pub hour: i32, pub min: i32, pub sec: i32,
 }
 
-//========================================================================================================================================
 //========================================================================================================================================
 
 pub fn prnt(){
@@ -147,26 +140,26 @@ pub fn prnt(){
 
 
 //external fucntions
-pub fn mbedtls_asn1_get_len(p: &mut p, end: &mut usize, y: &mut usize ) -> i32 {
+pub fn mbedtls_asn1_get_len(p: &mut p, end: &usize, y: &mut usize ) -> i32 {
     return asn1parse::mbedtls_asn1_get_len(p, end, y) }
 
 
-pub fn mbedtls_asn1_get_tag( p: &mut p, end: &mut usize, y: &mut usize, z: u8) -> i32 {
+pub fn mbedtls_asn1_get_tag( p: &mut p, end: &usize, y: &mut usize, z: u8) -> i32 {
     return asn1parse::mbedtls_asn1_get_tag( p, end, y, z) }
 
 
-pub fn mbedtls_asn1_get_int( p: &mut p, end: &mut usize, y: &mut i32 ) -> i32 {
-    return mbedtls_asn1_get_int( p, end, y ) }
+pub fn mbedtls_asn1_get_int( p: &mut p, end: &usize, y: &mut i32 ) -> i32 {
+    return asn1parse::mbedtls_asn1_get_int( p, end, y ) }
 
 
-pub fn  mbedtls_asn1_get_bitstring_null(p: &mut p, end: &mut usize, z: &mut usize ) -> i32 {
-    return mbedtls_asn1_get_bitstring_null( p, end, z ) }
+pub fn  mbedtls_asn1_get_bitstring_null(p: &mut p, end: &usize, z: &mut usize ) -> i32 {
+    return asn1parse::mbedtls_asn1_get_bitstring_null( p, end, z ) }
 
 pub fn mbedtls_asn1_get_alg( p: &mut p, end: &mut usize, y: &mut mbedtls_x509_buf, z: &mut mbedtls_x509_buf ) -> i32 {
-    return mbedtls_asn1_get_alg( p, end, y, z ) }
+    return asn1parse::mbedtls_asn1_get_alg( p, end, y, z ) }
 
 
-pub fn mbedtls_asn1_get_alg_null( p: &mut p, end: &mut  usize, y: &mut mbedtls_x509_buf ) -> i32 {
+pub fn mbedtls_asn1_get_alg_null( p: &mut p, end: &mut usize, y: &mut mbedtls_x509_buf ) -> i32 {
     return asn1parse::mbedtls_asn1_get_alg_null( p, end, y ) }
 
 
@@ -186,12 +179,10 @@ pub fn  mbedtls_oid_get_sig_alg(sig_oid: &mut mbedtls_x509_buf, md_alg: &mut md_
 pub fn  mbedtls_oid_get_sig_alg_desc(sig_oid: &mut mbedtls_x509_buf, desc: &mut p) -> i32 {
     return 0 }
 
-pub fn mbedtls_oid_get_attr_short_name( x: &mut mbedtls_x509_buf, y: &mut p ) -> i32 {
+pub fn mbedtls_oid_get_attr_short_name( x: &mut mbedtls_x509_buf, y: &mut String ) -> i32 {
     return 0 }    
 
-/*
-pub fn  mbedtls_md_info_from_type(md_alg: &mut md_header::mbedtls_md_type_t) -> mbedtls_md_info_t {
-    md_header:: }*/
+
 
 pub fn mbedtls_md_info_from_type( md_type : md_header::mbedtls_md_type_t ) -> mbedtls_md_info_t {
     match md_type {
@@ -270,7 +261,7 @@ pub fn mbedtls_md_info_from_type( md_type : md_header::mbedtls_md_type_t ) -> mb
 
 //1========================================================================================================================================
 
-pub fn mbedtls_x509_get_serial(p: &mut p, end: &mut usize, serial: &mut mbedtls_x509_buf) -> i32 {
+pub fn mbedtls_x509_get_serial(p: &mut p, end: &usize, serial: &mut mbedtls_x509_buf) -> i32 {
     
     let ret: i32; 
 
@@ -290,8 +281,7 @@ pub fn mbedtls_x509_get_serial(p: &mut p, end: &mut usize, serial: &mut mbedtls_
         return ret + x509_header::MBEDTLS_ERR_X509_INVALID_SERIAL     
     }
 
-    serial.p.ptr = p.ptr[p.iptr..(p.iptr+serial.len)].iter().cloned().collect(); 
-    serial.p.iptr = 0;
+    serial.p = p.copy();
 
     p.iptr = p.iptr + serial.len;
 
@@ -331,8 +321,8 @@ pub fn mbedtls_x509_get_alg(p: &mut p, end: &mut usize, alg: &mut mbedtls_x509_b
 pub fn x509_get_hash_alg(alg: &mut mbedtls_x509_buf, md_alg: &mut md_header::mbedtls_md_type_t) -> i32{               
     
     let mut ret: i32;
-    let mut p = p{ptr: Vec::new(), iptr: 0};
-    let mut end: usize;
+    let mut p : p;
+    let end: usize;
     let mut md_oid = mbedtls_x509_buf{tag: 0, len: 0, p: p{ptr: Vec::new(), iptr: 0}};
     let mut len: usize = 0;
 
@@ -340,8 +330,7 @@ pub fn x509_get_hash_alg(alg: &mut mbedtls_x509_buf, md_alg: &mut md_header::mbe
         return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + x509_header::MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
     }
 
-    p.ptr = alg.p.ptr[alg.p.iptr..].iter().cloned().collect();
-    p.iptr = 0;
+    p = alg.p.copy();
 
     end = p.iptr + alg.len;
 
@@ -350,12 +339,11 @@ pub fn x509_get_hash_alg(alg: &mut mbedtls_x509_buf, md_alg: &mut md_header::mbe
 
     md_oid.tag = p.ptr[p.iptr];
 
-    ret = mbedtls_asn1_get_tag(&mut p, &mut end, &mut md_oid.len, x509_header::MBEDTLS_ASN1_OID);
+    ret = mbedtls_asn1_get_tag(&mut p, &end, &mut md_oid.len, x509_header::MBEDTLS_ASN1_OID);
     if ret !=0 {                                
         return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + ret }
 
-    md_oid.p.ptr = p.ptr[p.iptr..(p.iptr+md_oid.len)].iter().cloned().collect();
-    md_oid.p.iptr = 0;
+    md_oid.p = p.copy();
 
     p.iptr = p.iptr + md_oid.len;
 
@@ -366,7 +354,7 @@ pub fn x509_get_hash_alg(alg: &mut mbedtls_x509_buf, md_alg: &mut md_header::mbe
 
     if p.iptr == end {return 0 }
 
-    ret = mbedtls_asn1_get_tag( &mut p, &mut end, &mut len, x509_header::MBEDTLS_ASN1_NULL );
+    ret = mbedtls_asn1_get_tag( &mut p, &end, &mut len, x509_header::MBEDTLS_ASN1_NULL );
     if ret != 0 || len != 0 {                              
         return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + ret
     }
@@ -383,7 +371,7 @@ pub fn mbedtls_x509_get_rsassa_pss_params(params: &mbedtls_x509_buf, md_alg: &mu
     mgf_md: &mut md_header::mbedtls_md_type_t, salt_len: &mut i32) -> i32 {
 
     let mut ret: i32;
-    let mut p = p{ptr: Vec::new(), iptr: 0};
+    let mut p : p;
     let mut end: usize; let mut end2: usize;
     let mut len: usize = 0;
     let mut alg_id = mbedtls_x509_buf{tag: 0, len: 0, p: p{ptr: Vec::new(), iptr: 0}};
@@ -397,13 +385,13 @@ pub fn mbedtls_x509_get_rsassa_pss_params(params: &mbedtls_x509_buf, md_alg: &mu
         return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + x509_header::MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
     }
 
-    p.ptr = params.p.ptr[params.p.iptr..].iter().cloned().collect();
-    p.iptr = 0;
+    p = params.p.copy();
+
     end = p.iptr + params.len;
 
     if p.iptr == end { return 0; }
     
-    ret = mbedtls_asn1_get_tag( &mut p, &mut end, &mut len, x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_CONSTRUCTED | 0 );
+    ret = mbedtls_asn1_get_tag( &mut p, &end, &mut len, x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_CONSTRUCTED | 0 );
     if ret == 0 {
         end2 = p.iptr + len;
 
@@ -425,16 +413,14 @@ pub fn mbedtls_x509_get_rsassa_pss_params(params: &mbedtls_x509_buf, md_alg: &mu
     if p.iptr == end { return 0; }
 
     
-    ret = mbedtls_asn1_get_tag( &mut p, &mut end, &mut len, x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_CONSTRUCTED | 1 );
+    ret = mbedtls_asn1_get_tag( &mut p, &end, &mut len, x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_CONSTRUCTED | 1 );
     if ret == 0 {
         end2 = p.iptr + len;
 
         ret = mbedtls_x509_get_alg( &mut p, &mut end, &mut alg_id, &mut alg_params );
         if ret  != 0 {
             return ret }
-
-//        if MBEDTLS_OID_CMP ( MBEDTLS_OID_MGF1, &alg_id ) != 0 {                                                           //not defined
-//            return x509_header::MBEDTLS_ERR_X509_FEATURE_UNAVAILABLE + 1 } //MBEDTLS_ERR_OID_NOT_FOUND                                    
+                                   
 
         ret = x509_get_hash_alg( &mut alg_params, mgf_md );
         if ret !=0 { return ret }
@@ -448,11 +434,11 @@ pub fn mbedtls_x509_get_rsassa_pss_params(params: &mbedtls_x509_buf, md_alg: &mu
     if p.iptr == end { return 0; }
 
     
-    ret = mbedtls_asn1_get_tag( &mut p, &mut end, &mut len, x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_CONSTRUCTED | 2 );
+    ret = mbedtls_asn1_get_tag( &mut p, &end, &mut len, x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_CONSTRUCTED | 2 );
     if ret == 0 {
         end2 = p.iptr + len;
 
-        ret = mbedtls_asn1_get_int( &mut p,&mut end, salt_len );
+        ret = mbedtls_asn1_get_int( &mut p, &end, salt_len );
         if ret != 0 {
             return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + ret
         }
@@ -466,12 +452,12 @@ pub fn mbedtls_x509_get_rsassa_pss_params(params: &mbedtls_x509_buf, md_alg: &mu
     if p.iptr == end { return 0; }
 
 
-    ret = mbedtls_asn1_get_tag( &mut p, &mut end, &mut len, x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_CONSTRUCTED | 3 );
+    ret = mbedtls_asn1_get_tag( &mut p, &end, &mut len, x509_header::MBEDTLS_ASN1_CONTEXT_SPECIFIC | x509_header::MBEDTLS_ASN1_CONSTRUCTED | 3 );
     if ret == 0 {
         let mut trailer_field: i32 = 0;
         end2 = p.iptr + len;
 
-        ret = mbedtls_asn1_get_int( &mut p, &mut end, &mut trailer_field );
+        ret = mbedtls_asn1_get_int( &mut p, &end, &mut trailer_field );
         if ret != 0 {
             return x509_header::MBEDTLS_ERR_X509_INVALID_ALG + ret }
 
@@ -508,7 +494,6 @@ pub fn x509_get_attr_type_value(p: &mut p, end: &mut usize, cur: &mut mbedtls_x5
     
     if (*end - p.iptr) < 1 { return x509_header::MBEDTLS_ERR_X509_INVALID_NAME + x509_header::MBEDTLS_ERR_ASN1_OUT_OF_DATA }
 
-//    oid = mbedtls_x509_buf{tag: (cur.oid).tag, len: (cur.oid).len, p: p{ptr: (cur.oid).p.ptr[(cur.oid).p.iptr..].iter().cloned().collect(), iptr: 0 }};
     oid = cur.oid.copy();
     oid.tag = p.ptr[p.iptr];
 
@@ -530,7 +515,6 @@ pub fn x509_get_attr_type_value(p: &mut p, end: &mut usize, cur: &mut mbedtls_x5
             return x509_header::MBEDTLS_ERR_X509_INVALID_NAME + x509_header::MBEDTLS_ERR_ASN1_UNEXPECTED_TAG
     }
 
-//    val = mbedtls_x509_buf{tag: (cur.val).tag, len: (cur.val).len, p: p{ptr: (cur.val).p.ptr[(cur.val).p.iptr..].iter().cloned().collect(), iptr: 0 }};
     val = cur.val.copy();
     val.tag = p.ptr[p.iptr];
     p.iptr = p.iptr + 1;
@@ -553,7 +537,7 @@ pub fn x509_get_attr_type_value(p: &mut p, end: &mut usize, cur: &mut mbedtls_x5
 
 //7========================================================================================================================================
 
-pub fn mbedtls_x509_get_name(p: &mut p, end: &mut usize, mut cur: &mut mbedtls_x509_name) -> i32 {
+pub fn mbedtls_x509_get_name(p: &mut p, end: &usize, mut cur: &mut mbedtls_x509_name) -> i32 {
 
     let mut ret: i32;
     let mut set_len: usize = 0;
@@ -595,7 +579,7 @@ pub fn mbedtls_x509_get_name(p: &mut p, end: &mut usize, mut cur: &mut mbedtls_x
         }
 
     }
-//    return 0;
+
 }
 
 //8========================================================================================================================================
@@ -714,7 +698,7 @@ pub fn x509_parse_time(p: &mut p, mut len: usize, yearlen: usize, tm: &mut mbedt
 
 //11========================================================================================================================================
 
-pub fn mbedtls_x509_get_time(p: &mut p, end: &mut usize, tm: &mut mbedtls_x509_time) -> i32 {
+pub fn mbedtls_x509_get_time(p: &mut p, end: &usize, tm: &mut mbedtls_x509_time) -> i32 {
 
     let ret: i32;
     let mut len : usize = 0;
@@ -746,7 +730,7 @@ pub fn mbedtls_x509_get_time(p: &mut p, end: &mut usize, tm: &mut mbedtls_x509_t
 
 //12========================================================================================================================================
 
-pub fn mbedtls_x509_get_sig(p: &mut p, end: &mut usize, sig: &mut mbedtls_x509_buf) -> i32 {
+pub fn mbedtls_x509_get_sig(p: &mut p, end: &usize, sig: &mut mbedtls_x509_buf) -> i32 {
 
     let ret: i32;
     let mut len : usize = 0;
@@ -774,18 +758,16 @@ pub fn mbedtls_x509_get_sig(p: &mut p, end: &mut usize, sig: &mut mbedtls_x509_b
 //13========================================================================================================================================
 
 pub fn mbedtls_x509_get_sig_alg( sig_oid: &mut mbedtls_x509_buf, sig_params: &mut mbedtls_x509_buf,
-    md_alg: &mut md_header::mbedtls_md_type_t, pk_alg: &mut pk_header::mbedtls_pk_type_t, sig_opts: &mut mbedtls_pk_rsassa_pss_options) -> i32 { //, void **sig_opts) -> i32 {
+    md_alg: &mut md_header::mbedtls_md_type_t, pk_alg: &mut pk_header::mbedtls_pk_type_t, sig_opts: &mut mbedtls_pk_rsassa_pss_options) -> i32 {
 
     let mut ret: i32;
-
-//    if *sig_opts != NULL { return x509_header::MBEDTLS_ERR_X509_BAD_INPUT_DATA }
 
     ret = mbedtls_oid_get_sig_alg( sig_oid, md_alg, pk_alg );
     if ret != 0 {
         return x509_header::MBEDTLS_ERR_X509_UNKNOWN_SIG_ALG + ret
     }
 
-//#if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
+
     match *pk_alg {
 		pk_header::mbedtls_pk_type_t::MBEDTLS_PK_RSASSA_PSS => {
             
@@ -798,10 +780,10 @@ pub fn mbedtls_x509_get_sig_alg( sig_oid: &mut mbedtls_x509_buf, sig_params: &mu
             
             if ret != 0 { return ret;}
 
-            *sig_opts = mbedtls_pk_rsassa_pss_options{mgf1_hash_id: pss_opts.mgf1_hash_id, expected_salt_len: pss_opts.expected_salt_len};                                                      //???????????????
+            *sig_opts = mbedtls_pk_rsassa_pss_options{mgf1_hash_id: pss_opts.mgf1_hash_id, expected_salt_len: pss_opts.expected_salt_len};
         },
 		_ => {
-//#endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */            
+           
             if ( sig_params.tag != x509_header::MBEDTLS_ASN1_NULL  && sig_params.tag !=0 ) || sig_params.len != 0  {
                 return x509_header::MBEDTLS_ERR_X509_INVALID_ALG }
         },
@@ -839,19 +821,18 @@ pub fn mbedtls_x509_get_ext(p: &mut p, end: &mut usize, ext: &mut mbedtls_x509_b
 
 //15========================================================================================================================================
 
-pub fn mbedtls_x509_dn_gets(buf : &mut p, mut size: usize, dn: &mut mbedtls_x509_name) -> i32 {
+pub fn mbedtls_x509_dn_gets(buf : &mut p, size: usize, dn: &mut mbedtls_x509_name) -> i32 {
 
-    let mut ret = x509_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    let mut ret :i32;
     let mut i: i32;
     let mut n: usize;
 
     let mut c: u8;
-    let mut merge: u8;
+    let mut merge: u8 = '\0' as u8;
 
     let mut name = dn;
-//    let mut name = mbedtls_x509_name{oid: dn.oid.copy(), val: dn.val.copy(), next: &mut dn.next, next_merged: dn.next_merged};
-//    let mut name = &mut name;
-    let mut short_name = buf.copy();
+
+    let mut short_name = String::new();
 
     let mut s: [u8; x509_header::MBEDTLS_X509_MAX_DN_NAME_SIZE as usize] = ['0' as u8; x509_header::MBEDTLS_X509_MAX_DN_NAME_SIZE as usize];
 
@@ -872,7 +853,25 @@ pub fn mbedtls_x509_dn_gets(buf : &mut p, mut size: usize, dn: &mut mbedtls_x509
             }
         }
         if flag {
-//            ret = mbedtls_snprintf( p, n, merge ? " + " : ", " );
+            let bytes : Vec<u8>;
+            if merge == '\0' as u8 {
+                bytes = (format!("{}==", short_name)).into_bytes();
+            }
+            else {
+                bytes = (format!("??",)).into_bytes();
+            }
+            let mut count : usize = 0;
+            for i in bytes {
+                p.ptr.push(i);
+                count += 1;
+            }
+            p.iptr = p.iptr + count;
+            ret = count as i32;
+
+
+
+
+
             if (ret < 0) || ((ret as usize) >= n ) {
                 return x509_header::MBEDTLS_ERR_X509_BUFFER_TOO_SMALL }
             n = n - (ret as usize);
@@ -880,14 +879,21 @@ pub fn mbedtls_x509_dn_gets(buf : &mut p, mut size: usize, dn: &mut mbedtls_x509
         }
         ret = mbedtls_oid_get_attr_short_name( &mut name.oid, &mut short_name );
 
+        let bytes : Vec<u8>;
         if ret == 0 {
-//            ret = mbedtls_snprintf( p, n, "%s=", short_name );
-            nop();
+            bytes = (format!("{}==", short_name)).into_bytes();
         }
         else {
-//            ret = mbedtls_snprintf( p, n, "\?\?=" );
-            nop();
+            bytes = (format!("??",)).into_bytes();
         }
+        let mut count : usize = 0;
+        for i in bytes {
+            p.ptr.push(i);
+            count += 1;
+        }
+        p.iptr = p.iptr + count;
+        ret = count as i32;
+
 
         if (ret < 0) || ((ret as usize) >= n ) {
                 return x509_header::MBEDTLS_ERR_X509_BUFFER_TOO_SMALL }
@@ -904,7 +910,19 @@ pub fn mbedtls_x509_dn_gets(buf : &mut p, mut size: usize, dn: &mut mbedtls_x509
         }
         
         s[temp] = '\0' as u8;
-//        ret = mbedtls_snprintf( p, n, "%s", s );
+
+
+        let mut pri = String::new();
+        for &i in &s { pri.push(i as char)};
+        let bytes = (format!("{}",pri)).into_bytes();
+        let mut count : usize = 0;
+        for i in bytes {
+            p.ptr.push(i);
+            count += 1;
+        }
+        p.iptr = p.iptr + count;
+        ret = count as i32;
+
         if (ret < 0) || ((ret as usize) >= n ) {
             return x509_header::MBEDTLS_ERR_X509_BUFFER_TOO_SMALL }
 
@@ -930,13 +948,12 @@ pub fn mbedtls_x509_dn_gets(buf : &mut p, mut size: usize, dn: &mut mbedtls_x509
 
 //16========================================================================================================================================
 
-pub fn mbedtls_x509_serial_gets(buf: &mut p, mut size: usize, serial: &mut mbedtls_x509_buf) -> i32 {
+pub fn mbedtls_x509_serial_gets(buf: &mut p, size: usize, serial: &mut mbedtls_x509_buf) -> i32 {
 
-    let ret = x509_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    let mut ret = x509_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     let mut n: usize;
     let nr: usize;
 
-//    let mut p = p{ptr: buf.ptr[buf.iptr..].iter().cloned().collect(), iptr: buf.iptr};
     let mut p = buf.copy();
     n = size;
 
@@ -945,7 +962,15 @@ pub fn mbedtls_x509_serial_gets(buf: &mut p, mut size: usize, serial: &mut mbedt
     for i in 0..nr {
         if (i == 0) && (nr > 1) && (serial.p.ptr[i as usize] == 0x0) { continue;}
 
-//        ret = mbedtls_snprintf( p, n, "%02X%s", serial->p[i], ( i < nr - 1 ) ? ":" : "" );
+
+        let bytes = (format!("{}{}", serial.p.ptr[serial.p.iptr], if i < (nr - 1) {":"} else {""})).into_bytes();
+        let mut count : usize = 0;
+        for i in bytes {
+            p.ptr.push(i);
+            count += 1;
+        }
+        p.iptr = p.iptr + count;
+        ret = count as i32;
 
         if (ret < 0) || ((ret as usize) >= n ) {
             return x509_header::MBEDTLS_ERR_X509_BUFFER_TOO_SMALL }
@@ -956,7 +981,16 @@ pub fn mbedtls_x509_serial_gets(buf: &mut p, mut size: usize, serial: &mut mbedt
 
     if nr != serial.len {
 
-//        ret = mbedtls_snprintf( p, n, "...." );
+
+        let bytes = (format!("....")).into_bytes();
+        let mut count : usize = 0;
+        for i in bytes {
+            p.ptr.push(i);
+            count += 1;
+        }
+        p.iptr = p.iptr + count;
+        ret = count as i32;
+
         if (ret < 0) || ((ret as usize) >= n ) {
             return x509_header::MBEDTLS_ERR_X509_BUFFER_TOO_SMALL }
 
@@ -970,24 +1004,38 @@ pub fn mbedtls_x509_serial_gets(buf: &mut p, mut size: usize, serial: &mut mbedt
 
 //17==========================================================================================================================================
 
-pub fn mbedtls_x509_sig_alg_gets(buf: &mut p, mut size: usize, sig_oid: &mut mbedtls_x509_buf, 
-    pk_alg: &mut pk_header::mbedtls_pk_type_t, md_alg: &mut md_header::mbedtls_md_type_t, sig_opts: &mbedtls_pk_rsassa_pss_options) -> i32 { //const void *sig_opts
+pub fn mbedtls_x509_sig_alg_gets(buf: &mut p, size: usize, sig_oid: &mut mbedtls_x509_buf, 
+    pk_alg: &mut pk_header::mbedtls_pk_type_t, md_alg: &mut md_header::mbedtls_md_type_t, sig_opts: &mbedtls_pk_rsassa_pss_options) -> i32 {
 
-    let ret: i32; // = x509_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    let mut ret: i32; 
 
-//    let mut p = p{ptr: buf.ptr[buf.iptr..].iter().cloned().collect(), iptr: buf.iptr};
+
     let mut p = buf.copy();
     let mut n = size;
     let mut desc: p = p.copy();
 
     ret = mbedtls_oid_get_sig_alg_desc( sig_oid, &mut desc ); 
 
-    if ret != 0 {
- //       ret = mbedtls_snprintf( p, n, "???"  ); 
+    if ret != 0 { 
+        let bytes = (format!("???")).into_bytes();
+        let mut count : usize = 0;
+        for i in bytes {
+            p.ptr.push(i);
+            count += 1;
+        }
+        p.iptr = p.iptr + count;
+        ret = count as i32;
     }
 
     else {
-//        ret = mbedtls_snprintf( p, n, "%s", desc );
+        let bytes: Vec<u8> = desc.ptr[..].iter().cloned().collect();
+        let mut count : usize = 0;
+        for i in bytes {
+            p.ptr.push(i);
+            count += 1;
+        }
+        p.iptr = p.iptr + count;
+        ret = count as i32;
     }
     if (ret < 0) || ((ret as usize) >= n ) {
         return x509_header::MBEDTLS_ERR_X509_BUFFER_TOO_SMALL }
@@ -995,7 +1043,6 @@ pub fn mbedtls_x509_sig_alg_gets(buf: &mut p, mut size: usize, sig_oid: &mut mbe
     n = n - (ret as usize);
     p.iptr = p.iptr + (ret as usize);
 
-//    #if defined(MBEDTLS_X509_RSASSA_PSS_SUPPORT)
     match *pk_alg {
         pk_header::mbedtls_pk_type_t::MBEDTLS_PK_RSASSA_PSS => {
             
@@ -1007,10 +1054,18 @@ pub fn mbedtls_x509_sig_alg_gets(buf: &mut p, mut size: usize, sig_oid: &mut mbe
 
             mgf_md_info = mbedtls_md_info_from_type( pss_opts.mgf1_hash_id );
 
-//        ret = mbedtls_snprintf( p, n, " (%s, MGF1-%s, 0x%02X)",
-//                              md_info ? mbedtls_md_get_name( md_info ) : "???",
-//                              mgf_md_info ? mbedtls_md_get_name( mgf_md_info ) : "???",
-//                              (unsigned int) pss_opts->expected_salt_len );
+
+            let bytes = (format!("({}, MGF1-{}, 0x{})","???","???",pss_opts.expected_salt_len)).into_bytes();
+            let mut count : usize = 0;
+            for i in bytes {
+                p.ptr.push(i);
+                count += 1;
+            }
+            p.iptr = p.iptr + count;
+            ret = count as i32;
+
+
+
             if (ret < 0) || ((ret as usize) >= n ) {
                 return x509_header::MBEDTLS_ERR_X509_BUFFER_TOO_SMALL }
 
@@ -1020,11 +1075,6 @@ pub fn mbedtls_x509_sig_alg_gets(buf: &mut p, mut size: usize, sig_oid: &mut mbe
 
         _ => { nop() },
     };
-//#else
-//    ((void) pk_alg);
-//    ((void) md_alg);
-//    ((void) sig_opts);
-//    #endif /* MBEDTLS_X509_RSASSA_PSS_SUPPORT */
 
     return (size - n) as i32
 }
@@ -1033,13 +1083,20 @@ pub fn mbedtls_x509_sig_alg_gets(buf: &mut p, mut size: usize, sig_oid: &mut mbe
 
 pub fn mbedtls_x509_key_size_helper(buf: &mut p, buf_size: usize, name: &mut p) -> i32 {
 
-//    let mut p = p{ptr: buf.ptr[buf.iptr..].iter().cloned().collect(), iptr: buf.iptr};
     let mut p = buf.copy();
     let mut n = buf_size;
 
-    let mut ret: i32 = 0;
+    let ret: i32;
 
-//    ret = mbedtls_snprintf( p, n, "%s key size", name );
+    let bytes: Vec<u8> = name.ptr[..].iter().cloned().collect();
+    let mut count : usize = 0;
+    for i in bytes {
+        p.ptr.push(i);
+        count += 1;
+    }
+    p.iptr = p.iptr + count;
+    ret = count as i32;
+    
     if (ret < 0) || ((ret as usize) >= n ) {
         return x509_header::MBEDTLS_ERR_X509_BUFFER_TOO_SMALL }
 
@@ -1049,20 +1106,10 @@ pub fn mbedtls_x509_key_size_helper(buf: &mut p, buf_size: usize, name: &mut p) 
     return 0
 }
 
-//#if defined(MBEDTLS_HAVE_TIME_DATE)
 //19==========================================================================================================================================
 
 pub fn x509_get_current_time(now: &mut mbedtls_x509_time) -> i32 {
 
-/*    let lt: tm;
-    let tm_buf: tm;
-    let tt: mbedtls_x509_time;
-
-    let mut ret = 0;
-
-    tt = mbedtls_time( NULL );
-    lt = mbedtls_platform_gmtime_r( &tt, &tm_buf );
-    */
 
     let now_t = Utc::now();                                                                     //time in UTC
     let (is_pm, hour) = now_t.hour12();
@@ -1141,69 +1188,3 @@ pub fn mbedtls_x509_time_is_future( from: &mbedtls_x509_time ) -> i32 {
 
     return x509_check_time( from, &now ) ;
 }
-
-//test==========================================================================================================================================
-/*
-int mbedtls_x509_self_test( int verbose )
-{
-    int ret = 0;
-#if defined(MBEDTLS_CERTS_C) && defined(MBEDTLS_SHA256_C)
-    uint32_t flags;
-    mbedtls_x509_crt cacert;
-    mbedtls_x509_crt clicert;
-
-    if( verbose != 0 )
-        mbedtls_printf( "  X.509 certificate load: " );
-
-    mbedtls_x509_crt_init( &cacert );
-    mbedtls_x509_crt_init( &clicert );
-
-    ret = mbedtls_x509_crt_parse( &clicert, (const unsigned char *) mbedtls_test_cli_crt,
-                           mbedtls_test_cli_crt_len );
-    if( ret != 0 )
-    {
-        if( verbose != 0 )
-            mbedtls_printf( "failed\n" );
-
-        goto cleanup;
-    }
-
-    ret = mbedtls_x509_crt_parse( &cacert, (const unsigned char *) mbedtls_test_ca_crt,
-                          mbedtls_test_ca_crt_len );
-    if( ret != 0 )
-    {
-        if( verbose != 0 )
-            mbedtls_printf( "failed\n" );
-
-        goto cleanup;
-    }
-
-    if( verbose != 0 )
-        mbedtls_printf( "passed\n  X.509 signature verify: ");
-
-    ret = mbedtls_x509_crt_verify( &clicert, &cacert, NULL, NULL, &flags, NULL, NULL );
-    if( ret != 0 )
-    {
-        if( verbose != 0 )
-            mbedtls_printf( "failed\n" );
-
-        goto cleanup;
-    }
-
-    if( verbose != 0 )
-        mbedtls_printf( "passed\n\n");
-
-cleanup:
-    mbedtls_x509_crt_free( &cacert  );
-    mbedtls_x509_crt_free( &clicert );
-#else
-    ((void) verbose);
-#endif /* MBEDTLS_CERTS_C && MBEDTLS_SHA256_C */
-    return( ret );
-}
-
-#endif /* MBEDTLS_SELF_TEST */
-
-#endif /* MBEDTLS_X509_USE_C */
-
-*/

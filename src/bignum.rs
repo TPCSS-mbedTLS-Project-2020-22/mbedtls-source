@@ -1,3 +1,7 @@
+pub fn print(){
+    println!("In bignum.rs");
+}
+
 const MBEDTLS_ERR_MPI_FILE_IO_ERROR : i32                  =  -0x0002; /**< An error occurred while reading from or writing to a file. */
 const MBEDTLS_ERR_MPI_BAD_INPUT_DATA : i32                 =  -0x0004;  /**< Bad input parameters to function. */
 const MBEDTLS_ERR_MPI_INVALID_CHARACTER : i32              =  -0x0006;  /**< There is an invalid character in the digit string. */
@@ -1818,6 +1822,8 @@ f_rng: fn (&mut Vec<u8>, &mut [u64], usize) -> i32, p_rng: &mut Vec<u8> ) -> i32
     }
     return mpi_miller_rabin( &XX, rounds as usize, f_rng, p_rng ) ;
 }
+
+
 fn mbedtls_mpi_self_test( verbose: i32 ) -> i32
 {
     let mut ret: i32 = 0;
@@ -1856,6 +1862,7 @@ fn mbedtls_mpi_self_test( verbose: i32 ) -> i32
     if verbose != 0 {
         println!( "passed\n" );
     }
+    /*
     mbedtls_mpi_div_mpi( Some(&mut X), Some(&mut Y), &A, &N ) ;
 
     let s5: &str =  "256567336059E52CAE22925474705F39A94" ;
@@ -1991,10 +1998,11 @@ fn mbedtls_mpi_self_test( verbose: i32 ) -> i32
 
     if verbose != 0 {
         println!( "\n" );
-    }
+    }*/
     return ret;
 }
-fn main() {
+
+pub fn self_test() {
 	println!("hello");
 	mbedtls_mpi_self_test(1);
 }
