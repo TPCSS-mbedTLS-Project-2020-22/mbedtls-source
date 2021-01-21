@@ -354,7 +354,7 @@ impl CamelliaContext {
     }
 
     // Perform Feistel operation used in encryption
-
+    #[cfg(feature = "camellia-ecb-mode")]
     pub fn mbedtls_camellia_crypt_ecb(&self, _text: [u8; 16]) -> [u8; 16] {
         //Temporary variable
         let mut x: [u32; 4] = [0; 4];
@@ -462,7 +462,7 @@ impl CamelliaContext {
         }
         out_array
     }
-
+    #[cfg(feature = "camellia-cbc-mode")]
     pub fn mbedtls_camellia_crypt_cbc(
         &self,
         mut iv: [u8; 16],
@@ -519,7 +519,7 @@ impl CamelliaContext {
 
         output
     }
-
+    #[cfg(feature = "camellia-cfb-mode")]
     pub fn mbedtls_camellia_crypt_cfb128(
         &self,
         mut iv: [u8; 16],
@@ -555,6 +555,7 @@ impl CamelliaContext {
 
         output
     }
+    #[cfg(feature = "camellia-ctr-mode")]
     pub fn mbedtls_camellia_crypt_ctr(
         &self,
         mut length: u32,
