@@ -1,34 +1,29 @@
-/*pub mod header;
+pub mod header;
 use ctr_drbg
 use error
 use platform_util
+use std::ffi::c_void;
 
-use crate::ctr_drbg::;*/
-/*
- *  CTR_DRBG implementation based on AES-256 (NIST SP 800-90)
- *
- *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
-/*
- *  The NIST SP 800-90 DRBGs are described in the following publication.
- *
- *  http://csrc.nist.gov/publications/nistpubs/800-90/SP800-90revised_March2007.pdf
- */
+use crate::ctr_drbg::MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED;
+use crate::ctr_drbg::MBEDTLS_ERR_CTR_DRBG_REQUEST_TOO_BIG;
+use crate::ctr_drbg::MBEDTLS_ERR_CTR_DRBG_INPUT_TOO_BIG;
+use crate::ctr_drbg::MBEDTLS_ERR_CTR_DRBG_FILE_IO_ERROR;
+use crate::ctr_drbg::MBEDTLS_CTR_DRBG_BLOCKSIZE;
+use crate::ctr_drbg::MBEDTLS_CTR_DRBG_KEYSIZE;
+use crate::ctr_drbg::MBEDTLS_CTR_DRBG_KEYBITS;
+use crate::ctr_drbg::MBEDTLS_CTR_DRBG_SEEDLEN;
+use crate::ctr_drbg::MBEDTLS_CTR_DRBG_ENTROPY_LEN;
+use crate::ctr_drbg::MBEDTLS_CTR_DRBG_RESEED_INTERVAL;
+use crate::ctr_drbg::MBEDTLS_CTR_DRBG_MAX_INPUT;
+use crate::ctr_drbg::MBEDTLS_CTR_DRBG_MAX_REQUEST;
+use crate::ctr_drbg::MBEDTLS_CTR_DRBG_MAX_SEED_INPUT;
+use crate::ctr_drbg::MBEDTLS_CTR_DRBG_PR_OFF;
+use crate::ctr_drbg::MBEDTLS_CTR_DRBG_PR_ON;
+use crate::ctr_drbg::MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN;
+use crate::ctr_drbg::mbedtls_ctr_drbg_context;
 
-
+use crate::error::MBEDTLS_ERR_ERROR_GENERIC_ERROR;
+use crate::error::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 
 use std::mem;
 
