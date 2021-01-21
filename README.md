@@ -25,5 +25,7 @@ All mbed-tls modules will have their respective rust module in this single libra
 
 ## Cipher - Camellia and 3DES Algorithm
 
+Camellia and 3DES are the symmetric key block cipher algorithm used for convert plain text to cipher text and vice versa using different key lengths.
+
 Ashish Kankal ([@ashishkankal](https://github.com/ashishkankal))
 Priyanka Mishra ([@mishpri0209](https://github.com/mishpri0209))
