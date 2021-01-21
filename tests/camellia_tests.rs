@@ -1,4 +1,4 @@
-use mbed::cipher::camellia::*;
+use mbedtls::cipher::camellia::*;
 #[test]
 fn initialize_camellia_cipher_128() {
     let keybits: u32 = 128;
