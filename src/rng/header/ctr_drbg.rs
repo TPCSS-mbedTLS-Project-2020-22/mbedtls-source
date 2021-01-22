@@ -21,6 +21,25 @@
  * See the documentation of mbedtls_ctr_drbg_seed() for more
  * information.
  */
+<<<<<<< HEAD
+=======
+/*
+ *  Copyright The Mbed TLS Contributors
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may
+ *  not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+>>>>>>> 33b9568e044e9ca4c03860584b37528ad6116362
 
 
 use std::ffi::c_void;
@@ -69,11 +88,15 @@ pub const MBEDTLS_CTR_DRBG_PR_ON:i32 = 1;
 pub const MBEDTLS_CTR_DRBG_ENTROPY_NONCE_LEN:i32 = 0;
 /**< Prediction resistance is disabled. */
 
+<<<<<<< HEAD
 pub fn f_entropy(data: Option<*mut c_void>, output: &mut [u8], len: usize, olen: usize) -> i32; 
 pub type mbedtls_entropy_f_source_ptr = fn(data: Option<*mut c_void>, output: &mut [u8], len: usize, olen: usize)->i32;
 pub f_ptr:mbedtls_entropy_f_source_ptr = f_entropy;
 
 pub struct mbedtls_ctr_drbg_context{
+=======
+pub struct {
+>>>>>>> 33b9568e044e9ca4c03860584b37528ad6116362
 
     pub counter[u8, 16];  /*!< The counter (V). */
     pub reseed_counter:i32 ;         /*!< The reseed counter.
@@ -101,12 +124,20 @@ pub struct mbedtls_ctr_drbg_context{
     /*
      * Callbacks (Entropy)
      */
+<<<<<<< HEAD
     //int (*f_entropy)(void *, unsigned char *, size_t);   
     pub fptr = f_ptr(data: Option<*mut c_void>, output: &mut [u8], len: usize, olen: usize)->i32;
+=======
+    fn (*f_entropy)(void *, unsigned char *, usize) -> i32;
+>>>>>>> 33b9568e044e9ca4c03860584b37528ad6116362
                                 /*!< The entropy callback function. */
 
     pub p_entropy: *mut c_void;           /*!< The context for the entropy function. */
    
+<<<<<<< HEAD
 };
+=======
+}mbedtls_ctr_drbg_context;
+>>>>>>> 33b9568e044e9ca4c03860584b37528ad6116362
 
 
