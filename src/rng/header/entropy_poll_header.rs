@@ -1,0 +1,5 @@
+
+pub const MBEDTLS_ENTROPY_MIN_PLATFORM: usize = 32;
+pub const MBEDTLS_ENTROPY_MIN_HAVEGE: usize = 32;
+pub const MBEDTLS_ENTROPY_MIN_HARDCLOCK: usize = 4;
+pub const MBEDTLS_ENTROPY_MIN_HARDWARE: usize = 32;
