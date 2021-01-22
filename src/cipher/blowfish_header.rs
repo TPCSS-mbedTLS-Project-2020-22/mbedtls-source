@@ -1,3 +1,9 @@
+#![allow(non_camel_case_types)]
+#![allow(non_upper_case_globals)]
+#![allow(non_snake_case)]
+#![allow(dead_code)]
+#![allow(unused)]
+#![allow(unused_imports)]
 pub const MBEDTLS_BLOWFISH_ENCRYPT:usize = 1;
 pub const MBEDTLS_BLOWFISH_DECRYPT:usize = 0;
 pub const MBEDTLS_BLOWFISH_MAX_KEY_BITS:u32 = 448;

@@ -1,3 +1,10 @@
+#![allow(non_camel_case_types)]
+#![allow(non_upper_case_globals)]
+#![allow(non_snake_case)]
+#![allow(dead_code)]
+#![allow(unused)]
+#![allow(unused_imports)]
+
 use crate::cipher::chacha20_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 use crate::cipher::chacha20_header::CHACHA20_CTR_INDEX;
 use crate::cipher::chacha20_header::MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA;

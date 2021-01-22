@@ -1,3 +1,9 @@
+#![allow(non_camel_case_types)]
+#![allow(non_upper_case_globals)]
+#![allow(non_snake_case)]
+#![allow(dead_code)]
+#![allow(unused)]
+#![allow(unused_imports)]
 use crate::cipher::blowfish_header::MBEDTLS_BLOWFISH_ENCRYPT;
 use crate::cipher::blowfish_header::MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH;
 use crate::cipher::blowfish_header::MBEDTLS_BLOWFISH_DECRYPT;
@@ -11,6 +17,8 @@ use crate::cipher::blowfish_header::MODULU32;
 use crate::cipher::blowfish_header::MBEDTLS_BLOWFISH_BLOCKSIZE;
 use std::convert::TryFrom;
 use crate::cipher::blowfish_header::mbedtls_blowfish_context;
+
+//helper functions
 pub fn get_uint32_be(n : &mut u32,b :&mut [u8],i: usize ){
     *n=u32::from( b[i])<<24 |
         u32::from( b[i+1])<<16 |
@@ -23,7 +31,7 @@ pub fn put_uint32_be(n :  u32, b :&mut [u8;MBEDTLS_BLOWFISH_BLOCKSIZE],i: usize)
     b[i + 2]=u8::try_from((n >> 8)&0xFF).unwrap();
     b[i + 3]=u8::try_from(n & 0xFF ).unwrap();
 }
-
+// consants used in algorithm 
 pub const P:[u32;crate::cipher::blowfish_header::MBEDTLS_BLOWFISH_ROUNDS+2]=[0x243F6A88,0x85A308D3, 0x13198A2E, 0x03707344,
                                                     0xA4093822, 0x299F31D0, 0x082EFA98, 0xEC4E6C89,
                                                     0x452821E6, 0x38D01377, 0xBE5466CF, 0x34E90C6C,
@@ -422,7 +430,27 @@ pub fn mbedtls_blowfish_setkey(mut ctx : &mut mbedtls_blowfish_context, key:&str
     return 0;
 }
 // ecb encryption
+/**
+ * \brief          Perform a Blowfish-ECB block encryption/decryption operation.
+ *
+ * \param ctx      The Blowfish context to use. This must be initialized
+ *                 and bound to a key.
+ * \param mode     The mode of operation. Possible values are
+ *                 #MBEDTLS_BLOWFISH_ENCRYPT for encryption, or
+ *                 #MBEDTLS_BLOWFISH_DECRYPT for decryption.
+ * \param input    The input block. This must be a u8 array
+ *                 of size \c 8 Bytes.
+ * \param output   The output block. This must be a mutable reference to u8 array
+ *                 of size \c 8 Bytes.
+ *
+ * \return         \c 0 if successful.
+ * \return         A negative error code on failure.
+ */
 pub fn mbedtls_blowfish_crypt_ecb(mut ctx : &mut mbedtls_blowfish_context,mode:usize, mut input: [u8;MBEDTLS_BLOWFISH_BLOCKSIZE], mut output : &mut [u8;MBEDTLS_BLOWFISH_BLOCKSIZE] )->i32{
+    if mode!=MBEDTLS_BLOWFISH_ENCRYPT && mode!=MBEDTLS_BLOWFISH_DECRYPT
+    {
+        return MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA;
+    }
     let mut X0:u32=0;
     let mut X1:u32=0;
     get_uint32_be(&mut X0, &mut input,0);
@@ -443,13 +471,45 @@ pub fn mbedtls_blowfish_crypt_ecb(mut ctx : &mut mbedtls_blowfish_context,mode:u
     return 0;
 }
 // cbc encryption
-
+/**
+ * \brief          Perform a Blowfish-CBC buffer encryption/decryption operation.
+ *
+ * \note           Upon exit, the content of the IV is updated so that you can
+ *                 call the function same function again on the following
+ *                 block(s) of data and get the same result as if it was
+ *                 encrypted in one call. This allows a "streaming" usage.
+ *                 If on the other hand you need to retain the contents of the
+ *                 IV, you should either save it manually or use the cipher
+ *                 module instead.
+ *
+ * \param ctx      The Blowfish context to use. This must be initialized
+ *                 and bound to a key.
+ * \param mode     The mode of operation. Possible values are
+ *                 #MBEDTLS_BLOWFISH_ENCRYPT for encryption, or
+ *                 #MBEDTLS_BLOWFISH_DECRYPT for decryption.
+ * \param length   The length of the input data in Bytes. This must be
+ *                 multiple of \c 8.
+ * \param iv       The initialization vector. This must be a read/write buffer
+ *                 of length \c 8 Bytes. It is updated by this function.
+ * \param input    The input data. This must be a readable buffer of length
+ *                 \p length Bytes.
+ * \param output   The output data. This must be a writable buffer of length
+ *                 \p length Bytes.
+ *
+ * \return         \c 0 if successful.
+ * \return         A negative error code on failure.
+ */
 pub fn mbedtls_blowfish_crypt_cbc(mut ctx : &mut mbedtls_blowfish_context,
                                 mode:usize,
                                 mut length :usize,
                                 iv:&mut [char;MBEDTLS_BLOWFISH_BLOCKSIZE],
                                 mut input: String, 
-                                mut output :&mut String)->i32{
+                                mut output :&mut String)->i32
+{
+    if mode!=MBEDTLS_BLOWFISH_ENCRYPT && mode!=MBEDTLS_BLOWFISH_DECRYPT
+    {
+        return MBEDTLS_ERR_BLOWFISH_BAD_INPUT_DATA;
+    }
     let mut i:i32;
     let mut temp:[u8;MBEDTLS_BLOWFISH_BLOCKSIZE]=[0,0,0,0,0,0,0,0];
     let mut inputbytes:[u8;MBEDTLS_BLOWFISH_BLOCKSIZE]=[0,0,0,0,0,0,0,0];
@@ -503,7 +563,7 @@ pub fn mbedtls_blowfish_crypt_cbc(mut ctx : &mut mbedtls_blowfish_context,
             }
             k+=MBEDTLS_BLOWFISH_BLOCKSIZE;
             length-=MBEDTLS_BLOWFISH_BLOCKSIZE;
-            let mut out:[char;MBEDTLS_BLOWFISH_BLOCKSIZE]=['0','0','0','0','0','0','0','0'];
+            let mut out:[char;MBEDTLS_BLOWFISH_BLOCKSIZE]=['0';MBEDTLS_BLOWFISH_BLOCKSIZE];
             for i in 0..MBEDTLS_BLOWFISH_BLOCKSIZE{
                 out[i]=outputbytes[i] as char;
                 res.push(out[i]);
@@ -513,7 +573,38 @@ pub fn mbedtls_blowfish_crypt_cbc(mut ctx : &mut mbedtls_blowfish_context,
     *output=res;
     return 0;
 }
-//cfb mode
+//cfb64 mode
+/**
+ * \brief          Perform a Blowfish CFB buffer encryption/decryption operation.
+ *
+ * \note           Upon exit, the content of the IV is updated so that you can
+ *                 call the function same function again on the following
+ *                 block(s) of data and get the same result as if it was
+ *                 encrypted in one call. This allows a "streaming" usage.
+ *                 If on the other hand you need to retain the contents of the
+ *                 IV, you should either save it manually or use the cipher
+ *                 module instead.
+ *
+ * \param ctx      The Blowfish context to use. This must be initialized
+ *                 and bound to a key.
+ * \param mode     The mode of operation. Possible values are
+ *                 #MBEDTLS_BLOWFISH_ENCRYPT for encryption, or
+ *                 #MBEDTLS_BLOWFISH_DECRYPT for decryption.
+ * \param length   The length of the input data in Bytes.
+ * \param iv_off   The offset in the initialiation vector.
+ *                 The value pointed to must be smaller than \c 8 Bytes.
+ *                 It is updated by this function to support the aforementioned
+ *                 streaming usage.
+ * \param iv       The initialization vector. This must be a read/write buffer
+ *                 of size \c 8 Bytes. It is updated after use.
+ * \param input    The input data. This must be a readable buffer of length
+ *                 \p length Bytes.
+ * \param output   The output data. This must be a writable buffer of length
+ *                 \p length Bytes.
+ *
+ * \return         \c 0 if successful.
+ * \return         A negative error code on failure.
+ */
 pub fn mbedtls_blowfish_crypt_cfb64(mut ctx : &mut mbedtls_blowfish_context,
     mode:usize,
     mut length :usize,
@@ -521,7 +612,7 @@ pub fn mbedtls_blowfish_crypt_cfb64(mut ctx : &mut mbedtls_blowfish_context,
     ivoff:&mut usize,
     mut input: String, 
     mut output :&mut String)->i32{
-
+        
         let mut c:u8;
         let mut n:usize;
         n=*ivoff;
@@ -534,7 +625,7 @@ pub fn mbedtls_blowfish_crypt_cfb64(mut ctx : &mut mbedtls_blowfish_context,
         let mut k:usize=0;
         let mut res:String=String::from("");
         if mode == MBEDTLS_BLOWFISH_DECRYPT {
-            let mut ivbytes:[u8;MBEDTLS_BLOWFISH_BLOCKSIZE]=[0,0,0,0,0,0,0,0];
+            let mut ivbytes:[u8;MBEDTLS_BLOWFISH_BLOCKSIZE]=[0;8];
             while length >0 {
                 
                 if n==0{
@@ -547,7 +638,7 @@ pub fn mbedtls_blowfish_crypt_cfb64(mut ctx : &mut mbedtls_blowfish_context,
                     }
                 }
                 c=input.chars().nth(k).unwrap() as u8;
-                let mut temp:char;
+                let temp:char;
                 temp=(c^ivbytes[n]) as char;
                 res.push(temp);
                 iv[n]=c as char;
@@ -589,8 +680,70 @@ pub fn mbedtls_blowfish_crypt_cfb64(mut ctx : &mut mbedtls_blowfish_context,
         *ivoff=n;
         return 0;
     }
-
-/*ctr encryption*/
+    /*ctr encryption*/
+/**
+ * \brief      Perform a Blowfish-CTR buffer encryption/decryption operation.
+ *
+ * \warning    You must never reuse a nonce value with the same key. Doing so
+ *             would void the encryption for the two messages encrypted with
+ *             the same nonce and key.
+ *
+ *             There are two common strategies for managing nonces with CTR:
+ *
+ *             1. You can handle everything as a single message processed over
+ *             successive calls to this function. In that case, you want to
+ *             set \p nonce_counter and \p nc_off to 0 for the first call, and
+ *             then preserve the values of \p nonce_counter, \p nc_off and \p
+ *             stream_block across calls to this function as they will be
+ *             updated by this function.
+ *
+ *             With this strategy, you must not encrypt more than 2**64
+ *             blocks of data with the same key.
+ *
+ *             2. You can encrypt separate messages by dividing the \p
+ *             nonce_counter buffer in two areas: the first one used for a
+ *             per-message nonce, handled by yourself, and the second one
+ *             updated by this function internally.
+ *
+ *             For example, you might reserve the first 4 bytes for the
+ *             per-message nonce, and the last 4 bytes for internal use. In that
+ *             case, before calling this function on a new message you need to
+ *             set the first 4 bytes of \p nonce_counter to your chosen nonce
+ *             value, the last 4 to 0, and \p nc_off to 0 (which will cause \p
+ *             stream_block to be ignored). That way, you can encrypt at most
+ *             2**32 messages of up to 2**32 blocks each with the same key.
+ *
+ *             The per-message nonce (or information sufficient to reconstruct
+ *             it) needs to be communicated with the ciphertext and must be unique.
+ *             The recommended way to ensure uniqueness is to use a message
+ *             counter.
+ *
+ *             Note that for both stategies, sizes are measured in blocks and
+ *             that a Blowfish block is 8 bytes.
+ *
+ * \warning    Upon return, \p stream_block contains sensitive data. Its
+ *             content must not be written to insecure storage and should be
+ *             securely discarded as soon as it's no longer needed.
+ *
+ * \param ctx           The Blowfish context to use. This must be initialized
+ *                      and bound to a key.
+ * \param length        The length of the input data in Bytes.
+ * \param nc_off        The offset in the current stream_block (for resuming
+ *                      within current cipher stream). The offset pointer
+ *                      should be \c 0 at the start of a stream and must be
+ *                      smaller than \c 8. It is updated by this function.
+ * \param nonce_counter The 64-bit nonce and counter. This must point to a
+ *                      read/write buffer of length \c 8 Bytes.
+ * \param stream_block  The saved stream-block for resuming. This must point to
+ *                      a read/write buffer of length \c 8 Bytes.
+ * \param input         The input data. This must be a readable buffer of
+ *                      length \p length Bytes.
+ * \param output        The output data. This must be a writable buffer of
+ *                      length \p length Bytes.
+ *
+ * \return              \c 0 if successful.
+ * \return              A negative error code on failure.
+ */
 pub fn mbedtls_blowfish_crypt_ctr(mut ctx : &mut mbedtls_blowfish_context,
     mut length :usize,
     nc_off:&mut usize,
@@ -598,7 +751,7 @@ pub fn mbedtls_blowfish_crypt_ctr(mut ctx : &mut mbedtls_blowfish_context,
     mut stream_block:&mut [char;MBEDTLS_BLOWFISH_BLOCKSIZE],
     mut input: String, 
     mut output :&mut String)->i32{
-
+        
         let mut c:u8;
         let mut n:usize;
         let mut k:usize=0;

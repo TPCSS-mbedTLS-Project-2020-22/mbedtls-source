@@ -1,4 +1,11 @@
 //just to do a sanity check 
+#![allow(non_camel_case_types)]
+#![allow(non_upper_case_globals)]
+#![allow(non_snake_case)]
+#![allow(dead_code)]
+#![allow(unused)]
+#![allow(unused_imports)]
+
 mod cipher;
 use crate::cipher::blowfishc::mbedtls_blowfish_crypt_ctr;
 use crate::cipher::blowfishc::mbedtls_blowfish_crypt_cfb64;
@@ -14,16 +21,11 @@ fn main() {
     let mut n:u32=0;
     let mut b:[u8;8]=[1,2,3,4,5,6,7,8];
     let i:usize=0;
-    get_uint32_be(&mut n,&mut b,i);
-    println!("{:b}",n);
-    b=[0,0,0,0,0,0,0,0];
-    put_uint32_be(n,&mut b,i);
-    println!("{:?}",b);
-    println!("{:?}",cipher::blowfishc::P);
     let mut ctx:&mut mbedtls_blowfish_context=& mut mbedtls_blowfish_context{
         P:cipher::blowfishc::P,
         S:cipher::blowfishc::S,
     };
+    println!("========blowfish encrypt,decrypt  test =========");
     let mut xl:u32=0x3AC372E6;
     let mut xr:u32=0xCE77E25B;
     cipher::blowfishc::blowfish_enc(&mut ctx,&mut xl,&mut xr);
@@ -32,22 +34,22 @@ fn main() {
     println!("{:x} {:x}",xl,xr);
     //println!("{}",F(&mut ctx,n));
     cipher::blowfishc::mbedtls_blowfish_init(&mut ctx);
-    println!("{:?}",ctx.P);
+    //println!("{:?}",ctx.P);
     cipher::blowfishc::mbedtls_blowfish_setkey(&mut ctx,"10010110001110101001011000111010",32);
-    println!("{:?}",ctx.P);
+    //println!("{:?}",ctx.P);
     b=[49, 50, 51, 52, 53, 54, 55, 56];
     let mut c:[u8;8]=[0,0,0,0,0,0,0,0];
+    println!("========blowfish ecb  test =========");
     println!("{:?}",b);
     cipher::blowfishc::mbedtls_blowfish_crypt_ecb(&mut ctx,MBEDTLS_BLOWFISH_ENCRYPT, b,&mut c);
     println!("{:?}",c);
     let mut d:[u8;8]=[0,0,0,0,0,0,0,0];
     cipher::blowfishc::mbedtls_blowfish_crypt_ecb(&mut ctx,MBEDTLS_BLOWFISH_DECRYPT, c,&mut d);
     println!("{:?}",d);
-    crate::cipher::blowfish_header::run();
+
     let mut iv:  [char;MBEDTLS_BLOWFISH_BLOCKSIZE]=['1','2','3','4','5','6','7','8'];
     let mut k= String::from("ijklmnopijklmnop");
-    //out="hmm";
-
+    println!("========blowfish cbc  test =========");
     mbedtls_blowfish_crypt_cbc(&mut ctx,MBEDTLS_BLOWFISH_ENCRYPT,16,&mut iv,String::from("abcdefgh[]||tuvw"),&mut k);
     println!("{:?}",k);
     let mut k1= String::from("ijklmnopijklmnop");
@@ -56,6 +58,8 @@ fn main() {
     println!("{:?}",k1);
     let mut ivoff:usize=0;
     iv=['1','2','3','4','5','6','7','8'];
+    println!("========blowfish cfb64 test =========");
+
     mbedtls_blowfish_crypt_cfb64(&mut ctx,MBEDTLS_BLOWFISH_ENCRYPT,16,&mut iv,&mut ivoff,String::from("abc\ne,%7pqrstuvw"),&mut k1);
     println!("{:?} {:?}",k1,iv);
     let mut k2= String::from("ijklmnopijklmnop");
@@ -66,6 +70,8 @@ fn main() {
     iv=['1','2','3','4','5','6','7','8'];
     let mut k3= String::from("ijklmnopijklmnopabcdefgh[]||tuvw");
     let mut noff:usize=0;
+
+    println!("========blowfish ctr  test =========");
     mbedtls_blowfish_crypt_ctr(&mut ctx,32,&mut noff,&mut nonc,&mut iv,String::from("abcdefg@*&rstuvwabcdefgh[]||tuvw"),&mut k3);
     println!("{:?} {:?}",k3,nonc);
     let mut k4= String::from("ijklmnopijklmnopabcdefgh[]||tuvw");

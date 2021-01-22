@@ -1,3 +1,10 @@
+#![allow(non_camel_case_types)]
+#![allow(non_upper_case_globals)]
+#![allow(non_snake_case)]
+#![allow(dead_code)]
+#![allow(unused)]
+#![allow(unused_imports)]
+
 pub const MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA:i32=-0x0051;
 pub const MBEDTLS_ERR_CHACHA20_FEATURE_UNAVAILABLE:i32=-0x0053;
 pub const MBEDTLS_ERR_CHACHA20_HW_ACCEL_FAILED:i32=-0x0055;
