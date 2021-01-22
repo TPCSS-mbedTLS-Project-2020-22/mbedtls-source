@@ -10,15 +10,9 @@ pub mod entropy_header;
 
 use entropy_header::*;
 use entropy_poll_header::*;
-
-// use std::fs;
 use std::ffi::c_void;
 
 pub const ENTROPY_MAX_LOOP: i32 = 256;
-
-pub fn check() {
-    println!("paras");
-}
 
 pub fn mbedtls_sha512_free(ctx: *mut mbedtls_sha512_context ) -> () {
     if ctx.is_null() {
@@ -44,12 +38,12 @@ pub fn mbedtls_sha512_init(ctx: &mut mbedtls_sha512_context ) -> () {
     *ctx = Default::default();
 }
 
-fn mbedtls_hardclock_poll(data: Option<*mut c_void>, output: &mut [u8], len: usize, olen: usize) -> i32 {
+pub fn mbedtls_hardclock_poll(data: Option<*mut c_void>, output: &mut [u8], len: usize, olen: usize) -> i32 {
 
     println!("Default for entropy f_source ptr");
     return 2;
 }
-fn mbedtls_nv_seed_poll(data: Option<*mut c_void>, output: &mut [u8], len: usize, olen: usize) -> i32 {
+pub fn mbedtls_nv_seed_poll(data: Option<*mut c_void>, output: &mut [u8], len: usize, olen: usize) -> i32 {
 
     println!("For entropy f_source ptr");
     return 2;
@@ -61,23 +55,23 @@ pub fn mbedtls_platform_entropy_poll(data: Option<*mut c_void>, output: &mut [u8
     return 2;
 }
 
-fn mbedtls_sha512_ret(input: &mut [u8], ilen: usize, output: &mut [u8], is384: i32) -> i32 {
+pub fn mbedtls_sha512_ret(input: &mut [u8], ilen: usize, output: &mut [u8], is384: i32) -> i32 {
 
     println!("sha.c file's function template");
     return 0;
 }
 
-fn mbedtls_sha512_starts_ret(ctx: &mut mbedtls_sha512_context, is384: i32) -> i32 {
+pub fn mbedtls_sha512_starts_ret(ctx: &mut mbedtls_sha512_context, is384: i32) -> i32 {
     println!("sha.c file's function template");
     return 0;
 }
 
-fn mbedtls_sha512_update_ret(ctx: &mut mbedtls_sha512_context, input: &mut [u8], ilen: usize) -> i32 {
+pub fn mbedtls_sha512_update_ret(ctx: &mut mbedtls_sha512_context, input: &mut [u8], ilen: usize) -> i32 {
     println!("sha.c file's function template");
     return 0;
 }
 
-fn mbedtls_sha512_finish_ret(ctx: &mut mbedtls_sha512_context, is384: &mut [u8]) -> i32 {
+pub fn mbedtls_sha512_finish_ret(ctx: &mut mbedtls_sha512_context, is384: &mut [u8]) -> i32 {
     println!("sha.c file's function template");
     return 0;
 }
@@ -100,7 +94,7 @@ pub fn mbedtls_entropy_init(ctx: &mut mbedtls_entropy_context) -> () {
 }
 
 
-fn mbedtls_entropy_add_source(ctx: &mut mbedtls_entropy_context, f_source: mbedtls_entropy_f_source_ptr , p_source: Option<*mut c_void>, threshold: usize, strong: i32) -> i32 {
+pub fn mbedtls_entropy_add_source(ctx: &mut mbedtls_entropy_context, f_source: mbedtls_entropy_f_source_ptr , p_source: Option<*mut c_void>, threshold: usize, strong: i32) -> i32 {
 
     let mut ret: i32 = 0;
     let mut idx: usize = 0;
@@ -125,13 +119,13 @@ fn mbedtls_entropy_add_source(ctx: &mut mbedtls_entropy_context, f_source: mbedt
 }
 
 
-fn entropy_cleanup(tmp: &mut [u8], ret: i32) -> i32 {
+pub fn entropy_cleanup(tmp: &mut [u8], ret: i32) -> i32 {
 
     for i in &mut *tmp { *i = 0; }
     return ret;
 }
 
-fn entropy_update(ctx: &mut mbedtls_entropy_context, source_id: u8, data: &mut [u8], len: usize) -> i32 {
+pub fn entropy_update(ctx: &mut mbedtls_entropy_context, source_id: u8, data: &mut [u8], len: usize) -> i32 {
 
     let mut header: [u8; 2] = [0; 2];
     let mut tmp: [u8; MBEDTLS_ENTROPY_BLOCK_SIZE] = [0; MBEDTLS_ENTROPY_BLOCK_SIZE];
@@ -174,7 +168,7 @@ fn entropy_update(ctx: &mut mbedtls_entropy_context, source_id: u8, data: &mut [
 }
 
 
-fn mbedtls_entropy_update_manual(ctx: &mut mbedtls_entropy_context, data: &mut [u8], len: usize) -> i32 {
+pub fn mbedtls_entropy_update_manual(ctx: &mut mbedtls_entropy_context, data: &mut [u8], len: usize) -> i32 {
 
     let mut ret: i32 = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     ret = entropy_update(&mut *ctx, MBEDTLS_ENTROPY_SOURCE_MANUAL as u8, data, len);
@@ -182,7 +176,7 @@ fn mbedtls_entropy_update_manual(ctx: &mut mbedtls_entropy_context, data: &mut [
 }
 
 
-fn entropy_gather_internal(ctx: &mut mbedtls_entropy_context) -> i32 {
+pub fn entropy_gather_internal(ctx: &mut mbedtls_entropy_context) -> i32 {
 
     let mut ret: i32 = MBEDTLS_ERR_ENTROPY_SOURCE_FAILED;
     let mut i: i32 = 0;
@@ -232,7 +226,7 @@ fn entropy_gather_internal(ctx: &mut mbedtls_entropy_context) -> i32 {
 }
 
 
-fn mbedtls_entropy_gather(ctx: &mut mbedtls_entropy_context) -> i32 {
+pub fn mbedtls_entropy_gather(ctx: &mut mbedtls_entropy_context) -> i32 {
 
     let mut ret: i32 = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
     ret = entropy_gather_internal(&mut *ctx);
@@ -240,7 +234,7 @@ fn mbedtls_entropy_gather(ctx: &mut mbedtls_entropy_context) -> i32 {
 }
 
 
-fn mbedtls_entropy_func(ctx: &mut mbedtls_entropy_context, output: &mut [u8], len: usize) -> i32 {
+pub fn mbedtls_entropy_func(ctx: &mut mbedtls_entropy_context, output: &mut [u8], len: usize) -> i32 {
 
     let mut ret: i32 = 0;
     let mut i: i32 = 0;
@@ -340,7 +334,7 @@ fn mbedtls_entropy_func(ctx: &mut mbedtls_entropy_context, output: &mut [u8], le
     return entropy_cleanup(&mut buf, ret);
 }
 
-fn mbedtls_entropy_update_nv_seed(ctx: &mut mbedtls_entropy_context) -> i32 {
+pub fn mbedtls_entropy_update_nv_seed(ctx: &mut mbedtls_entropy_context) -> i32 {
 
     let mut ret: i32 = MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR;
     let mut buf: [u8; MBEDTLS_ENTROPY_BLOCK_SIZE] = [0; MBEDTLS_ENTROPY_BLOCK_SIZE];
@@ -349,10 +343,6 @@ fn mbedtls_entropy_update_nv_seed(ctx: &mut mbedtls_entropy_context) -> i32 {
     if ret != 0 {
         return ret;
     }
-
-    // if mbedtls_nv_seed_write(buf, MBEDTLS_ENTROPY_BLOCK_SIZE) < 0 {
-    //     return MBEDTLS_ERR_ENTROPY_FILE_IO_ERROR;
-    // }
 
     for i in &mut buf { *i = 0; }
     ret = mbedtls_entropy_update_manual(&mut *ctx, &mut buf, MBEDTLS_ENTROPY_BLOCK_SIZE);

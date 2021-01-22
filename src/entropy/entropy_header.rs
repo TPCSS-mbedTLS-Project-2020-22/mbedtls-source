@@ -34,10 +34,12 @@ impl Default for mbedtls_sha512_context {
     }
 }
 
-pub fn mbedtls_platform_entropy_poll(data: Option<*mut c_void>, output: &mut [u8], len: usize, olen: usize) -> i32 {
+pub fn entropy_dummy_source(data: Option<*mut c_void>, output: &mut [u8], len: usize, olen: usize) -> i32 {
 
-    println!("Default for entropy f_source ptr");
-    return 2;
+    for i in 0..len {
+        output[i] = 0x2a;
+    }
+    return 0;
 }
 
 pub type mbedtls_entropy_f_source_ptr = fn(data: Option<*mut c_void>, output: &mut [u8], len: usize, olen: usize) -> i32;
@@ -52,7 +54,7 @@ pub struct mbedtls_entropy_source_state {
 impl Default for mbedtls_entropy_source_state {
     fn default() -> mbedtls_entropy_source_state {
         mbedtls_entropy_source_state {
-            f_source: mbedtls_platform_entropy_poll,
+            f_source: entropy_dummy_source,
             p_source: None,
             size: Default::default(),
             threshold: Default::default(),
