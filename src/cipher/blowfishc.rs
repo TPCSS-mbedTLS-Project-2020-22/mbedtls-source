@@ -4,6 +4,9 @@
 #![allow(dead_code)]
 #![allow(unused)]
 #![allow(unused_imports)]
+
+
+//importing the variables or functions required from other files
 use crate::cipher::blowfish_header::MBEDTLS_BLOWFISH_ENCRYPT;
 use crate::cipher::blowfish_header::MBEDTLS_ERR_BLOWFISH_INVALID_INPUT_LENGTH;
 use crate::cipher::blowfish_header::MBEDTLS_BLOWFISH_DECRYPT;
@@ -371,18 +374,40 @@ pub fn blowfish_dec(mut ctx : &mut mbedtls_blowfish_context,xl : &mut u32,xr : &
     *xl = Xl;
     *xr = Xr;
 }
+/**
+ * \brief          Initialize a Blowfish context.
+ *
+ * \param ctx      The Blowfish context to be initialized.
+ *                 
+ */
 
 pub fn mbedtls_blowfish_init(ctx : &mut mbedtls_blowfish_context){
     unsafe{
     write_bytes(ctx,0,1);
     }
 }
+/**
+ * \brief          Clear a Blowfish context.
+ *
+ * \param ctx      The Blowfish context to be cleared.
+ */
 pub fn mbedtls_blowfish_free(ctx : &mut mbedtls_blowfish_context){
     unsafe{
         write_bytes(ctx,0,1);
         }
 }
-
+/**
+ * \brief          Perform a Blowfish key schedule operation.
+ *
+ * \param ctx      The Blowfish context to perform the key schedule on.
+ * \param key      The encryption key. This must be a readable buffer of
+ *                 length \p keybits Bits.
+ * \param keybits  The length of \p key in Bits. This must be between
+ *                 \c 32 and \c 448 and a multiple of \c 8.
+ *
+ * \return         \c 0 if successful.
+ * \return         A negative error code on failure.
+ */
 pub fn mbedtls_blowfish_setkey(mut ctx : &mut mbedtls_blowfish_context, key:&str,mut keybits: u32)->i32{
     let mut j:usize;
     let mut data:u32;

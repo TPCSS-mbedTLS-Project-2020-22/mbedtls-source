@@ -5,6 +5,7 @@
 #![allow(unused)]
 #![allow(unused_imports)]
 
+//importing the variables and functions required from other files
 use crate::cipher::chacha20_header::MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
 use crate::cipher::chacha20_header::CHACHA20_CTR_INDEX;
 use crate::cipher::chacha20_header::MBEDTLS_ERR_CHACHA20_BAD_INPUT_DATA;
@@ -13,6 +14,8 @@ use std::ptr::write_bytes;
 use crate::cipher::chacha20_header::CHACHA20_BLOCK_SIZE_BYTES;
 use crate::cipher::chacha20_header::mbedtls_chacha20_context;
 
+
+//helper functions
 pub fn ROTL32(value:u32,amount:usize)->u32{
     let ret:u32;
     ret=(((value as u64)<<amount)|((value as u64)>>(32-amount))) as u32;
@@ -241,6 +244,35 @@ pub fn mbedtls_chacha20_update(ctx:&mut mbedtls_chacha20_context,mut size:usize,
     return 0;
 }
 
+/*
+ * \brief           This function encrypts or decrypts data with ChaCha20 and
+ *                  the given key and nonce.
+ *
+ *                  Since ChaCha20 is a stream cipher, the same operation is
+ *                  used for encrypting and decrypting data.
+ *
+ * \warning         You must never use the same (key, nonce) pair more than
+ *                  once. This would void any confidentiality guarantees for
+ *                  the messages encrypted with the same nonce and key.
+ *
+ * \note            The \p input and \p output references must either be equal or
+ *                  point to non-overlapping buffers.
+ *
+ * \param key       The encryption/decryption key.
+ *                  This must be \c 32 Bytes in length.
+ * \param nonce     The nonce. This must be \c 12 Bytes in size.
+ * \param counter   The initial counter value. This is usually \c 0.
+ * \param size      The length of the input data in Bytes.
+ * \param input     The buffer holding the input data.
+ *                  This pointer can be \c NULL if `size == 0`.
+ * \param output    The buffer holding the output data.
+ *                  This must be able to hold \p size Bytes.
+ *                  This pointer can be \c NULL if `size == 0`.
+ *
+ * \return          \c 0 on success.
+ * \return          A negative error code on failure.
+ */
+
 pub fn mbedtls_chacha20_crypt(key:[u8;32],
     nonce:[u8;12],counter:u32,data_len:usize,
     input:Vec<u8>,output:&mut Vec<u8>)->i32
@@ -270,6 +302,8 @@ pub fn mbedtls_chacha20_crypt(key:[u8;32],
     mbedtls_chacha20_free( &mut ctx );
     return ret;
 }
+
+//self test
 const test_keys:[[u8;32];2] = [
     [
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
