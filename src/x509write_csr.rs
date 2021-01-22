@@ -1,10 +1,6 @@
 use std::{array, usize};
 use std::mem;
-#[allow(non_camel_case_types)]
-#[allow(unused)]
-#[warn(unused_macros)]
-#[allow(non_snake_case)]
-#[allow(unreachable_code)]
+
 
 use std::ptr::write_bytes;
 pub const MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED : i32 =  -0x006E ;
