@@ -36,7 +36,7 @@ pub fn BYTES_TO_U32_LE2(data:[u8;12],offset:usize)->u32{
     return ret;
 }
 
-/**
+/* *
  * \brief           ChaCha20 quarter round operation.
  *
  *                  The quarter round is defined as follows (from RFC 7539):
@@ -73,7 +73,7 @@ pub fn chacha20_quarter_round(state:&mut [u32;16],a:usize,b:usize,c:usize,d:usiz
     state[b] ^= state[c];
     state[b] = ROTL32( state[b], 7 );
 }
-/**
+/* *
  * \brief           Perform the ChaCha20 inner block operation.
  *
  *                  This function performs two rounds: the column round and the
@@ -93,7 +93,7 @@ pub fn chacha20_inner_block(  state:&mut [u32;16] )
     chacha20_quarter_round( state, 2, 7, 8,  13 );
     chacha20_quarter_round( state, 3, 4, 9,  14 );
 }
-/**
+/* *
  * \brief               Generates a keystream block.
  *
  * \param initial_state The initial ChaCha20 state (key, nonce, counter).

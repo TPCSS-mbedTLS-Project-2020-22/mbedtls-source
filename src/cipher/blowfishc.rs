@@ -430,7 +430,7 @@ pub fn mbedtls_blowfish_setkey(mut ctx : &mut mbedtls_blowfish_context, key:&str
     return 0;
 }
 // ecb encryption
-/**
+/* *
  * \brief          Perform a Blowfish-ECB block encryption/decryption operation.
  *
  * \param ctx      The Blowfish context to use. This must be initialized
@@ -471,7 +471,7 @@ pub fn mbedtls_blowfish_crypt_ecb(mut ctx : &mut mbedtls_blowfish_context,mode:u
     return 0;
 }
 // cbc encryption
-/**
+/* *
  * \brief          Perform a Blowfish-CBC buffer encryption/decryption operation.
  *
  * \note           Upon exit, the content of the IV is updated so that you can
@@ -574,7 +574,7 @@ pub fn mbedtls_blowfish_crypt_cbc(mut ctx : &mut mbedtls_blowfish_context,
     return 0;
 }
 //cfb64 mode
-/**
+/* *
  * \brief          Perform a Blowfish CFB buffer encryption/decryption operation.
  *
  * \note           Upon exit, the content of the IV is updated so that you can
@@ -681,7 +681,7 @@ pub fn mbedtls_blowfish_crypt_cfb64(mut ctx : &mut mbedtls_blowfish_context,
         return 0;
     }
     /*ctr encryption*/
-/**
+/* *
  * \brief      Perform a Blowfish-CTR buffer encryption/decryption operation.
  *
  * \warning    You must never reuse a nonce value with the same key. Doing so
