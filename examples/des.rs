@@ -15,13 +15,12 @@ fn main() {
     ];
 
     //Test-1-DES ECB Encryption and Decryption (56 Bit)
-    let  n: u32 = 0;
-    let mut input: [u8; 8] = [1, 2, 3, 4, 5, 6, 7, 8];
-
+    
+  
     mbedtls_des_setkey_enc(&mut cipher, DES3_TEST_KEYS);
     println!("-------Now Presenting DES ECB Encryption and Decryption------");
     //Encryption
-    input = [49, 50, 51, 52, 53, 54, 55, 56];
+    let mut input: [u8; 8] = [49, 50, 51, 52, 53, 54, 55, 56];
     let mut c: [u8; 8] = [0, 0, 0, 0, 0, 0, 0, 0];
     println!("Before Encrption : Input Value is  {:?}", input);
     mbedtls_des_crypt_ecb(&mut cipher, input, &mut c);
