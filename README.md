@@ -8,7 +8,8 @@ All mbed-tls modules will have their respective rust module in this single libra
 
 # Contributors
 
-TODO : Add the list of all the contributors over here
+* Vimal Patel
+* Gokulnath Pillai
 
 # hashing module
 
