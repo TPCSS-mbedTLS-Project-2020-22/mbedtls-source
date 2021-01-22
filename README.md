@@ -7,4 +7,7 @@ README
 All mbed-tls modules will have their respective rust module in this single library crate. If the mbed-tls module has several files within, we will use folders to group such submodules within a single module (as in the case of ssl-tls module).
 
 # Contributors
-Hitesh Poply and Gaurish Gangwar
+* Hitesh Poply 
+* Gaurish Gangwar
+# Cipher module
+We have implemented AES,blowfish and chacha20 ciphers and the code for them is in the src/cipher directory .The various tests conducted are in src/lib.rs file .To run these tests invoke the command cargo test.
