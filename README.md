@@ -1,22 +1,17 @@
-# mbedtls (Rust Implementation)
-[![Build Status](https://travis-ci.org/TPCSS-mbedTLS-Project-2020-22/mbedtls-source.svg?branch=master)](https://travis-ci.org/TPCSS-mbedTLS-Project-2020-22/mbedtls-source)
+# Encryption/Decryption(padlock.rs)
+ It contains   various symmetric encryption and asymmetric encryption algorithms that are accessible via the generic cipher layer and various asymmetric encryption algorithms that are accessible via the generic public key layer.
 
-* [Link](https://github.com/TPCSS-mbedTLS-Project-2020-22/source/wiki) to wiki page.
+# Contributors  
+ - Anshul Kumrawat
+ - Darshika Tiwari
 
 ---
-   Ref version to use is mbedTLS v2.24.0
-   
-   https://github.com/ARMmbed/mbedtls/tree/v2.24.0
-   
-   zip/tarballs are available from here: [release/tag/v2.24.0](https://github.com/ARMmbed/mbedtls/releases/tag/v2.24.0)
-   - zip: [v2.24.0.zip](https://github.com/ARMmbed/mbedtls/archive/v2.24.0.zip)
-   - tarball: [v2.24.0.tar.gz](https://github.com/ARMmbed/mbedtls/archive/v2.24.0.tar.gz)
-   
----
+# File Description:
 
-# Project Strucuture
-All mbed-tls modules will have their respective rust module in this single library crate. If the mbed-tls module has several files within, we will use folders to group such submodules within a single module (as in the case of ssl-tls module).
+The given file provides padlock ACE(Advanced Cryptographic Encryption)for faster hardware encryption/decryption. Padlock ACE was introduced to overcome the trade-off barrier of encryption/performance in systems.
+In the main functioning of the entire program, the code instructs the compiler to load the given values of input, count and other parameters into the appropriate registers and then issues the encryption instruction sequence to finally return the value found in the eax register as a pointer.
+The common functions used in the program are given as follows:-
+- padlock_has_support: checks for the compatibility of the processor-padlock
+- padlock_xcryptcbc: assigns every register a fixed operand for encryption
+- padlock_xcryptecb: similar to cbc but encryption is ecb based
 
-# Contributors
-
-TODO : Add the list of all the contributors over here
