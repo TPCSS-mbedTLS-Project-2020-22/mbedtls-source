@@ -1,6 +1,7 @@
 /*
 * \brief Multi-precision integer library
 */
+pub type MpiUint = u32;
 
 pub struct Mpi {
     /// Sign: -1 if the mpi is negative, 1 otherwise
