@@ -1,15 +1,22 @@
+#[allow(unused_imports)]
+#[allow(unused_variables)]
+#[allow(dead_code)]
+#[allow(unused_assignments)]
+#[allow(unused_imports)]
+
 use crate::error;
 
-/// Constructs an u32 from a given slice of u8 
-/// assuming little endian representation 
-fn get_uint32_le(b: &[u8; 4]) -> u32{    
+/// get an unsigned integer from 
+/// given 4 bytes
+fn get_uint32_le(b: &[u8]) -> u32{    
     return  u32::from(b[0])
         |   u32::from(b[1]) << 8
         |   u32::from(b[2]) << 16
         |   u32::from(b[3]) << 24;
 }
-/// Stores u32 to u8 slice of 4 elements
-/// assuming little endian representation
+
+/// Convert an unsigned integet to bytes
+/// and store those bytes into given slice
 fn put_uint32_le(n: u32, b: &mut[u8]){
     use std::convert::TryFrom;
     b[0] = u8::try_from(n & 0xFF).unwrap();
@@ -18,24 +25,46 @@ fn put_uint32_le(n: u32, b: &mut[u8]){
     b[3] = u8::try_from((n>>24) & 0xFF).unwrap();
 }
 
+/// zero out a byte vector
 fn zeroize_u8(a: &mut Vec<u8>){
     for i in &mut a.iter_mut(){
         *i = 0u8;
     }
 }
 
+/// zero out unsigned integer vector
 fn zeroize_u32(a: &mut Vec<u32>){
     for i in &mut a.iter_mut(){
         *i = 0u32;
     }
 }
 
+/// 
+/// \brief          Initialize MD4 context
+/// 
+/// \param ctx      MD4 context to be initialized
+/// 
+/// \warning        MD4 is considered a weak message digest and its use
+///                 constitutes a security risk. We recommend considering
+///                 stronger message digests instead.
+/// 
+/// 
 pub(super) fn init(ctx: &mut super::MdContext){
     ctx.total = vec![0u32; 2];
     ctx.state = vec![0u32; 4];
     ctx.buffer = vec![0u8; 64];
 }
 
+/// 
+/// \brief          Clear MD4 context
+/// 
+/// \param ctx      MD4 context to be cleared
+/// 
+/// \warning        MD4 is considered a weak message digest and its use
+///                 constitutes a security risk. We recommend considering
+///                 stronger message digests instead.
+/// 
+/// 
 pub(super) fn free(ctx: &mut super::MdContext){
     zeroize_u32(&mut ctx.total);
     ctx.total.resize(0, 0);
@@ -45,12 +74,34 @@ pub(super) fn free(ctx: &mut super::MdContext){
     ctx.buffer.resize(0, 0);
 }
 
+/// 
+/// \brief          Clone (the state of) an MD4 context
+/// 
+/// \param dst      The destination context
+/// \param src      The context to be cloned
+/// 
+/// \warning        MD4 is considered a weak message digest and its use
+///                 constitutes a security risk. We recommend considering
+///                 stronger message digests instead.
+/// 
+/// 
 pub(super) fn clone(dst: &mut super::MdContext, src: &super::MdContext){
     dst.buffer[..].clone_from_slice(&src.buffer[..]);
     dst.state[..].clone_from_slice(&src.state[..]);
     dst.total[..].clone_from_slice(&src.total[..]);
 }
 
+/// 
+/// \brief          MD4 context setup
+/// 
+/// \param ctx      context to be initialized
+/// 
+/// \return         0 if successful
+/// 
+/// \warning        MD4 is considered a weak message digest and its use
+///                 constitutes a security risk. We recommend considering
+///                 stronger message digests instead.
+/// 
 pub(super) fn starts_ret(ctx: &mut super::MdContext) -> i32{
     ctx.total[0] = 0;
     ctx.total[1] = 0;
@@ -63,7 +114,8 @@ pub(super) fn starts_ret(ctx: &mut super::MdContext) -> i32{
     return 0;
 }
 
-///Classical c-like logical shift left
+/// classical c-like logical shift left.
+/// returns x << n
 fn shift_left(x: u32, n: u32)->u32{
     if n>31{
         return 0;
@@ -71,6 +123,19 @@ fn shift_left(x: u32, n: u32)->u32{
     return x<<n;
 }
 
+/// 
+/// \brief          MD4 process data block (internal use only)
+/// 
+/// \param ctx      MD4 context
+/// \param data     buffer holding one block of data
+/// 
+/// \return         0 if successful
+/// 
+/// \warning        MD4 is considered a weak message digest and its use
+///                 constitutes a security risk. We recommend considering
+///                 stronger message digests instead.
+/// 
+/// 
 pub(super) fn internal_process(ctx: &mut super::MdContext, data: &[u8]) -> i32{
     // use std::convert::TryInto;
 
@@ -78,10 +143,7 @@ pub(super) fn internal_process(ctx: &mut super::MdContext, data: &[u8]) -> i32{
     let (mut A, mut B, mut C, mut D): (u32, u32, u32, u32) = (0, 0, 0, 0);
 
     for i in 0..16{
-        X[i] = get_uint32_le(&[data[i*4], 
-                            data[i*4+1], 
-                            data[i*4+2], 
-                            data[i*4+3]]);
+        X[i] = get_uint32_le(&data[i*4..i*4+4]);
     }
 
     
@@ -179,6 +241,20 @@ pub(super) fn internal_process(ctx: &mut super::MdContext, data: &[u8]) -> i32{
     return 0;
 }
 
+/// 
+/// \brief          MD4 process buffer
+/// 
+/// \param ctx      MD4 context
+/// \param input    buffer holding the data
+/// \param ilen     length of the input data
+/// 
+/// \return         0 if successful
+/// 
+/// \warning        MD4 is considered a weak message digest and its use
+///                 constitutes a security risk. We recommend considering
+///                 stronger message digests instead.
+/// 
+/// 
 pub(super) fn update_ret(ctx: &mut super::MdContext, input: &Vec<u8>, mut ilen: usize) -> i32{
     use std::convert::TryFrom;
 
@@ -239,6 +315,19 @@ const padding: [u8; 64] = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 ];
 
+/// 
+/// \brief          MD4 final digest
+/// 
+/// \param ctx      MD4 context
+/// \param output   MD4 checksum result
+/// 
+/// \return         0 if successful
+/// 
+/// \warning        MD4 is considered a weak message digest and its use
+///                 constitutes a security risk. We recommend considering
+///                 stronger message digests instead.
+/// 
+/// 
 pub(super) fn finish_ret(ctx: &mut super::MdContext, output: &mut Vec<u8>) -> i32{
     let mut ret = error::ERR_ERROR_CORRUPTION_DETECTED;
     let mut last: u32 = 0;
@@ -278,6 +367,20 @@ pub(super) fn finish_ret(ctx: &mut super::MdContext, output: &mut Vec<u8>) -> i3
     return 0;
 }
 
+/// 
+/// \brief          Output = MD4( input buffer )
+/// 
+/// \param input    buffer holding the data
+/// \param ilen     length of the input data
+/// \param output   MD4 checksum result
+/// 
+/// \return         0 if successful
+/// 
+/// \warning        MD4 is considered a weak message digest and its use
+///                 constitutes a security risk. We recommend considering
+///                 stronger message digests instead.
+/// 
+/// 
 pub(super) fn ret(input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> i32{
     let mut ret: i32 = error::ERR_ERROR_CORRUPTION_DETECTED;
     let mut ctx: super::MdContext = super::MdContext{
@@ -358,7 +461,7 @@ mod test{
         let mut md4sum: Vec<u8> = vec![0; 16];
         for i in 0..7{
             assert_eq!(0, super::ret(&test_str[i].as_bytes().to_vec(), test_strlen[i], &mut md4sum));
-            
+
             print!("MD4({}) = ", test_str[i]);
             for i in md4sum.iter(){
                 print!("{:02x}", i);

@@ -1,7 +1,9 @@
-/** 
- * Note: This file does not implement deprecated functions.
- * 
-*/
+#[allow(unused_imports)]
+#[allow(unused_variables)]
+#[allow(dead_code)]
+#[allow(unused_assignments)]
+#[allow(unused_imports)]
+
 use crate::error;
 
 const PI_SUBST: [u8; 256] = 
@@ -34,22 +36,23 @@ const PI_SUBST: [u8; 256] =
     0x8D, 0x33, 0x9F, 0x11, 0x83, 0x14
 ];
 
+/// zero out byte vector
 fn zeroize(a: &mut Vec<u8>){
     for i in &mut a.iter_mut(){
         *i = 0;
     }
 }
 
-/**
- * \brief          Initialize MD2 context
- *
- * \param ctx      MD2 context to be initialized
- *
- * \warning        MD2 is considered a weak message digest and its use
- *                 constitutes a security risk. We recommend considering
- *                 stronger message digests instead.
- *
- */
+/// 
+/// \brief          Initialize MD2 context
+/// 
+/// \param ctx      MD2 context to be initialized
+/// 
+/// \warning        MD2 is considered a weak message digest and its use
+///                 constitutes a security risk. We recommend considering
+///                 stronger message digests instead.
+/// 
+/// 
 pub(super) fn init(ctx: &mut super::MdContextMD2){
     ctx.cksum = vec![0; 16];
     ctx.state = vec![0; 48];
@@ -57,19 +60,17 @@ pub(super) fn init(ctx: &mut super::MdContextMD2){
     ctx.left = 0;
 }
 
-/**
- * \brief          Clear MD2 context
- *
- * \param ctx      MD2 context to be cleared
- *
- * \warning        MD2 is considered a weak message digest and its use
- *                 constitutes a security risk. We recommend considering
- *                 stronger message digests instead.
- *
- */
+/// 
+/// \brief          Clear MD2 context
+/// 
+/// \param ctx      MD2 context to be cleared
+/// 
+/// \warning        MD2 is considered a weak message digest and its use
+///                 constitutes a security risk. We recommend considering
+///                 stronger message digests instead.
+/// 
+/// 
 pub(super) fn free(ctx: &mut super::MdContextMD2){
-    // In perticular what is difference
-    // between mbedtls_md2_free and mbedtls_md2_init
     zeroize(&mut ctx.cksum);
     ctx.cksum.resize(0, 0);
     zeroize(&mut ctx.state);
@@ -79,17 +80,17 @@ pub(super) fn free(ctx: &mut super::MdContextMD2){
     ctx.left = 0;
 }
 
-/**
- * \brief          Clone (the state of) an MD2 context
- *
- * \param dst      The destination context
- * \param src      The context to be cloned
- *
- * \warning        MD2 is considered a weak message digest and its use
- *                 constitutes a security risk. We recommend considering
- *                 stronger message digests instead.
- *
- */
+/// 
+/// \brief          Clone (the state of) an MD2 context
+/// 
+/// \param dst      The destination context
+/// \param src      The context to be cloned
+/// 
+/// \warning        MD2 is considered a weak message digest and its use
+///                 constitutes a security risk. We recommend considering
+///                 stronger message digests instead.
+/// 
+/// 
 pub(super) fn clone(dst: &mut super::MdContextMD2, src: &super::MdContextMD2){
     dst.buffer[..].clone_from_slice(&src.buffer[..]);
     dst.cksum[..].clone_from_slice(&src.cksum[..]);
@@ -97,18 +98,18 @@ pub(super) fn clone(dst: &mut super::MdContextMD2, src: &super::MdContextMD2){
     dst.left = src.left;
 }
 
-/**
- * \brief          MD2 context setup
- *
- * \param ctx      context to be initialized
- *
- * \return         0 if successful
- *
- * \warning        MD2 is considered a weak message digest and its use
- *                 constitutes a security risk. We recommend considering
- *                 stronger message digests instead.
- *
- */
+/// 
+/// \brief          MD2 context setup
+/// 
+/// \param ctx      context to be initialized
+/// 
+/// \return         0 if successful
+/// 
+/// \warning        MD2 is considered a weak message digest and its use
+///                 constitutes a security risk. We recommend considering
+///                 stronger message digests instead.
+/// 
+/// 
 pub(super) fn starts_ret(ctx: &mut super::MdContextMD2) -> i32{
     zeroize(&mut ctx.cksum);
     zeroize(&mut ctx.state);
@@ -117,20 +118,20 @@ pub(super) fn starts_ret(ctx: &mut super::MdContextMD2) -> i32{
     return 0;
 }
 
-/**
- * \brief          MD2 process buffer
- *
- * \param ctx      MD2 context
- * \param input    buffer holding the data
- * \param ilen     length of the input data
- *
- * \return         0 if successful
- *
- * \warning        MD2 is considered a weak message digest and its use
- *                 constitutes a security risk. We recommend considering
- *                 stronger message digests instead.
- *
- */
+/// 
+/// \brief          MD2 process buffer
+/// 
+/// \param ctx      MD2 context
+/// \param input    buffer holding the data
+/// \param ilen     length of the input data
+/// 
+/// \return         0 if successful
+/// 
+/// \warning        MD2 is considered a weak message digest and its use
+///                 constitutes a security risk. We recommend considering
+///                 stronger message digests instead.
+/// 
+/// 
 pub(super) fn update_ret(ctx: &mut super::MdContextMD2, input: &Vec<u8>, _ilen: usize)->i32{
     let mut ret : i32 = error::ERR_ERROR_CORRUPTION_DETECTED;
     let mut fill: usize;
@@ -161,20 +162,19 @@ pub(super) fn update_ret(ctx: &mut super::MdContextMD2, input: &Vec<u8>, _ilen: 
     return 0;
 }
 
-/**
- * \brief          MD2 final digest
- *
- * \param ctx      MD2 context
- * \param output   MD2 checksum result
- *
- * \return         0 if successful
- *
- * \warning        MD2 is considered a weak message digest and its use
- *                 constitutes a security risk. We recommend considering
- *                 stronger message digests instead.
- *
- */
-
+/// 
+/// \brief          MD2 final digest
+/// 
+/// \param ctx      MD2 context
+/// \param output   MD2 checksum result
+/// 
+/// \return         0 if successful
+/// 
+/// \warning        MD2 is considered a weak message digest and its use
+///                 constitutes a security risk. We recommend considering
+///                 stronger message digests instead.
+/// 
+/// 
 pub(super) fn finish_ret(ctx: &mut super::MdContextMD2, output: &mut Vec<u8>)->i32{
     use std::convert::TryFrom;
 
@@ -201,18 +201,18 @@ pub(super) fn finish_ret(ctx: &mut super::MdContextMD2, output: &mut Vec<u8>)->i
     return 0;
 }
 
-/**
- * \brief          MD2 process data block (internal use only)
- *
- * \param ctx      MD2 context
- *
- * \return         0 if successful
- *
- * \warning        MD2 is considered a weak message digest and its use
- *                 constitutes a security risk. We recommend considering
- *                 stronger message digests instead.
- *
- */
+/// 
+/// \brief          MD2 process data block (internal use only)
+/// 
+/// \param ctx      MD2 context
+/// 
+/// \return         0 if successful
+/// 
+/// \warning        MD2 is considered a weak message digest and its use
+///                 constitutes a security risk. We recommend considering
+///                 stronger message digests instead.
+/// 
+/// 
 pub(super) fn internal_process(ctx: &mut super::MdContextMD2) -> i32{
     let mut t: u8 = 0;
     
@@ -239,18 +239,18 @@ pub(super) fn internal_process(ctx: &mut super::MdContextMD2) -> i32{
     return 0;
 }
 
-/**
- * \brief          Output = MD2( input buffer )
- *
- * \param input    buffer holding the data
- * \param ilen     length of the input data
- * \param output   MD2 checksum result
- *
- * \warning        MD2 is considered a weak message digest and its use
- *                 constitutes a security risk. We recommend considering
- *                 stronger message digests instead.
- *
- */
+/// 
+/// \brief          Output = MD2( input buffer )
+/// 
+/// \param input    buffer holding the data
+/// \param ilen     length of the input data
+/// \param output   MD2 checksum result
+/// 
+/// \warning        MD2 is considered a weak message digest and its use
+///                 constitutes a security risk. We recommend considering
+///                 stronger message digests instead.
+/// 
+/// 
 pub fn ret(input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> i32{
     let mut ret:i32 = error::ERR_ERROR_CORRUPTION_DETECTED;
     let mut ctx: super::MdContextMD2 = super::MdContextMD2{ 

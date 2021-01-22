@@ -9,3 +9,7 @@ All mbed-tls modules will have their respective rust module in this single libra
 # Contributors
 
 TODO : Add the list of all the contributors over here
+
+# hashing module
+
+Tests : To run tests, invoke `cargo test --features="MD2,MD4,SHA1,MD5"` from project root directory.

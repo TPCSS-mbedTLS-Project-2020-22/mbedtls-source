@@ -1,3 +1,13 @@
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+#![allow(dead_code)]
+#![allow(unused_assignments)]
+#![allow(unused_imports)]
+#![allow(unused_mut)]
+#![allow(non_upper_case_globals)]
+#![allow(non_snake_case)]
+#![allow(unused_parens)]
+
 #[cfg(feature = "MD2")]
 pub mod md2;
 #[cfg(feature = "MD4")]
@@ -19,8 +29,8 @@ pub const ERR_MD_ALLOC_FAILED        : i32 = -0x5180;
 pub const ERR_MD_FILE_IO_ERROR       : i32 = -0x5200;
 
 
-const MD_MAX_SIZE: usize = if cfg!(feature = "SHA512") {64} else{32};
-const MD_MAX_BLOCK_SIZE: usize = if cfg!(feature = "SHA512") {128} else{64};
+pub const MD_MAX_SIZE: usize = if cfg!(feature = "SHA512") {64} else{32};
+pub const MD_MAX_BLOCK_SIZE: usize = if cfg!(feature = "SHA512") {128} else{64};
 
 /// Supported message digests
 pub enum MdTypeT{
@@ -75,6 +85,8 @@ const SUPPORTED_DIGESTS: &'static [MdTypeT] = &[
         MdTypeT::RIPEMD160
 ];
 
+// This structture is to be used internally 
+// when creating empty Context.
 const DUMMY_INFO: MdInfoT = MdInfoT{
     name: ("none"),
     md_type: MdTypeT::NONE,
@@ -189,6 +201,18 @@ fn list() -> &'static [MdTypeT] {
     return &SUPPORTED_DIGESTS;
 }
 
+/// 
+/// # brief          
+/// This function returns the message-digest information
+/// associated with the given digest type.
+///
+/// # param
+/// * `md_type` - The type of digest to search for.
+///
+/// # return value
+/// The message-digest information associated with `md_type` and
+/// `None` if the associated message-digest information is not found.
+/// 
 fn info_from_type(md_type: &MdTypeT) -> Option<&'static MdInfoT>{
     match md_type{
         #[cfg(feature = "MD2")]
@@ -221,6 +245,18 @@ fn info_from_type(md_type: &MdTypeT) -> Option<&'static MdInfoT>{
     }
 }
 
+/// 
+/// # brief
+/// This function returns the message-digest information
+/// associated with the given digest name.
+/// 
+/// # params
+/// * `md_name` - The name of the digest to search for.
+/// 
+/// # return value
+/// The message-digest information associated with `md_name` and
+/// `None` if the associated message-digest information is not found.
+/// 
 fn info_from_string(md_name: &str) -> Option<&'static MdInfoT>{
     match md_name{
         #[cfg(feature = "MD2")]
@@ -254,32 +290,33 @@ fn info_from_string(md_name: &str) -> Option<&'static MdInfoT>{
     }
 }
 
-/**
- * Message digest information.
- * Allows message digest functions to be called in a generic way.
- */
+/// 
+/// Message digest information.
+/// Allows message digest functions to be called in a generic way.
+/// 
 pub struct MdInfoT{
     /// Name of the message digest
-    name: &'static str,
+    pub name: &'static str,
     /// Digest identifier
-    md_type: MdTypeT,
+    pub md_type: MdTypeT,
     /// Output length of the digest function in bytes
-    size: u8,
+    pub size: u8,
     /// Block length of the digest function in bytes
-    block_size: u8,
-    
+    pub block_size: u8,
 }
-/**
- * This function generates a new Context based on 
- * type given.
- * 
- * Note that inner vectors of md_ctx have 0 size.
- * You should still call setup() fuction before you 
- * call any other methods.
- */
 
-fn create_context() -> Box<Context> {
-    //TODO: generate context based on given type
+/// 
+/// This function generates a new Context based on 
+/// type given.
+/// 
+/// Note that inner vectors of md_ctx are still uninitialized.
+/// You should still call setup() fuction before you 
+/// call any other methods.
+/// 
+/// # return value
+/// `hashing::Context` object wrapped in `std::Box`
+/// 
+pub fn create_context() -> Box<Context> {
     let md_ctx_md2 = MdContextMD2{
         cksum: Vec::new(),
         state: Vec::new(),
@@ -294,7 +331,7 @@ fn create_context() -> Box<Context> {
     };
 
     let ctx = Context{
-        // Note that this is just a placeholder
+        // just a placeholder
         md_info: &DUMMY_INFO,
         md_ctx_md_2: md_ctx_md2,
         md_ctx: md_ctx,
@@ -304,24 +341,29 @@ fn create_context() -> Box<Context> {
     return Box::new(ctx);
 }
 
-/**
- * \brief           This function selects the message digest algorithm to use,
- *                  and allocates internal structures.
- *
- *                  Makes it necessary to call
- *                  mbedtls_md_free() later.
- *
- * \param ctx       The context to set up.
- * \param md_info   The information structure of the message-digest algorithm
- *                  to use.
- * \param hmac      Defines if HMAC is used. False: HMAC is not used (saves some memory),
- *                  or True: HMAC is used with this context.
- *
- * \return          \c 0 on success.
- * \return          #ERR_MD_BAD_INPUT_DATA on parameter-verification
- *                  failure.
- */
-fn setup(ctx: &mut Context, md_info: &'static MdInfoT, hmac: bool) -> i32{
+/// 
+/// # brief           
+/// This function selects the message digest algorithm to use,
+/// and allocates internal structures.
+/// 
+/// Makes it necessary to call
+/// mbedtls::hashing::free() later.
+/// 
+/// # params
+/// * `ctx` - The context to set up.
+/// * `md_info` - The information structure of the message-digest algorithm
+/// to use.
+/// * `hmac` - Defines if HMAC is used. 
+///     * False: HMAC is not used (saves some memory),
+///     * True: HMAC is used with this context.
+/// 
+/// # return value
+/// 
+/// `0` on success.
+/// `ERR_MD_BAD_INPUT_DATA` on parameter-verification 
+/// failure.
+/// 
+pub fn setup(ctx: &mut Context, md_info: &'static MdInfoT, hmac: bool) -> i32{
     ctx.md_info = md_info;
     match md_info.md_type{
         
@@ -389,14 +431,21 @@ fn setup(ctx: &mut Context, md_info: &'static MdInfoT, hmac: bool) -> i32{
     return 0;
 }
 
-/**
- * 
- * This function relies on specialised free methods 
- * to free algorithm specific context.
- * 
- * Then it zeroes out hmac specific vectors, 
- * and at last it shrinks the size of hmac vector.
- */
+/// 
+/// 
+/// This function relies on algorithm specific free methods 
+/// to free algorithm specific context.
+/// 
+/// Then it zeroes out hmac specific vectors, 
+/// and at last it shrinks the size of hmac vector.
+/// 
+/// When you are done using a context and if you have called 
+/// `hashing::setup()` before then you must
+/// call this function. 
+/// 
+/// If you only have called 
+/// `hashing::create_context()` and nothing else
+/// then calling this function is optional.
 pub fn free(ctx: &mut Context){
     match ctx.md_info.md_type{
         
@@ -435,27 +484,30 @@ pub fn free(ctx: &mut Context){
     }
     
     ctx.hmac_ctx.resize(0, 0);
+    ctx.md_info = &DUMMY_INFO;
 }
 
-/**
- * \brief           This function clones the state of an message-digest
- *                  context.
- *
- * \note            You must call init() on \c dst before calling
- *                  this function.
- *
- * \note            The two contexts must have the same type,
- *                  for example, both are SHA-256.
- *
- * \warning         This function clones the message-digest state, not the
- *                  HMAC state.
- *
- * \param dst       The destination context.
- * \param src       The context to be cloned.
- *
- * \return          \c 0 on success.
- * \return          #ERR_MD_BAD_INPUT_DATA on parameter-verification failure.
- */
+/// 
+/// # brief           
+/// This function clones the state of an message-digest                 
+/// context.
+/// 
+/// # note            
+/// The two contexts must have the same type,
+/// for example, both are SHA-256.
+/// 
+/// # warning         
+/// This function clones the message-digest state, not the
+/// HMAC state.
+/// 
+/// # param 
+/// * `dst` - The destination context.
+/// * `src` - The context to be cloned.
+/// 
+/// # return value
+/// `0` on success and
+/// `ERR_MD_BAD_INPUT_DATA` on parameter-verification failure.
+/// 
 pub fn clone(dst: &mut Context , src: &Context) -> i32{
     if dst.md_info.name != src.md_info.name{
         return ERR_MD_BAD_INPUT_DATA;
@@ -493,19 +545,22 @@ pub fn clone(dst: &mut Context , src: &Context) -> i32{
     return 0;
 }
 
-/**
- * \brief           This function starts a message-digest computation.
- *
- *                  You must call this function after initializing context
- *                  with init(), and before passing data with
- *                  update().
- *
- * \param ctx       The generic message-digest context.
- *
- * \return          \c 0 on success.
- * \return          #ERR_MD_BAD_INPUT_DATA on parameter-verification
- *                  failure.
- */
+/// 
+/// # brief           
+/// This function starts a message-digest computation.
+/// 
+/// You must call this function after seting up the
+/// context with `setup()` function, and before passing data with
+/// `update()`.
+/// 
+/// # param
+/// * `ctx` - The generic message-digest context.
+/// 
+/// # return value
+/// `0` on success and
+/// `ERR_MD_BAD_INPUT_DATA` on parameter-verification
+/// failure.
+/// 
 pub fn starts(ctx: &mut Context) -> i32{
     match ctx.md_info.md_type{
         
@@ -540,22 +595,25 @@ pub fn starts(ctx: &mut Context) -> i32{
     }
 }
 
-/**
- * \brief           This function feeds an input buffer into an ongoing
- *                  message-digest computation.
- *
- *                  You must call starts() before calling this
- *                  function. You may call this function multiple times.
- *                  Afterwards, call finish().
- *
- * \param ctx       The generic message-digest context.
- * \param input     The buffer holding the input data.
- * \param ilen      The length of the input data.
- *
- * \return          \c 0 on success.
- * \return          #ERR_MD_BAD_INPUT_DATA on parameter-verification
- *                  failure.
- */
+/// 
+/// # brief           
+/// This function feeds an input buffer into an ongoing                 
+/// message-digest computation.
+/// 
+/// You must call `starts()` before calling this
+/// function. You may call this function multiple times.
+/// Afterwards, call `finish()`.
+/// 
+/// # param 
+/// * `ctx` - The generic message-digest context.
+/// * `input` - The buffer holding the input data.
+/// * `ilen` - The length of the input data.
+/// 
+/// # return value
+/// `0` on success and
+/// `ERR_MD_BAD_INPUT_DATA` on parameter-verification
+/// failure.
+/// 
 pub fn update(ctx: &mut Context, input: &Vec<u8>, ilen: usize) -> i32{
     match ctx.md_info.md_type{
         
@@ -590,24 +648,26 @@ pub fn update(ctx: &mut Context, input: &Vec<u8>, ilen: usize) -> i32{
     }
 }
 
-/**
- * \brief           This function finishes the digest operation,
- *                  and writes the result to the output buffer.
- *
- *                  Call this function after a call to starts(),
- *                  followed by any number of calls to update().
- *                  Afterwards, you may either clear the context with
- *                  free(), or call starts() to reuse
- *                  the context for another digest operation with the same
- *                  algorithm.
- *
- * \param ctx       The generic message-digest context.
- * \param output    The buffer for the generic message-digest checksum result.
- *
- * \return          \c 0 on success.
- * \return          #ERR_MD_BAD_INPUT_DATA on parameter-verification
- *                  failure.
- */
+/// 
+/// # brief
+/// This function finishes the digest operation,
+/// and writes the result to the output buffer.
+/// 
+/// Call this function after a call to `starts()`,
+/// followed by any number of calls to `update()`.
+/// Afterwards, you may either clear the context with
+/// `free()`, or call `starts()` to reuse
+/// the context for another digest operation with the same
+/// algorithm.
+/// 
+/// # param
+/// * `ctx` - The generic message-digest context.
+/// * `output` - The buffer for the generic message-digest checksum result.
+/// 
+/// # return value
+/// `0` on success and `ERR_MD_BAD_INPUT_DATA`
+/// on parameter-verification failure.
+/// 
 pub fn finish(ctx: &mut Context, output: &mut Vec<u8>) -> i32{
     match ctx.md_info.md_type{
         
@@ -643,7 +703,28 @@ pub fn finish(ctx: &mut Context, output: &mut Vec<u8>) -> i32{
 
 }
 
-fn md(md_info: &MdInfoT, input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> i32{
+/// 
+/// # brief          
+/// This function calculates the message-digest of a buffer,                
+/// with respect to a configurable message-digest algorithm
+/// in a single call.
+/// 
+/// The result is calculated as
+/// Output = message_digest(input buffer).
+/// 
+/// # param
+/// * `md_info` - The information structure of the message-digest algorithm
+/// to use.
+/// * `input` - The buffer holding the data.
+/// * `ilen` - The length of the input data.
+/// * `output` - The generic message-digest checksum result.
+/// 
+/// # return value
+/// `0` on success.
+/// `MBEDTLS_ERR_MD_BAD_INPUT_DATA` on parameter-verification
+/// failure.
+/// 
+pub fn md(md_info: &MdInfoT, input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> i32{
     match md_info.md_type{
         
         #[cfg(feature = "MD2")]
@@ -677,8 +758,25 @@ fn md(md_info: &MdInfoT, input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> 
     };
 }
 
+/// 
+/// # brief          
+/// This function calculates the message-digest checksum                
+/// result of the contents of the provided file.
+/// 
+/// The result is calculated as
+/// Output = message_digest(file contents).
+/// 
+/// # param
+/// * `md_info` - The information structure of the message-digest algorithm
+/// to use.
+/// * `path` - The input file name.
+/// * `output` - The generic message-digest checksum result.
+/// 
+/// # return value
+/// `0` on success.
+/// 
 // #[cfg(feature = "FS_IO")]
-fn md_file(md_info: &MdInfoT, path_str: &String, output: &mut Vec<u8>) -> i32 {
+pub fn md_file(md_info: &MdInfoT, path_str: &String, output: &mut Vec<u8>) -> i32 {
     use std::fs::File;
     use std::path::Path;
     use std::io::{self, prelude::*, BufReader};
@@ -706,24 +804,25 @@ fn md_file(md_info: &MdInfoT, path_str: &String, output: &mut Vec<u8>) -> i32 {
 }
 
 
-/**
- * \brief           This function sets the HMAC key and prepares to
- *                  authenticate a new message.
- *
- *                  Call this function after setup(), to use
- *                  the MD context for an HMAC calculation, then call
- *                  hmac_update() to provide the input data, and
- *                  hmac_finish() to get the HMAC value.
- *
- * \param ctx       The message digest context containing an embedded HMAC
- *                  context.
- * \param key       The HMAC secret key.
- * \param keylen    The length of the HMAC key in Bytes.
- *
- * \return          \c 0 on success.
- * \return          #ERR_MD_BAD_INPUT_DATA on parameter-verification
- *                  failure.
- */
+/// 
+/// # brief           
+/// This function sets the HMAC key and prepares to
+/// authenticate a new message.
+/// 
+/// Call this function after `setup()`, to use
+/// the MD context for an HMAC calculation, then call
+/// `hmac_update()` to provide the input data, and
+/// `hmac_finish()` to get the HMAC value.
+/// 
+/// * `ctx` - The message digest context containing an embedded HMAC
+/// context.
+/// * `key` - The HMAC secret key.
+/// * `keylen` - The length of the HMAC key in Bytes.
+/// 
+/// # return value
+/// `0` on success and `ERR_MD_BAD_INPUT_DATA`
+/// on parameter-verification failure.
+/// 
 pub fn hmac_starts(ctx: &mut Context, key: &Vec<u8>, mut keylen: usize) -> i32{
     let mut ret: i32 = error::ERR_ERROR_CORRUPTION_DETECTED;
     let mut final_key: Vec<u8> = key.clone();
@@ -777,6 +876,27 @@ pub fn hmac_starts(ctx: &mut Context, key: &Vec<u8>, mut keylen: usize) -> i32{
     return ret;
 }
 
+/// 
+/// # brief           
+/// This function feeds an input buffer into an ongoing HMAC
+/// computation.
+/// 
+/// Call `hmac_starts()` or `hmac_reset()`
+/// before calling this function.
+/// You may call this function multiple times to pass the
+/// input piecewise.
+/// Afterwards, call `hmac_finish()`.
+/// 
+/// # param
+/// * `ctx` - The message digest context containing an embedded HMAC
+/// context.
+/// * `input` - The buffer holding the input data.
+/// * `ilen` - The length of the input data.
+/// 
+/// # return value
+/// `0` on success and `MBEDTLS_ERR_MD_BAD_INPUT_DATA` on parameter-verification
+/// failure.
+/// 
 pub fn hmac_update(ctx: &mut Context, input: &Vec<u8>, ilen: usize) -> i32{
     if ctx.hmac_ctx.len() != usize::from(ctx.md_info.block_size*2){
         return ERR_MD_BAD_INPUT_DATA;
@@ -785,6 +905,26 @@ pub fn hmac_update(ctx: &mut Context, input: &Vec<u8>, ilen: usize) -> i32{
     return update(ctx, input, ilen);
 }
 
+/// 
+/// # brief           
+/// This function finishes the HMAC operation, and writes
+/// the result to the output buffer.
+/// 
+/// Call this function after `hmac_starts()` and
+/// `hmac_update()` to get the HMAC value. Afterwards
+/// you may either call `free()` to clear the context,
+/// or call `hmac_reset()` to reuse the context with
+/// the same HMAC key.
+/// 
+/// # param
+/// * `ctx` - The message digest context containing an embedded HMAC
+/// context.
+/// * `output` - The generic HMAC checksum result.
+/// 
+/// # return value
+/// `0` on success and `MBEDTLS_ERR_MD_BAD_INPUT_DATA` on parameter-verification
+/// failure.
+/// 
 pub fn hmac_finish(ctx: &mut Context, output: &mut Vec<u8>) -> i32{
     let mut ret: i32 = error::ERR_ERROR_CORRUPTION_DETECTED;
     let mut tmp: Vec<u8> = vec![0; output.len()];
@@ -818,6 +958,22 @@ pub fn hmac_finish(ctx: &mut Context, output: &mut Vec<u8>) -> i32{
     return finish(ctx, output);
 }
 
+/// 
+/// # brief           
+/// This function prepares to authenticate a new message with
+/// the same key as the previous HMAC operation.
+/// 
+/// You may call this function after `hmac_finish()`.
+/// Afterwards call `hmac_update()` to pass the new
+/// input.
+/// 
+/// # param
+/// * `ctx` - The message digest context containing an embedded HMAC
+/// context.
+/// 
+/// # return value
+/// `0` on success `MBEDTLS_ERR_MD_BAD_INPUT_DATA` on parameter-verification failure.
+/// 
 pub fn hmac_reset(ctx: &mut Context) -> i32{
     let mut ret: i32 = error::ERR_ERROR_CORRUPTION_DETECTED;
     
@@ -834,6 +990,30 @@ pub fn hmac_reset(ctx: &mut Context) -> i32{
     return update(ctx, &ipad, ctx.md_info.block_size as usize);
 }
 
+/// 
+/// # brief          
+/// This function calculates the full generic HMAC
+/// on the input buffer with the provided key.
+/// 
+/// The function allocates the context, performs the
+/// calculation, and frees the context.
+/// 
+/// The HMAC result is calculated as
+/// output = generic HMAC(hmac key, input buffer).
+/// 
+/// # param
+/// * `md_info` - The information structure of the message-digest algorithm
+/// to use.
+/// * `key` - The HMAC secret key.
+/// * `keylen` - The length of the HMAC secret key in Bytes.
+/// * `input` - The buffer holding the input data.
+/// * `ilen` - The length of the input data.
+/// * `output` - The generic HMAC result.
+/// 
+/// # return value
+/// `0` on success `MBEDTLS_ERR_MD_BAD_INPUT_DATA` on parameter-verification
+/// failure.
+/// 
 pub fn hmac(md_info: &'static MdInfoT, key: &Vec<u8>, keylen: usize, input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> i32{
     let mut ctx = create_context();
     let mut ret = error::ERR_ERROR_CORRUPTION_DETECTED;
@@ -865,6 +1045,7 @@ pub fn hmac(md_info: &'static MdInfoT, key: &Vec<u8>, keylen: usize, input: &Vec
     return ret;
 }
 
+/// Internal use
 pub fn process(ctx: &mut Context, data: &[u8])->i32{
     match ctx.md_info.md_type{
         #[cfg(feature = "MD2")]
@@ -898,21 +1079,58 @@ pub fn process(ctx: &mut Context, data: &[u8])->i32{
     }
 }
 
+/// 
+/// # brief           
+/// This function extracts the message-digest size from the
+/// message-digest information structure.
+/// 
+/// # param
+/// * `md_info` - The information structure of the message-digest algorithm
+/// to use.
+/// 
+/// # return value
+/// The size of the message-digest output in Bytes.
+/// 
 pub fn get_size(md_info: MdInfoT) -> u8{
     return md_info.size;
 }
 
+/// 
+/// # brief           
+/// This function extracts the message-digest type from the
+/// message-digest information structure.
+/// 
+/// # param 
+/// * `md_info` - The information structure of the message-digest algorithm
+/// to use.
+/// 
+/// # return value
+/// The type of the message digest.
+/// 
 pub fn get_type(md_info: MdInfoT) -> MdTypeT{
     return md_info.md_type;
 }
 
+/// 
+/// # brief           
+/// This function extracts the message-digest name from the
+/// message-digest information structure.
+/// 
+/// # param 
+/// * `md_info` - The information structure of the message-digest algorithm
+/// to use.
+/// 
+/// # return value
+/// The name of the message digest.
+/// 
 pub fn get_name(md_info: &MdInfoT) -> &'static str{
     return md_info.name;
 }
+
 #[cfg(test)]
 mod test{
     /**
-     * MD2 specific tests
+     * Tests focused mainly on exercising wrapper functions
      */
      const test_str: [&str; 7] = 
      [  "",

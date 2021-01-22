@@ -261,7 +261,7 @@ pub(super) fn internal_process(ctx: &mut super::MdContext, data: &[u8]) -> i32{
 pub(super) fn update_ret(ctx: &mut super::MdContext, input: &Vec<u8>, mut ilen: usize) -> i32{
     use std::convert::TryFrom;
 
-    let mut ret: i32 = error::ERR_ERROR_CORRUPTION_DETECTED;;
+    let mut ret: i32 = error::ERR_ERROR_CORRUPTION_DETECTED;
     let mut fill: usize = 0;
     let mut left: u32 = 0;
     let mut iptr: usize = 0;
@@ -370,7 +370,7 @@ pub(super) fn finish_ret(ctx: &mut super::MdContext, output: &mut Vec<u8>) -> i3
 
 
 pub(super) fn ret(input: &Vec<u8>, ilen: usize, output: &mut Vec<u8>) -> i32{
-    let mut ret: i32 = error::ERR_ERROR_CORRUPTION_DETECTED;;
+    let mut ret: i32 = error::ERR_ERROR_CORRUPTION_DETECTED;
     let mut ctx: super::MdContext = super::MdContext{
         total: Vec::new(),
         state: Vec::new(),
