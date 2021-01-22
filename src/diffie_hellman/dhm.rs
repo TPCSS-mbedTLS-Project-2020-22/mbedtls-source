@@ -82,8 +82,8 @@ unsafe{let mut ptr: *mut u8 = *p;
     {
         return MBEDTLS_ERR_DHM_BAD_INPUT_DATA
     }
-
-    n = ((*(*p) << 8) | *(ptr.add(1))).into();
+    
+    n =( (*(*p)).wrapping_shl(8) | *(ptr.add(1))).into();
     *p = &mut *ptr.add(2);
     ptr = *p;//updated value in ptr to maintain consistency forward
 
@@ -299,7 +299,7 @@ pub fn mbedtls_dhm_make_params( ctx: &mut mbedtls_dhm_context,
         if ret !=0 {
             return MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED + ret
         }
-        p[0] =  (( n1 as u8 )>>8); 
+        p[0] = (n1 as u8).wrapping_shr(8); 
         p = &mut p[1..];                          
         p[0] =  n1 as u8;
         p = &mut p[1..];                           
@@ -312,7 +312,7 @@ pub fn mbedtls_dhm_make_params( ctx: &mut mbedtls_dhm_context,
         if ret !=0 {
             return MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED + ret
         }
-        p[0] =  ((n2 as u8)  >> (8)); 
+        p[0] = (n2 as u8).wrapping_shr(8); 
         p = &mut p[1..];                          
         p[0] =  n2 as u8;
         p = &mut p[1..];                           
@@ -325,22 +325,15 @@ pub fn mbedtls_dhm_make_params( ctx: &mut mbedtls_dhm_context,
         if ret !=0 {
             return MBEDTLS_ERR_DHM_MAKE_PARAMS_FAILED + ret
         }
-        p[0] =  (( n3 as u8 ) >> 8); 
+        p[0] = (n3 as u8).wrapping_shr(8); 
         p = &mut p[1..];                          
         p[0] =  n3 as u8;
         p = &mut p[1..];                           
         p = &mut p[n3..];
         false 
     } {}
-    unsafe
-    {
-        let p_ptr: *const [u8] = p;
-        *olen = *p_ptr  - *op_ptr;
-    }
 
-    let mut a: &mut[u8];
-    a.clone_from_slice(&mut output);
-    *olen = (&p[0]  - &a[0]) as usize;
+    *olen = p.as_ptr() as usize - output.as_ptr() as usize;
 
     ctx.len = n1;
     0    

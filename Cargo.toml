@@ -8,4 +8,3 @@ edition = "2018"
 
 [dependencies]
 libc = "0.2.82"
-forward_goto = "0.1.1"
