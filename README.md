@@ -19,4 +19,11 @@ All mbed-tls modules will have their respective rust module in this single libra
 
 # Contributors
 
-TODO : Add the list of all the contributors over here
+* Raj Jha
+* Paras Lohani
+
+# Entropy (RNG module)
+
+We have implemented how to gather entropy and generat it from different strong sources and the code for them is in src/entropy.rs. The various test conducted are in the file src/entropy_test.rs. 
+
+
