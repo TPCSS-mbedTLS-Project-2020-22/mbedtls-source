@@ -446,7 +446,7 @@ fn mbedtls_chacha20_self_test(verbose:i32)->i32{
         if ret!=0{
             println!("error code {}",ret);
         }
-        println!("{:x?}",output);
+        println!("{:02X?}",output);
         if output==test_output[i]{
             println!("yes");
         }
