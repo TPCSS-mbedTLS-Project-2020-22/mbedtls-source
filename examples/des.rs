@@ -2,23 +2,23 @@ use mbedtls::cipher::des::*;
 fn main() {
     let mut cipher = mbedtls_des_context::init();
     println!("Cipher Initialized round keys:{} ", cipher.sk[0]);
-    const des3_test_keys: [u8; 8] = [0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF];
-    const des3_test_iv: [u8; 8] = [0x12, 0x34, 0x56, 0x78, 0x90, 0xAB, 0xCD, 0xEF];
-    const des3_test_keys_16: [u8; 16] = [
+    const DES3_TEST_KEYS: [u8; 8] = [0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF];
+    const DES3_TEST_IV: [u8; 8] = [0x12, 0x34, 0x56, 0x78, 0x90, 0xAB, 0xCD, 0xEF];
+    const DES3_TEST_KEYS_16: [u8; 16] = [
         0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF,
         0x01,
     ];
 
-    const des3_test_keys_24: [u8; 24] = [
+    const DES3_TEST_KEYS_24: [u8; 24] = [
         0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF,
         0x01, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0x01, 0x23,
     ];
 
     //Test-1-DES ECB Encryption and Decryption (56 Bit)
-    let mut n: u32 = 0;
+    let  n: u32 = 0;
     let mut input: [u8; 8] = [1, 2, 3, 4, 5, 6, 7, 8];
 
-    mbedtls_des_setkey_enc(&mut cipher, des3_test_keys);
+    mbedtls_des_setkey_enc(&mut cipher, DES3_TEST_KEYS);
     println!("-------Now Presenting DES ECB Encryption and Decryption------");
     //Encryption
     input = [49, 50, 51, 52, 53, 54, 55, 56];
@@ -28,7 +28,7 @@ fn main() {
     println!("After Encryption , Now Encryptedd Value :{:?}", c);
 
     //Decryption
-    mbedtls_des_setkey_dec(&mut cipher, des3_test_keys);
+    mbedtls_des_setkey_dec(&mut cipher, DES3_TEST_KEYS);
     let mut output: [u8; 8] = [0, 0, 0, 0, 0, 0, 0, 0];
     println!("Before Decryption , Encrypted value is : {:?}", c);
     mbedtls_des_crypt_ecb(&mut cipher, c, &mut output);
@@ -54,7 +54,7 @@ fn main() {
 
     let mut cipher3 = mbedtls_des3_context::init();
     println!("Cipher Initialized round keys:{} ", cipher3.sk[0]);
-    mbedtls_des3_set2key_enc(&mut cipher3, des3_test_keys_16);
+    mbedtls_des3_set2key_enc(&mut cipher3, DES3_TEST_KEYS_16);
     //Encryption
     input = [49, 50, 51, 52, 53, 54, 55, 56];
     let mut c: [u8; 8] = [0, 0, 0, 0, 0, 0, 0, 0];
@@ -63,7 +63,7 @@ fn main() {
     println!("After Encryption , Now Encryptedd Value :{:?}", c);
 
     //Decryption
-    mbedtls_des3_set2key_enc(&mut cipher3, des3_test_keys_16);
+    mbedtls_des3_set2key_enc(&mut cipher3, DES3_TEST_KEYS_16);
     let mut output: [u8; 8] = [0, 0, 0, 0, 0, 0, 0, 0];
     println!("Before Decryption , Encrypted value is : {:?}", c);
     mbedtls_des3_crypt_ecb(&mut cipher3, c, &mut output);

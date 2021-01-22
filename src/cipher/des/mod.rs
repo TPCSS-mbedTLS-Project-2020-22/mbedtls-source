@@ -8,9 +8,7 @@ use std::convert::TryFrom;
     unused_assignments,
     unused_mut
 )]
-use std::convert::TryInto;
-use std::ptr;
-use std::ptr::write_bytes;
+
 pub const MBEDTLS_DES_ENCRYPT: usize = 1;
 pub const MBEDTLS_DES_DECRYPT: usize = 0;
 pub const MBEDTLS_ERR_DES_INVALID_INPUT_LENGTH: i32 = -0x0032;
@@ -38,7 +36,7 @@ impl mbedtls_des3_context {
         mbedtls_des3_context { sk }
     }
 }
-pub const SB1: [u32; 64] = [
+pub const sb1: [u32; 64] = [
     0x01010400, 0x00000000, 0x00010000, 0x01010404, 0x01010004, 0x00010404, 0x00000004, 0x00010000,
     0x00000400, 0x01010400, 0x01010404, 0x00000400, 0x01000404, 0x01010004, 0x01000000, 0x00000004,
     0x00000404, 0x01000400, 0x01000400, 0x00010400, 0x00010400, 0x01010000, 0x01010000, 0x01000404,
@@ -48,7 +46,7 @@ pub const SB1: [u32; 64] = [
     0x01010404, 0x00010004, 0x01010000, 0x01000404, 0x01000004, 0x00000404, 0x00010404, 0x01010400,
     0x00000404, 0x01000400, 0x01000400, 0x00000000, 0x00010004, 0x00010400, 0x00000000, 0x01010004,
 ];
-pub const SB2: [u32; 64] = [
+pub const sb2: [u32; 64] = [
     0x80108020, 0x80008000, 0x00008000, 0x00108020, 0x00100000, 0x00000020, 0x80100020, 0x80008020,
     0x80000020, 0x80108020, 0x80108000, 0x80000000, 0x80008000, 0x00100000, 0x00000020, 0x80100020,
     0x00108000, 0x00100020, 0x80008020, 0x00000000, 0x80000000, 0x00008000, 0x00108020, 0x80100000,
@@ -58,7 +56,7 @@ pub const SB2: [u32; 64] = [
     0x00008020, 0x80108000, 0x00100000, 0x80000020, 0x00100020, 0x80008020, 0x80000020, 0x00100020,
     0x00108000, 0x00000000, 0x80008000, 0x00008020, 0x80000000, 0x80100020, 0x80108020, 0x00108000,
 ];
-pub const SB3: [u32; 64] = [
+pub const sb3: [u32; 64] = [
     0x00000208, 0x08020200, 0x00000000, 0x08020008, 0x08000200, 0x00000000, 0x00020208, 0x08000200,
     0x00020008, 0x08000008, 0x08000008, 0x00020000, 0x08020208, 0x00020008, 0x08020000, 0x00000208,
     0x08000000, 0x00000008, 0x08020200, 0x00000200, 0x00020200, 0x08020000, 0x08020008, 0x00020208,
@@ -68,7 +66,7 @@ pub const SB3: [u32; 64] = [
     0x08000208, 0x00020000, 0x08000000, 0x08020208, 0x00000008, 0x00020208, 0x00020200, 0x08000008,
     0x08020000, 0x08000208, 0x00000208, 0x08020000, 0x00020208, 0x00000008, 0x08020008, 0x00020200,
 ];
-pub const SB4: [u32; 64] = [
+pub const sb4: [u32; 64] = [
     0x00802001, 0x00002081, 0x00002081, 0x00000080, 0x00802080, 0x00800081, 0x00800001, 0x00002001,
     0x00000000, 0x00802000, 0x00802000, 0x00802081, 0x00000081, 0x00000000, 0x00800080, 0x00800001,
     0x00000001, 0x00002000, 0x00800000, 0x00802001, 0x00000080, 0x00800000, 0x00002001, 0x00002080,
@@ -78,7 +76,7 @@ pub const SB4: [u32; 64] = [
     0x00802081, 0x00000081, 0x00000001, 0x00002000, 0x00800001, 0x00002001, 0x00802080, 0x00800081,
     0x00002001, 0x00002080, 0x00800000, 0x00802001, 0x00000080, 0x00800000, 0x00002000, 0x00802080,
 ];
-pub const SB5: [u32; 64] = [
+pub const sb5: [u32; 64] = [
     0x00000100, 0x02080100, 0x02080000, 0x42000100, 0x00080000, 0x00000100, 0x40000000, 0x02080000,
     0x40080100, 0x00080000, 0x02000100, 0x40080100, 0x42000100, 0x42080000, 0x00080100, 0x40000000,
     0x02000000, 0x40080000, 0x40080000, 0x00000000, 0x40000100, 0x42080100, 0x42080100, 0x02000100,
@@ -88,7 +86,7 @@ pub const SB5: [u32; 64] = [
     0x42080100, 0x00080100, 0x42000000, 0x42080100, 0x02080000, 0x00000000, 0x40080000, 0x42000000,
     0x00080100, 0x02000100, 0x40000100, 0x00080000, 0x00000000, 0x40080000, 0x02080100, 0x40000100,
 ];
-pub const SB6: [u32; 64] = [
+pub const sb6: [u32; 64] = [
     0x20000010, 0x20400000, 0x00004000, 0x20404010, 0x20400000, 0x00000010, 0x20404010, 0x00400000,
     0x20004000, 0x00404010, 0x00400000, 0x20000010, 0x00400010, 0x20004000, 0x20000000, 0x00004010,
     0x00000000, 0x00400010, 0x20004010, 0x00004000, 0x00404000, 0x20004010, 0x00000010, 0x20400010,
@@ -98,7 +96,7 @@ pub const SB6: [u32; 64] = [
     0x00404010, 0x20404000, 0x00000000, 0x20400010, 0x00000010, 0x00004000, 0x20400000, 0x00404010,
     0x00004000, 0x00400010, 0x20004010, 0x00000000, 0x20404000, 0x20000000, 0x00400010, 0x20004010,
 ];
-pub const SB7: [u32; 64] = [
+pub const sb7: [u32; 64] = [
     0x00200000, 0x04200002, 0x04000802, 0x00000000, 0x00000800, 0x04000802, 0x00200802, 0x04200800,
     0x04200802, 0x00200000, 0x00000000, 0x04000002, 0x00000002, 0x04000000, 0x04200002, 0x00000802,
     0x04000800, 0x00200802, 0x00200002, 0x04000800, 0x04000002, 0x04200000, 0x04200800, 0x00200002,
@@ -108,7 +106,7 @@ pub const SB7: [u32; 64] = [
     0x00000802, 0x04000002, 0x04200802, 0x04200000, 0x00200800, 0x00000000, 0x00000002, 0x04200802,
     0x00000000, 0x00200802, 0x04200000, 0x00000800, 0x04000002, 0x04000800, 0x00000800, 0x00200002,
 ];
-pub const SB8: [u32; 64] = [
+pub const sb8: [u32; 64] = [
     0x10001040, 0x00001000, 0x00040000, 0x10041040, 0x10000000, 0x10001040, 0x00000040, 0x10000000,
     0x00040040, 0x10040000, 0x10041040, 0x00041000, 0x10041000, 0x00041040, 0x00001000, 0x00000040,
     0x10040000, 0x10000040, 0x10001000, 0x00001040, 0x00041000, 0x00040040, 0x10040040, 0x10041000,
@@ -121,19 +119,19 @@ pub const SB8: [u32; 64] = [
 /*
 * PC1: left and right halves bit-swap
 */
-pub const LHs: [u32; 16] = [
+pub const lhs: [u32; 16] = [
     0x00000000, 0x00000001, 0x00000100, 0x00000101, 0x00010000, 0x00010001, 0x00010100, 0x00010101,
     0x01000000, 0x01000001, 0x01000100, 0x01000101, 0x01010000, 0x01010001, 0x01010100, 0x01010101,
 ];
 
-pub const RHs: [u32; 16] = [
+pub const rhs: [u32; 16] = [
     0x00000000, 0x01000000, 0x00010000, 0x01010000, 0x00000100, 0x01000100, 0x00010100, 0x01010100,
     0x00000001, 0x01000001, 0x00010001, 0x01010001, 0x00000101, 0x01000101, 0x00010101, 0x01010101,
 ];
 /*
  * 32-bit integer manipulation macros (little endian)
  */
-pub const odd_parity_table: [u8; 128] = [
+pub const ODD_PARITY_TABLE: [u8; 128] = [
     1, 2, 4, 7, 8, 11, 13, 14, 16, 19, 21, 22, 25, 26, 28, 31, 32, 35, 37, 38, 41, 42, 44, 47, 49,
     50, 52, 55, 56, 59, 61, 62, 64, 67, 69, 70, 73, 74, 76, 79, 81, 82, 84, 87, 88, 91, 93, 94, 97,
     98, 100, 103, 104, 107, 109, 110, 112, 115, 117, 118, 121, 122, 124, 127, 128, 131, 133, 134,
@@ -143,7 +141,7 @@ pub const odd_parity_table: [u8; 128] = [
     251, 253, 254,
 ];
 
-pub const weak_key_table: [[u8; MBEDTLS_DES_KEY_SIZE]; WEAK_KEY_COUNT] = [
+pub const WEAK_KEY_TABLE: [[u8; MBEDTLS_DES_KEY_SIZE]; WEAK_KEY_COUNT] = [
     [0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01],
     [0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0xFE],
     [0x1F, 0x1F, 0x1F, 0x1F, 0x0E, 0x0E, 0x0E, 0x0E],
@@ -178,165 +176,157 @@ pub fn put_uint32_be(n: u32, b: &mut [u8; 8], i: usize) {
 /*
  * Initial Permutation
  */
-pub fn DES_IP(X: &mut u32, Y: &mut u32) {
-    let mut T: u32;
+pub fn des_ip(x: &mut u32, y: &mut u32) {
+    let mut t: u32;
 
-    T = (((*X) >> 4) ^ (*Y)) & 0x0F0F0F0F;
-    (*Y) ^= T;
-    (*X) ^= (T << 4);
-    T = (((*X) >> 16) ^ (*Y)) & 0x0000FFFF;
-    (*Y) ^= T;
-    (*X) ^= (T << 16);
-    T = (((*Y) >> 2) ^ (*X)) & 0x33333333;
-    (*X) ^= T;
-    (*Y) ^= (T << 2);
-    T = (((*Y) >> 8) ^ (*X)) & 0x00FF00FF;
-    (*X) ^= T;
-    (*Y) ^= (T << 8);
-    (*Y) = (((*Y) << 1) | ((*Y) >> 31)) & 0xFFFFFFFF;
-    T = ((*X) ^ (*Y)) & 0xAAAAAAAA;
-    (*Y) ^= T;
-    (*X) ^= T;
-    (*X) = (((*X) << 1) | ((*X) >> 31)) & 0xFFFFFFFF;
+    t = (((*x) >> 4) ^ (*y)) & 0x0F0F0F0F;
+    (*y) ^= t;
+    (*x) ^= t << 4;
+    t = (((*x) >> 16) ^ (*y)) & 0x0000FFFF;
+    (*y) ^= t;
+    (*x) ^= t << 16;
+    t = (((*y) >> 2) ^ (*x)) & 0x33333333;
+    (*x) ^= t;
+    (*y) ^= t << 2;
+    t = (((*y) >> 8) ^ (*x)) & 0x00FF00FF;
+    (*x) ^= t;
+    (*y) ^= (t << 8);
+    (*y) = (((*y) << 1) | ((*y) >> 31)) & 0xFFFFFFFF;
+    t= ((*x) ^ (*y)) & 0xAAAAAAAA;
+    (*y) ^= t;
+    (*x) ^= t;
+    (*x) = (((*x) << 1) | ((*x) >> 31)) & 0xFFFFFFFF;
 }
 /*
  * Final Permutation
  */
 
-pub fn DES_FP(X: &mut u32, Y: &mut u32) {
-    let mut T: u32;
-    (*X) = (((*X) << 31) | ((*X) >> 1)) & 0xFFFFFFFF;
-    T = ((*X) ^ (*Y)) & 0xAAAAAAAA;
-    (*X) ^= T;
-    (*Y) ^= T;
-    (*Y) = (((*Y) << 31) | ((*Y) >> 1)) & 0xFFFFFFFF;
-    T = (((*Y) >> 8) ^ (*X)) & 0x00FF00FF;
-    (*X) ^= T;
-    (*Y) ^= (T << 8);
-    T = (((*Y) >> 2) ^ (*X)) & 0x33333333;
-    (*X) ^= T;
-    (*Y) ^= (T << 2);
-    T = (((*X) >> 16) ^ (*Y)) & 0x0000FFFF;
-    (*Y) ^= T;
-    (*X) ^= (T << 16);
-    T = (((*X) >> 4) ^ (*Y)) & 0x0F0F0F0F;
-    (*Y) ^= T;
-    (*X) ^= (T << 4);
-}
-pub fn SWAP1(a: &mut u32, b: &mut u32) {
+pub fn des_fp(x: &mut u32, y: &mut u32) {
     let mut t: u32;
-    t = (*a);
-    (*a) = (*b);
-    (*b) = t;
-    t = 0;
+    (*x) = (((*x) << 31) | ((*x) >> 1)) & 0xFFFFFFFF;
+    t = ((*x) ^ (*y)) & 0xAAAAAAAA;
+    (*x) ^= t;
+    (*y) ^= t;
+    (*y) = (((*y) << 31) | ((*y) >> 1)) & 0xFFFFFFFF;
+    t = (((*y) >> 8) ^ (*x)) & 0x00FF00FF;
+    (*x) ^= t;
+    (*y) ^= t << 8;
+    t= (((*y) >> 2) ^ (*x)) & 0x33333333;
+    (*x) ^= t;
+    (*y) ^= t<< 2;
+    t = (((*x) >> 16) ^ (*y)) & 0x0000FFFF;
+    (*y) ^= t;
+    (*x) ^= t << 16;
+    t= (((*x) >> 4) ^ (*y)) & 0x0F0F0F0F;
+    (*y) ^= t;
+    (*x) ^= t<< 4;
 }
-
 pub fn mbedtls_des_key_set_parity(mut key: [u8; MBEDTLS_DES_KEY_SIZE]) {
     let mut i: usize;
     for i in 0..MBEDTLS_DES_KEY_SIZE {
-        key[i] = odd_parity_table[(key[i as usize] / 2) as usize];
+        key[i] = ODD_PARITY_TABLE[(key[i as usize] / 2) as usize];
     }
 }
 
 pub fn mbedtls_des_key_check_key_parity(mut key: [u8; MBEDTLS_DES_KEY_SIZE]) -> i32 {
     let mut i: usize;
     for i in 0..MBEDTLS_DES_KEY_SIZE {
-        if (key[i] == odd_parity_table[(key[i as usize] / 2) as usize]) {
+        if key[i] == ODD_PARITY_TABLE[(key[i as usize] / 2) as usize] {
             return 1;
         }
     }
     return 0;
 }
-pub fn mbedtls_des_setkey(SK: &mut [u32; 32], mut key: [u8; MBEDTLS_DES_KEY_SIZE]) {
-    let mut X: u32 = 0;
-    let mut Y: u32 = 0;
-    let mut T: u32 = 0;
+pub fn mbedtls_des_setkey(sk: &mut [u32; 32], mut key: [u8; MBEDTLS_DES_KEY_SIZE]) {
+    let mut x: u32 = 0;
+    let mut y: u32 = 0;
+    let mut t: u32 = 0;
     let mut j: usize = 0;
-    get_uint32_be(&mut X, &mut key, 0);
-    get_uint32_be(&mut Y, &mut key, 4);
+    get_uint32_be(&mut x, &mut key, 0);
+    get_uint32_be(&mut y, &mut key, 4);
 
-    T = ((Y >> 4) ^ X) & 0x0F0F0F0F;
-    X ^= T;
-    Y ^= (T << 4);
-    T = ((Y) ^ X) & 0x10101010;
-    X ^= T;
-    Y ^= (T);
+    t = ((y >> 4) ^ x) & 0x0F0F0F0F;
+    x^= t;
+    y ^= t << 4;
+    t = ((y) ^ x) & 0x10101010;
+    x^= t;
+    y^=t;
 
-    X = (LHs[((X) & 0xF) as usize] << 3)
-        | (LHs[((X >> 8) & 0xF) as usize] << 2)
-        | (LHs[((X >> 16) & 0xF) as usize] << 1)
-        | (LHs[((X >> 24) & 0xF) as usize])
-        | (LHs[((X >> 5) & 0xF) as usize] << 7)
-        | (LHs[((X >> 13) & 0xF) as usize] << 6)
-        | (LHs[((X >> 21) & 0xF) as usize] << 5)
-        | (LHs[((X >> 29) & 0xF) as usize] << 4);
+    x = (lhs[((x) & 0xF) as usize] << 3)
+        | (lhs[((x >> 8) & 0xF) as usize] << 2)
+        | (lhs[((x >> 16) & 0xF) as usize] << 1)
+        | (lhs[((x >> 24) & 0xF) as usize])
+        | (lhs[((x >> 5) & 0xF) as usize] << 7)
+        | (lhs[((x >> 13) & 0xF) as usize] << 6)
+        | (lhs[((x >> 21) & 0xF) as usize] << 5)
+        | (lhs[((x >> 29) & 0xF) as usize] << 4);
 
-    Y = (RHs[((Y >> 1) & 0xF) as usize] << 3)
-        | (RHs[((Y >> 9) & 0xF) as usize] << 2)
-        | (RHs[((Y >> 17) & 0xF) as usize] << 1)
-        | (RHs[((Y >> 25) & 0xF) as usize])
-        | (RHs[((Y >> 4) & 0xF) as usize] << 7)
-        | (RHs[((Y >> 12) & 0xF) as usize] << 6)
-        | (RHs[((Y >> 20) & 0xF) as usize] << 5)
-        | (RHs[((Y >> 28) & 0xF) as usize] << 4);
+    y = (rhs[((y >> 1) & 0xF) as usize] << 3)
+        | (rhs[((y >> 9) & 0xF) as usize] << 2)
+        | (rhs[((y>> 17) & 0xF) as usize] << 1)
+        | (rhs[((y >> 25) & 0xF) as usize])
+        | (rhs[((y >> 4) & 0xF) as usize] << 7)
+        | (rhs[((y >> 12) & 0xF) as usize] << 6)
+        | (rhs[((y >> 20) & 0xF) as usize] << 5)
+        | (rhs[((y >> 28) & 0xF) as usize] << 4);
 
-    X &= 0x0FFFFFFF;
-    Y &= 0x0FFFFFFF;
+    x &= 0x0FFFFFFF;
+    y &= 0x0FFFFFFF;
 
     for i in 0..16 {
-        if (i < 2 || i == 8 || i == 15) {
-            X = ((X << 1) | (X >> 27)) & 0x0FFFFFFF;
-            Y = ((Y << 1) | (Y >> 27)) & 0x0FFFFFFF;
+        if i < 2 || i == 8 || i == 15 {
+            x= ((x << 1) | (x >> 27)) & 0x0FFFFFFF;
+            y = ((y << 1) | (y >> 27)) & 0x0FFFFFFF;
         } else {
-            X = ((X << 2) | (X >> 26)) & 0x0FFFFFFF;
-            Y = ((Y << 2) | (Y >> 26)) & 0x0FFFFFFF;
+            x= ((x<< 2) | (x>> 26)) & 0x0FFFFFFF;
+            y = ((y<< 2) | (y >> 26)) & 0x0FFFFFFF;
         }
-        SK[j] = ((X << 4) & 0x24000000)
-            | ((X << 28) & 0x10000000)
-            | ((X << 14) & 0x08000000)
-            | ((X << 18) & 0x02080000)
-            | ((X << 6) & 0x01000000)
-            | ((X << 9) & 0x00200000)
-            | ((X >> 1) & 0x00100000)
-            | ((X << 10) & 0x00040000)
-            | ((X << 2) & 0x00020000)
-            | ((X >> 10) & 0x00010000)
-            | ((Y >> 13) & 0x00002000)
-            | ((Y >> 4) & 0x00001000)
-            | ((Y << 6) & 0x00000800)
-            | ((Y >> 1) & 0x00000400)
-            | ((Y >> 14) & 0x00000200)
-            | ((Y) & 0x00000100)
-            | ((Y >> 5) & 0x00000020)
-            | ((Y >> 10) & 0x00000010)
-            | ((Y >> 3) & 0x00000008)
-            | ((Y >> 18) & 0x00000004)
-            | ((Y >> 26) & 0x00000002)
-            | ((Y >> 24) & 0x00000001);
+        sk[j] = ((x << 4) & 0x24000000)
+            | ((x << 28) & 0x10000000)
+            | ((x << 14) & 0x08000000)
+            | ((x << 18) & 0x02080000)
+            | ((x << 6) & 0x01000000)
+            | ((x << 9) & 0x00200000)
+            | ((x >> 1) & 0x00100000)
+            | ((x << 10) & 0x00040000)
+            | ((x << 2) & 0x00020000)
+            | ((x >> 10) & 0x00010000)
+            | ((y >> 13) & 0x00002000)
+            | ((y >> 4) & 0x00001000)
+            | ((y << 6) & 0x00000800)
+            | ((y >> 1) & 0x00000400)
+            | ((y >> 14) & 0x00000200)
+            | ((y) & 0x00000100)
+            | ((y >> 5) & 0x00000020)
+            | ((y >> 10) & 0x00000010)
+            | ((y >> 3) & 0x00000008)
+            | ((y >> 18) & 0x00000004)
+            | ((y >> 26) & 0x00000002)
+            | ((y >> 24) & 0x00000001);
         j = j + 1;
 
-        SK[j] = ((X << 15) & 0x20000000)
-            | ((X << 17) & 0x10000000)
-            | ((X << 10) & 0x08000000)
-            | ((X << 22) & 0x04000000)
-            | ((X >> 2) & 0x02000000)
-            | ((X << 1) & 0x01000000)
-            | ((X << 16) & 0x00200000)
-            | ((X << 11) & 0x00100000)
-            | ((X << 3) & 0x00080000)
-            | ((X >> 6) & 0x00040000)
-            | ((X << 15) & 0x00020000)
-            | ((X >> 4) & 0x00010000)
-            | ((Y >> 2) & 0x00002000)
-            | ((Y << 8) & 0x00001000)
-            | ((Y >> 14) & 0x00000808)
-            | ((Y >> 9) & 0x00000400)
-            | ((Y) & 0x00000200)
-            | ((Y << 7) & 0x00000100)
-            | ((Y >> 7) & 0x00000020)
-            | ((Y >> 3) & 0x00000011)
-            | ((Y << 2) & 0x00000004)
-            | ((Y >> 21) & 0x00000002);
+        sk[j] = ((x << 15) & 0x20000000)
+            | ((x << 17) & 0x10000000)
+            | ((x << 10) & 0x08000000)
+            | ((x << 22) & 0x04000000)
+            | ((x >> 2) & 0x02000000)
+            | ((x << 1) & 0x01000000)
+            | ((x << 16) & 0x00200000)
+            | ((x << 11) & 0x00100000)
+            | ((x << 3) & 0x00080000)
+            | ((x >> 6) & 0x00040000)
+            | ((x << 15) & 0x00020000)
+            | ((x >> 4) & 0x00010000)
+            | ((y >> 2) & 0x00002000)
+            | ((y << 8) & 0x00001000)
+            | ((y >> 14) & 0x00000808)
+            | ((y >> 9) & 0x00000400)
+            | ((y) & 0x00000200)
+            | ((y << 7) & 0x00000100)
+            | ((y >> 7) & 0x00000020)
+            | ((y >> 3) & 0x00000011)
+            | ((y << 2) & 0x00000004)
+            | ((y >> 21) & 0x00000002);
         j = j + 1;
     }
 }
@@ -392,45 +382,45 @@ pub fn mbedtls_des_crypt_ecb(
     let mut X: u32 = 0;
     let mut Y: u32 = 0;
     let mut T: u32 = 0;
-    let SK: *mut u32 = &mut (*ctx).sk[0];
+    let sk1: *mut u32 = &mut (*ctx).sk[0];
 
     get_uint32_be(&mut X, &mut input, 0);
     get_uint32_be(&mut Y, &mut input, 4);
-    DES_IP(&mut X, &mut Y);
+    des_ip(&mut X, &mut Y);
     while i < 8 {
         //DES_ROUND(Y,X);
         T = (*ctx).sk[count] ^ (Y);
         count += 1;
-        (X) ^= SB8[((T) & 0x3F) as usize]
-            ^ SB6[((T >> 8) & 0x3F) as usize]
-            ^ SB4[((T >> 16) & 0x3F) as usize]
-            ^ SB2[((T >> 24) & 0x3F) as usize];
+        (X) ^= sb8[((T) & 0x3F) as usize]
+            ^ sb6[((T >> 8) & 0x3F) as usize]
+            ^ sb4[((T >> 16) & 0x3F) as usize]
+            ^ sb2[((T >> 24) & 0x3F) as usize];
 
         T = (*ctx).sk[count] ^ (((Y) << 28) | ((Y) >> 4));
         count += 1;
-        (X) ^= SB7[((T) & 0x3F) as usize]
-            ^ SB5[((T >> 8) & 0x3F) as usize]
-            ^ SB3[((T >> 16) & 0x3F) as usize]
-            ^ SB1[((T >> 24) & 0x3F) as usize];
+        (X) ^= sb7[((T) & 0x3F) as usize]
+            ^ sb5[((T >> 8) & 0x3F) as usize]
+            ^ sb3[((T >> 16) & 0x3F) as usize]
+            ^ sb1[((T >> 24) & 0x3F) as usize];
 
         //DES_ROUND(X,Y);
         T = (*ctx).sk[count] ^ (X);
         count += 1;
-        (Y) ^= SB8[((T) & 0x3F) as usize]
-            ^ SB6[((T >> 8) & 0x3F) as usize]
-            ^ SB4[((T >> 16) & 0x3F) as usize]
-            ^ SB2[((T >> 24) & 0x3F) as usize];
+        (Y) ^= sb8[((T) & 0x3F) as usize]
+            ^ sb6[((T >> 8) & 0x3F) as usize]
+            ^ sb4[((T >> 16) & 0x3F) as usize]
+            ^ sb2[((T >> 24) & 0x3F) as usize];
 
         T = (*ctx).sk[count] ^ (((X) << 28) | ((X) >> 4));
         count += 1;
-        (Y) ^= SB7[((T) & 0x3F) as usize]
-            ^ SB5[((T >> 8) & 0x3F) as usize]
-            ^ SB3[((T >> 16) & 0x3F) as usize]
-            ^ SB1[((T >> 24) & 0x3F) as usize];
+        (Y) ^= sb7[((T) & 0x3F) as usize]
+            ^ sb5[((T >> 8) & 0x3F) as usize]
+            ^ sb3[((T >> 16) & 0x3F) as usize]
+            ^ sb1[((T >> 24) & 0x3F) as usize];
         i += 1;
     }
 
-    DES_FP(&mut Y, &mut X);
+    des_fp(&mut Y, &mut X);
     put_uint32_be(Y, &mut output, 0);
     put_uint32_be(X, &mut output, 4);
 
@@ -692,113 +682,113 @@ pub fn mbedtls_des3_crypt_ecb(
 ) -> i32 {
     let mut i: usize = 0;
     let mut count: usize = 0;
-    let mut X: u32 = 0;
-    let mut Y: u32 = 0;
-    let mut T: u32 = 0;
-    let SK: *mut u32 = &mut (*ctx).sk[0];
+    let mut x: u32 = 0;
+    let mut y: u32 = 0;
+    let mut t: u32 = 0;
+    let sk1: *mut u32 = &mut (*ctx).sk[0];
 
-    get_uint32_be(&mut X, &mut input, 0);
-    get_uint32_be(&mut Y, &mut input, 4);
-    DES_IP(&mut X, &mut Y);
+    get_uint32_be(&mut x, &mut input, 0);
+    get_uint32_be(&mut y, &mut input, 4);
+    des_ip(&mut x, &mut y);
     while i < 8 {
         //DES_ROUND(Y,X);
-        T = (*ctx).sk[count] ^ (Y);
+        t = (*ctx).sk[count] ^ (y);
         count += 1;
-        (X) ^= SB8[((T) & 0x3F) as usize]
-            ^ SB6[((T >> 8) & 0x3F) as usize]
-            ^ SB4[((T >> 16) & 0x3F) as usize]
-            ^ SB2[((T >> 24) & 0x3F) as usize];
+        (x) ^= sb8[((t) & 0x3F) as usize]
+            ^ sb6[((t >> 8) & 0x3F) as usize]
+            ^ sb4[((t >> 16) & 0x3F) as usize]
+            ^ sb2[((t >> 24) & 0x3F) as usize];
 
-        T = (*ctx).sk[count] ^ (((Y) << 28) | ((Y) >> 4));
+        t= (*ctx).sk[count] ^ (((y) << 28) | ((y) >> 4));
         count += 1;
-        (X) ^= SB7[((T) & 0x3F) as usize]
-            ^ SB5[((T >> 8) & 0x3F) as usize]
-            ^ SB3[((T >> 16) & 0x3F) as usize]
-            ^ SB1[((T >> 24) & 0x3F) as usize];
+        (x) ^= sb7[((t) & 0x3F) as usize]
+            ^ sb5[((t >> 8) & 0x3F) as usize]
+            ^ sb3[((t >> 16) & 0x3F) as usize]
+            ^ sb1[((t >> 24) & 0x3F) as usize];
 
         //DES_ROUND(X,Y);
-        T = (*ctx).sk[count] ^ (X);
+        t = (*ctx).sk[count] ^ (x);
         count += 1;
-        (Y) ^= SB8[((T) & 0x3F) as usize]
-            ^ SB6[((T >> 8) & 0x3F) as usize]
-            ^ SB4[((T >> 16) & 0x3F) as usize]
-            ^ SB2[((T >> 24) & 0x3F) as usize];
+        (y) ^= sb8[((t) & 0x3F) as usize]
+            ^ sb6[((t>> 8) & 0x3F) as usize]
+            ^ sb4[((t >> 16) & 0x3F) as usize]
+            ^ sb2[((t >> 24) & 0x3F) as usize];
 
-        T = (*ctx).sk[count] ^ (((X) << 28) | ((X) >> 4));
+        t = (*ctx).sk[count] ^ (((x) << 28) | ((x) >> 4));
         count += 1;
-        (Y) ^= SB7[((T) & 0x3F) as usize]
-            ^ SB5[((T >> 8) & 0x3F) as usize]
-            ^ SB3[((T >> 16) & 0x3F) as usize]
-            ^ SB1[((T >> 24) & 0x3F) as usize];
+        (y) ^= sb7[((t) & 0x3F) as usize]
+            ^ sb5[((t >> 8) & 0x3F) as usize]
+            ^ sb3[((t >> 16) & 0x3F) as usize]
+            ^ sb1[((t >> 24) & 0x3F) as usize];
         i += 1;
     }
     while i < 8 {
         //DES_ROUND(X,Y);
-        T = (*ctx).sk[count] ^ (X);
+        t= (*ctx).sk[count] ^ (x);
         count += 1;
-        (Y) ^= SB8[((T) & 0x3F) as usize]
-            ^ SB6[((T >> 8) & 0x3F) as usize]
-            ^ SB4[((T >> 16) & 0x3F) as usize]
-            ^ SB2[((T >> 24) & 0x3F) as usize];
+        (y) ^= sb8[((t) & 0x3F) as usize]
+            ^ sb6[((t >> 8) & 0x3F) as usize]
+            ^ sb4[((t >> 16) & 0x3F) as usize]
+            ^ sb2[((t >> 24) & 0x3F) as usize];
 
-        T = (*ctx).sk[count] ^ (((X) << 28) | ((X) >> 4));
+        t = (*ctx).sk[count] ^ (((x) << 28) | ((x) >> 4));
         count += 1;
-        (Y) ^= SB7[((T) & 0x3F) as usize]
-            ^ SB5[((T >> 8) & 0x3F) as usize]
-            ^ SB3[((T >> 16) & 0x3F) as usize]
-            ^ SB1[((T >> 24) & 0x3F) as usize];
+        (y) ^= sb7[((t) & 0x3F) as usize]
+            ^ sb5[((t >> 8) & 0x3F) as usize]
+            ^ sb3[((t >> 16) & 0x3F) as usize]
+            ^ sb1[((t >> 24) & 0x3F) as usize];
         i += 1;
         //DES_ROUND(Y,X);
-        T = (*ctx).sk[count] ^ (Y);
+        t= (*ctx).sk[count] ^ (y);
         count += 1;
-        (X) ^= SB8[((T) & 0x3F) as usize]
-            ^ SB6[((T >> 8) & 0x3F) as usize]
-            ^ SB4[((T >> 16) & 0x3F) as usize]
-            ^ SB2[((T >> 24) & 0x3F) as usize];
+        (x) ^= sb8[((t) & 0x3F) as usize]
+            ^ sb6[((t >> 8) & 0x3F) as usize]
+            ^ sb4[((t >> 16) & 0x3F) as usize]
+            ^ sb2[((t >> 24) & 0x3F) as usize];
 
-        T = (*ctx).sk[count] ^ (((Y) << 28) | ((Y) >> 4));
+        t = (*ctx).sk[count] ^ (((y) << 28) | ((y) >> 4));
         count += 1;
-        (X) ^= SB7[((T) & 0x3F) as usize]
-            ^ SB5[((T >> 8) & 0x3F) as usize]
-            ^ SB3[((T >> 16) & 0x3F) as usize]
-            ^ SB1[((T >> 24) & 0x3F) as usize];
+        (x) ^= sb7[((t) & 0x3F) as usize]
+            ^ sb5[((t >> 8) & 0x3F) as usize]
+            ^ sb3[((t >> 16) & 0x3F) as usize]
+            ^ sb1[((t >> 24) & 0x3F) as usize];
     }
     while i < 8 {
         //DES_ROUND(Y,X);
-        T = (*ctx).sk[count] ^ (Y);
+        t= (*ctx).sk[count] ^ (y);
         count += 1;
-        (X) ^= SB8[((T) & 0x3F) as usize]
-            ^ SB6[((T >> 8) & 0x3F) as usize]
-            ^ SB4[((T >> 16) & 0x3F) as usize]
-            ^ SB2[((T >> 24) & 0x3F) as usize];
+        (x) ^= sb8[((t) & 0x3F) as usize]
+            ^ sb6[((t >> 8) & 0x3F) as usize]
+            ^ sb4[((t >> 16) & 0x3F) as usize]
+            ^ sb2[((t >> 24) & 0x3F) as usize];
 
-        T = (*ctx).sk[count] ^ (((Y) << 28) | ((Y) >> 4));
+    t= (*ctx).sk[count] ^ (((y) << 28) | ((y) >> 4));
         count += 1;
-        (X) ^= SB7[((T) & 0x3F) as usize]
-            ^ SB5[((T >> 8) & 0x3F) as usize]
-            ^ SB3[((T >> 16) & 0x3F) as usize]
-            ^ SB1[((T >> 24) & 0x3F) as usize];
+        (x) ^= sb7[((t) & 0x3F) as usize]
+            ^ sb5[((t >> 8) & 0x3F) as usize]
+            ^ sb3[((t >> 16) & 0x3F) as usize]
+            ^ sb1[((t >> 24) & 0x3F) as usize];
 
         //DES_ROUND(X,Y);
-        T = (*ctx).sk[count] ^ (X);
+        t= (*ctx).sk[count] ^ (x);
         count += 1;
-        (Y) ^= SB8[((T) & 0x3F) as usize]
-            ^ SB6[((T >> 8) & 0x3F) as usize]
-            ^ SB4[((T >> 16) & 0x3F) as usize]
-            ^ SB2[((T >> 24) & 0x3F) as usize];
+        (y) ^= sb8[((t) & 0x3F) as usize]
+            ^ sb6[((t >> 8) & 0x3F) as usize]
+            ^ sb4[((t >> 16) & 0x3F) as usize]
+            ^ sb2[((t >> 24) & 0x3F) as usize];
 
-        T = (*ctx).sk[count] ^ (((X) << 28) | ((X) >> 4));
+        t = (*ctx).sk[count] ^ (((x) << 28) | ((x) >> 4));
         count += 1;
-        (Y) ^= SB7[((T) & 0x3F) as usize]
-            ^ SB5[((T >> 8) & 0x3F) as usize]
-            ^ SB3[((T >> 16) & 0x3F) as usize]
-            ^ SB1[((T >> 24) & 0x3F) as usize];
+        (y) ^= sb7[((t) & 0x3F) as usize]
+            ^ sb5[((t >> 8) & 0x3F) as usize]
+            ^ sb3[((t >> 16) & 0x3F) as usize]
+            ^ sb1[((t >> 24) & 0x3F) as usize];
         i += 1;
     }
 
-    DES_FP(&mut Y, &mut X);
-    put_uint32_be(Y, &mut output, 0);
-    put_uint32_be(X, &mut output, 4);
+    des_fp(&mut y, &mut x);
+    put_uint32_be(y, &mut output, 0);
+    put_uint32_be(x, &mut output, 4);
 
     return 0;
 }
