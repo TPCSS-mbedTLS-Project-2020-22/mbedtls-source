@@ -270,8 +270,8 @@ struct cipher_context_t
      */
     operation: operation_t,
 
-    add_padding: fn(),
-    get_padding: fn(),
+    add_padding: fn( output: &str, olen: usize, data_len: &mut usize),
+    get_padding: fn(input: &str, ilen: usize, data_len: &mut usize),
 
 
     /** Buffer for input that has not been processed yet. */
@@ -317,6 +317,126 @@ pub fn get_no_padding (input: &str, input_len: usize,
     -1
 }
 
+/*
+ * One and zeros padding: fill with 80 00 ... 00
+ */
+pub fn add_one_and_zeros_padding(output :&mut String, output_len: usize, data_len: usize) {
+
+    let padding_len: usize = output_len - data_len;
+    output.push('1' as char);
+
+    for i in 1..padding_len {
+       output.push('0' as char);
+    }
+}
+
+#[test]
+fn test_add_one_and_zeros_padding () {
+    let mut s = String::from("1234");
+    let value = "1234100000";
+
+    add_one_and_zeros_padding(&mut s, 10, 4);
+    println!("{}", s);
+    assert_eq!(s, value);
+}
+
+
+
+/*
+ * No padding: don't pad :)
+ *
+ * There is no add_padding function (check for NULL in mbedtls_cipher_finish)
+ * but a trivial get_padding function
+ */
+/*
+pub fn get_no_padding(input: &mut str, input_len: usize, data_len: &mut usize) -> i32 {
+    if Some(input) == None || Some(data_len) == None {
+        return MBEDTLS_ERR_CIPHER_BAD_INPUT_DATA;
+    }
+
+    *data_len = input_len;
+
+    return 0;
+}
+
+*/
+fn cipher_finish (ctx: &mut cipher_context_t, output: &mut str, olen: &mut usize) -> i32 {
+
+    if ctx.psa_enabled == 1 {
+        /* While PSA Crypto has an API for multipart
+         * operations, we currently don't make it
+         * accessible through the cipher layer. */
+        return  MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE;
+    }
+    *olen = 0;
+    if cipher_mode_t::MBEDTLS_MODE_CFB == ctx.cipher_info.mode ||
+        cipher_mode_t::MBEDTLS_MODE_OFB == ctx.cipher_info.mode ||
+        cipher_mode_t::MBEDTLS_MODE_CTR == ctx.cipher_info.mode ||
+        cipher_mode_t::MBEDTLS_MODE_GCM == ctx.cipher_info.mode ||
+        cipher_mode_t::MBEDTLS_MODE_XTS == ctx.cipher_info.mode ||
+        cipher_mode_t::MBEDTLS_MODE_STREAM == ctx.cipher_info.mode {
+            return 0;
+        }
+    if  cipher_type_t::MBEDTLS_CIPHER_CHACHA20 == ctx.cipher_info.cipher_type ||
+        cipher_type_t::MBEDTLS_CIPHER_CHACHA20_POLY1305 == ctx.cipher_info.cipher_type  {
+        return 0 ;
+        }
+    if cipher_mode_t::MBEDTLS_MODE_ECB == ctx.cipher_info.mode
+    {
+        if ctx.unprocessed_len != 0 {
+            return MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED;
+        }
+        return 0;
+    }
+
+    if cipher_mode_t::MBEDTLS_MODE_CBC ==  ctx.cipher_info.mode {
+        let ret = 0;
+
+        if operation_t::MBEDTLS_ENCRYPT == ctx.operation {
+            /* check for 'no padding' mode */
+            // if None == Some(ctx.add_padding) {
+            //     if 0 != ctx.unprocessed_len {
+            //         return MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED;
+            //     }
+
+            //return 0;
+            //}
+
+            // ctx.add_padding( ctx.unprocessed_data, cipher_get_iv_size( ctx ), 
+                              // ctx.unprocessed_len );
+        } else if cipher_get_block_size( ctx ) != ctx.unprocessed_len {
+            /*
+             * For decrypt operations, expect a full block,
+             * or an empty block if no padding
+             */
+            if 0 == ctx.unprocessed_len {
+                return 0 ;
+            }
+
+            return MBEDTLS_ERR_CIPHER_FULL_BLOCK_EXPECTED;
+        }
+
+        /* cipher block */
+/*        if 0 != ( ret = ctx.cipher_info.base.cbc_func( ctx.cipher_ctx,                                                           ctx.operation, mbedtls_cipher_get_block_size( ctx ),
+                                                       ctx.iv, ctx.unprocessed_data,
+                                                       output)) {
+            return ret;
+        } */
+        /* Set output size for decryption */
+/*        if operation_t::MBEDTLS_DECRYPT == ctx.operation {
+            return ctx.get_padding( output, mbedtls_cipher_get_block_size( ctx ),
+                                     olen);
+        }
+            
+*/
+        /* Set output size for encryption */
+        *olen = cipher_get_block_size( ctx );
+        return 0;
+    }
+
+    return MBEDTLS_ERR_CIPHER_FEATURE_UNAVAILABLE ;
+}
+ 
 
 #[allow(dead_code)]
 pub fn get_zeros_padding(input: &str, input_len: usize,
@@ -530,9 +650,9 @@ fn cipher_update(ctx: &mut cipher_context_t, input: &str,
         /*
          * If there is not enough data for a full block, cache it.
          */
-        if ( ctx.operation == operation_t::MBEDTLS_DECRYPT && None != Some(ctx.add_padding) &&
+        if ( ctx.operation == operation_t::MBEDTLS_DECRYPT &&
                 *ilen <= block_size - ctx.unprocessed_len ) ||
-            ( ctx.operation == operation_t::MBEDTLS_DECRYPT && None == Some(ctx.add_padding) &&
+            ( ctx.operation == operation_t::MBEDTLS_DECRYPT &&
                 *ilen < block_size - ctx.unprocessed_len ) ||
              ( ctx.operation == operation_t::MBEDTLS_ENCRYPT &&
                *ilen < block_size - ctx.unprocessed_len ) {
@@ -579,8 +699,7 @@ fn cipher_update(ctx: &mut cipher_context_t, input: &str,
              */
             copy_len = *ilen % block_size;
             if copy_len == 0 &&
-                ctx.operation == operation_t::MBEDTLS_DECRYPT &&
-                None != Some(ctx.add_padding)
+                ctx.operation == operation_t::MBEDTLS_DECRYPT
             {
                 copy_len = block_size;
             }
@@ -612,7 +731,7 @@ fn cipher_update(ctx: &mut cipher_context_t, input: &str,
 
     if ctx.cipher_info.mode == cipher_mode_t::MBEDTLS_MODE_CFB {
         // if 0 != ( ret = ctx.cipher_info.base.cfb_func( ctx.cipher_ctx,
-        //         ctx.operation, ilen, &ctx.unprocessed_len, ctx.iv,
+        //         ctx.operation, ilen, ctx.unprocessed_len, ctx.iv,
         //         input, output ) ) 
         // {
         //     return ret;
@@ -628,7 +747,7 @@ fn cipher_update(ctx: &mut cipher_context_t, input: &str,
     if ctx.cipher_info.mode == cipher_mode_t::MBEDTLS_MODE_OFB 
     {
         // if 0 != ( ret = ctx.cipher_info.base.ofb_func( ctx.cipher_ctx,
-        //         ilen, &ctx.unprocessed_len, ctx.iv, input, output ) ) 
+        //         ilen, ctx.unprocessed_len, ctx.iv, input, output ) ) 
         // {
         //     return ret;
         // }
