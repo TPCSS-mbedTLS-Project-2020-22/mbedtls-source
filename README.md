@@ -7,5 +7,5 @@ README
 All mbed-tls modules will have their respective rust module in this single library crate. If the mbed-tls module has several files within, we will use folders to group such submodules within a single module (as in the case of ssl-tls module).
 
 # Contributors
-
-TODO : Add the list of all the contributors over here
+Hitesh Poply
+Gaurish Gangwar
