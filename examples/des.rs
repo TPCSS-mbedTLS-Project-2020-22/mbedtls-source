@@ -20,7 +20,7 @@ fn main() {
     mbedtls_des_setkey_enc(&mut cipher, DES3_TEST_KEYS);
     println!("-------Now Presenting DES ECB Encryption and Decryption------");
     //Encryption
-    let mut input: [u8; 8] = [49, 50, 51, 52, 53, 54, 55, 56];
+    let mut input: [u8; 8] ;
     let mut c: [u8; 8] = [0, 0, 0, 0, 0, 0, 0, 0];
     println!("Before Encrption : Input Value is  {:?}", input);
     mbedtls_des_crypt_ecb(&mut cipher, input, &mut c);
